@@ -1,0 +1,17 @@
+ trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        if ApprovalsMgmt.CheckPurchaseApprovalPossible(Rec) then
+                            ApprovalsMgmt.OnSendPurchaseDocForApproval(Rec);
+                    end;
+
+
+
+Purchase Price (7012)
+vendor No
+Item No.
+UOM
+
+
+FD2440
