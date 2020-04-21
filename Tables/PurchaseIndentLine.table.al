@@ -54,6 +54,8 @@ table 50036 "Purchase Indent Line"
                         "Unit of Measure Code" := ItemG."Purch. Unit of Measure";
                         Validate("Requested Date");
                     end;
+                LocationwisePurchaser.get("Receiving Location","Item Category Code");
+                "Purchaser Code" := LocationwisePurchaser."Purchaser Code";
             end;
         }
         field(6; "Description"; Text[100])
@@ -148,6 +150,11 @@ table 50036 "Purchase Indent Line"
         {
             DataClassification = ToBeClassified;
         }
+        field(23; "Purchaser Code"; Code[50])
+        {
+            DataClassification = ToBeClassified;
+            TableRelation = "User Setup";
+        }
     }
 
     keys
@@ -157,10 +164,17 @@ table 50036 "Purchase Indent Line"
             Clustered = true;
         }
     }
+    trigger OnModify()
+    begin
+        if PurchIndentHdrG.get("Document No.") then
+            PurchIndentHdrG.TestField("Approval Status", PurchIndentHdrG."Approval Status"::Open);
+    end;
+
     var
         PurchIndentHdrG: record "Purchase Indent Header";
         ItemG: Record Item;
         PurIndHdrG: Record "Purchase Indent Header";
+        LocationwisePurchaser: Record "Locationwise Purchaser";        
         LeadTimeMgt: Codeunit "Lead-Time Management";
 
 }

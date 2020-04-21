@@ -113,6 +113,11 @@ table 50035 "Purchase Indent Header"
         end;
     end;
 
+    trigger OnModify()
+    begin
+        //TestField("Approval Status", "Approval Status"::Open);
+    end;
+
     var
         PurchaseSetup: Record "Purchases & Payables Setup";
         PurchseSetupG: Record "Purchases & Payables Setup";
@@ -195,11 +200,13 @@ table 50035 "Purchase Indent Header"
                     end;
                     */
                     //RequisitionLineG.Validate("Vendor No.", "Buy-from Vendor No.");
+                    RequisitionLineG.SetCurrFieldNo(12);
                     RequisitionLineG.Validate("Due Date", "Requested Date");
                     RequisitionHdrG.GET("Document No.");
                     RequisitionLineG."Req. Document No." := "No.";
                     RequisitionLineG."Req. Line No." := "Line No.";
                     RequisitionLineG."From Request" := true;
+                    RequisitionLineG."Purchaser Code" := "Purchaser Code";
                     RequisitionLineG.Insert(true);
                     Flag := true;
                     Modify();

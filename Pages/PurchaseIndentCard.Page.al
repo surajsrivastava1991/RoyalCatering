@@ -105,7 +105,7 @@ page 50038 "Purchase Indent Card"
                         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
                         ApprovalsMgmt.ApproveRecordApprovalRequest(RecordId);
-                        CreateRequisitionLines();//Create Requisition Lines
+                        //CreateRequisitionLines();//Create Requisition Lines
                     end;
                 }
                 action(Reject)
@@ -191,7 +191,7 @@ page 50038 "Purchase Indent Card"
                             ERROR(Text002);
                         Rec."Approval Status" := rec."Approval Status"::Released;
                         CurrPage.Update(true);
-                        CreateRequisitionLines();//Create Requisition Lines
+                        //CreateRequisitionLines();//Create Requisition Lines
                     end;
                 }
                 action(Reopen)

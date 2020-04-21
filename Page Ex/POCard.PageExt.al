@@ -76,17 +76,17 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                     PurchreceiptHeaderL: Record "Purch. Rcpt. Header";
                     PurchLineL: Record "Purchase Line";
                     ItemJrlLinePostingL: codeunit "Item Jnl.-Post Line";
-                    ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    ReleasePurchDoc: Codeunit "Release Purchase Document";
-                    GeneralLedgerPosdtingG: Codeunit "General Ledger Posting";
                     JrlLinePostingL: codeunit "Item Jnl.-Post";
                     DocumentNoL: Code[20];
                 begin
                     TestField("Location Code");
                     LocationG.Get("Location Code");
                     LocationG.TestField("Reject Location");
-                    LocationG.TestField("Item Template Name");
-                    LocationG.TestField("Item Batch Name");
+                    if LocationG."Location Type" <> LocationG."Location Type"::" " then begin
+                        LocationG.TestField("Item Template Name");
+                        LocationG.TestField("Item Batch Name");
+                    end;
+
                     LocationG.TestField("Transfer Template Name");
                     LocationG.TestField("Transfer Batch Name");
                     DocumentNoL := "No.";
@@ -94,8 +94,8 @@ pageextension 50004 "PO Card" extends "Purchase Order"
 
                     CODEUNIT.Run(CODEUNIT::"Purch.-Post (Yes/No)", Rec);
 
-                    if LocationG."Location Type" = LocationG."Location Type"::" " then
-                        exit;
+                    // if LocationG."Location Type" = LocationG."Location Type"::" " then
+                    //     exit;
 
                     // For Flow of Posted Purchase Receipt No. Till Item Ledger Entry
                     PurchreceiptHeaderL.Reset();
@@ -119,11 +119,9 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                     ItemjrlLineL.SetRange("Journal Batch Name", LocationG."Item Batch Name");
                     if ItemjrlLineL.FindFirst() then
                         repeat
-                            ItemJrlLinePostingL.Run(ItemjrlLineL);
+                            if LocationG."Location Type" <> LocationG."Location Type"::" " then
+                                ItemJrlLinePostingL.Run(ItemjrlLineL);
                         until ItemjrlLineL.Next() = 0;
-
-                    if LocationG."Location Type" = LocationG."Location Type"::" " then
-                        exit;
 
                     //For Rejected Qty Reclassification Posting
 
@@ -165,8 +163,13 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                     PurchaseHeaderG.RESET();
                     PurchaseHeaderG.SetRange("No.", "No.");
                     Report.Run(50003, true, true, PurchaseHeaderG);
-                    if Confirm('Do you want to send an E-mail?') then
-                        SendMail();
+                    if Confirm('Do you want to send an E-mail to vendor?') then
+                        if "Mail Sent" then begin
+                            if Confirm('Mail sent already, Do you want to send it again?') then
+                                SendMail();
+                        end else
+                            SendMail();
+
                 end;
             }
 

@@ -27,6 +27,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         TempFailedReqLine: Record "Requisition Line" temporary;
         PurchasingCode: Record Purchasing;
         TempDocumentEntry: Record "Document Entry" temporary;
+        PurchOrderHeader2G: Record "Purchase Header";
         ReqWkshMakeOrders: Codeunit "Req. Wksh.-Make Order";
         TransferExtendedText: Codeunit "Transfer Extended Text";
         ReserveReqLine: Codeunit "Req. Line-Reserve";
@@ -57,7 +58,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         PrevLocationCode: Code[10];
         NameAddressDetails: Text;
         SuppressCommit: Boolean;
-	ItemGrouping: Boolean;
+        ItemGrouping: Boolean;
         DeliveryDateGrouping: Boolean;
         Text000LbL: Label 'Worksheet Name                     #1##########\\';
         Text001LbL: Label 'Checking worksheet lines           #2######\';
@@ -76,7 +77,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
     begin
         ReqLine.Copy(ReqLine2);
         ReqLine.SetRange("Accept Action Message", true);
-       // OnBeforeCarryOutBatchActionCode(ReqLine);
+        // OnBeforeCarryOutBatchActionCode(ReqLine);
         Code(ReqLine);
         ReqLine2 := ReqLine;
     end;
@@ -90,7 +91,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         PostingDateReq := PurchOrderHeader."Posting Date";
         ReceiveDateReq := PurchOrderHeader."Expected Receipt Date";
         ReferenceReq := PurchOrderHeader."Your Reference";
-       // OnAfterSet(PurchOrderHeader, SuppressCommit, EndOrderDate, PrintPurchOrders);
+        // OnAfterSet(PurchOrderHeader, SuppressCommit, EndOrderDate, PrintPurchOrders);
     end;
 
     local procedure "Code"(var ReqLine: Record "Requisition Line")
@@ -99,7 +100,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         ReqLine3: Record "Requisition Line";
         NewReqWkshName: Boolean;
     begin
-       // OnBeforeCode(ReqLine);
+        // OnBeforeCode(ReqLine);
 
         InitShipReceiveDetails();
         with ReqLine do begin
@@ -196,7 +197,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                         if IncStr("Journal Batch Name") <> '' then begin
                             ReqWkshName.Get("Worksheet Template Name", "Journal Batch Name");
                             NewReqWkshName := true;
-                           // OnCheckNewNameNeccessary(ReqWkshName, NewReqWkshName);
+                            // OnCheckNewNameNeccessary(ReqWkshName, NewReqWkshName);
                             if NewReqWkshName then begin
                                 ReqWkshName.Delete();
                                 ReqWkshName.Name := IncStr("Journal Batch Name");
@@ -207,7 +208,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                 end;
         end;
 
-       // OnAfterCode(ReqLine, OrderLineCounter, OrderCounter);
+        // OnAfterCode(ReqLine, OrderLineCounter, OrderCounter);
     end;
 
     procedure SetCreatedDocumentBuffer(var TempDocumentEntryNew: Record "Document Entry" temporary)
@@ -432,7 +433,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             PurchOrderLine."Qty. per Unit of Measure" := "Qty. per Unit of Measure";
             PurchOrderLine."Prod. Order No." := "Prod. Order No.";
             PurchOrderLine."Prod. Order Line No." := "Prod. Order Line No.";
-            PurchOrderLine.Validate(Quantity, Quantity);
+            PurchOrderLine.Validate("Qty. to Accept", Quantity);
             if PurchOrderHeader."Prices Including VAT" then
                 PurchOrderLine.Validate("Direct Unit Cost", "Direct Unit Cost" * (1 + PurchOrderLine."VAT %" / 100))
             else
@@ -482,8 +483,13 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             if ItemGrouping then
                 if DeliveryDateGrouping then begin
                     if not CheckInsertFinalizePurchaseOrderLineDeliveryDate(ReqLine2, PurchOrderLine, true) then begin
-                        PurchOrderLine.Quantity += ReqLine2.Quantity;
-                        PurchOrderLine.Validate(Quantity);
+
+                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
+                        PurchOrderLine.Validate("Qty. to Accept");
+                        /*                        
+                            PurchOrderLine.Quantity += ReqLine2.Quantity;
+                            PurchOrderLine.Validate(Quantity);
+                        */
                         if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
                             PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
                             PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
@@ -500,8 +506,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                     end;
                 end else
                     if not CheckInsertFinalizePurchaseOrderLine(ReqLine2, PurchOrderLine, true) then begin
-                        PurchOrderLine.Quantity += ReqLine2.Quantity;
-                        PurchOrderLine.Validate(Quantity);
+                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
+                        PurchOrderLine.Validate("Qty. to Accept");
                         if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
                             PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
                             PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
@@ -514,6 +520,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                             PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
                             PurchRequisitionLineG.Modify();
                         end;
+                        UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
                         exit;
                     end;
             //Aplica.1.0 <<--
@@ -609,6 +616,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
             PurchRequisitionLineG.Modify();
         end;
+        UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
         //Aplica.1.0 <<--
     end;
 
@@ -1166,5 +1174,13 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
     begin
         ItemGrouping := itemGroupingp;
         DeliveryDateGrouping := deliveryDateGroupingP;
+    end;
+
+    local procedure UpdateHeaderReceiptDate(PurchaseHeaderP: Record "Purchase Header"; NewDate: Date)
+    begin
+        if PurchaseHeaderP."Expected Receipt Date" > NewDate then begin
+            PurchaseHeaderP."Expected Receipt Date" := NewDate;
+            PurchaseHeaderP.modify();
+        end;
     end;
 }

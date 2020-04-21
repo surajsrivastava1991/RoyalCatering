@@ -4,15 +4,15 @@ pageextension 50026 "Purchase Line subform Ext" extends "Purchase Order Subform"
     {
         modify(Quantity)
         {
-            Visible = false;
+            Editable = false;
         }
         addafter(Quantity)
         {
             field("Qty. to Accept"; "Qty. to Accept")
             {
-                Caption = 'Quantity';
+                Caption = 'Quantity Excl. Over-delivery';
                 ApplicationArea = all;
-                ToolTip = 'Quantity incl. exceed qty';
+                ToolTip = 'Quantity Excl. Over-delivery';
             }
         }
         // Add changes to page layout here

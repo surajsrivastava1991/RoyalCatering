@@ -2,6 +2,20 @@ tableextension 50030 "Sales Line Ex" extends "Sales Line"
 {
     fields
     {
+        modify("No.")
+        {
+            trigger OnAfterValidate()
+            var
+                ItemL: Record Item;
+            begin
+                if ItemL.Get("No.") then
+                    "Menu Type" := Format(ItemL."Menu Type")
+                else
+                    "Menu Type" := '';
+
+
+            end;
+        }
         modify("Shipment Date")
         {
             trigger OnAfterValidate()
@@ -16,6 +30,11 @@ tableextension 50030 "Sales Line Ex" extends "Sales Line"
         {
             FieldClass = FlowField;
             CalcFormula = exist ("Production Plan Header" where("BEO No." = field("Document No."), "BEO Line No." = field("Line No.")));
+            Editable = false;
+        }
+        field(50001; "Menu Type"; CODE[20])
+        {
+            DataClassification = CustomerContent;
             Editable = false;
         }
         // Add changes to table fields here

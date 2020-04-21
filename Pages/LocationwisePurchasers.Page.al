@@ -1,5 +1,6 @@
 page 50067 "Locationwise Purchasers"
 {
+    Caption = 'Requisition Purchaser setup';
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Lists;

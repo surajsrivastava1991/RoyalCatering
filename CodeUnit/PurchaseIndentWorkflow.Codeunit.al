@@ -293,6 +293,8 @@ codeunit 50051 "Purchase Indent Workflow"
         RecRef.SetTable(PurchaseIndentL);
         PurchaseIndentL."Approval Status" := PurchaseIndentL."Approval Status"::Released;
         PurchaseIndentL.Modify();
+        if PurchaseIndentL."Replishment Type" = PurchaseIndentL."Replishment Type"::Purchase then
+            PurchaseIndentL.CreateRequisitionLines();//Create Requisition Lines        
         Handled := true;
     end;
 

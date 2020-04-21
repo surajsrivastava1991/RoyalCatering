@@ -26,6 +26,11 @@ pageextension 50022 "Item Card Ext" extends "Item Card"
                     ApplicationArea = all;
                     ToolTip = 'For Exceed Qty Allow, while doing GRN';
                 }
+                field("Menu Type"; "Menu Type")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Menu Type for grouping in Production plan or report';
+                }
             }
             // Add changes to page layout here
         }

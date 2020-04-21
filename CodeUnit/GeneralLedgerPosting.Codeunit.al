@@ -70,6 +70,12 @@ codeunit 50000 "General Ledger Posting"
     begin
         LineNoG := 0;
         GeneralLedgerSetupL.Get();
+        //Deletion the previous entries
+        ItemJournalLineL.Reset();
+        ItemJournalLineL.SetRange("Journal Template Name", LocationL."Item Template Name");
+        ItemJournalLineL.setrange("Journal Batch Name", LocationL."Item Batch Name");
+        ItemJournalLineL.DeleteAll(true);
+
         LocationL.Get(PurchaseHeaderP."location Code");
         if LocationL."Location Type" = LocationL."Location Type"::" " then
             exit;
@@ -78,11 +84,7 @@ codeunit 50000 "General Ledger Posting"
         DocumentNoL := NoSeriesManagementG.GetNextNo(ItemjournalBatchL."No. Series", WorkDate(), true);
         DocumentNoL := IncStr(DocumentNoL);
 
-        //Deletion the previous entries
-        ItemJournalLineL.Reset();
-        ItemJournalLineL.SetRange("Journal Template Name", LocationL."Item Template Name");
-        ItemJournalLineL.setrange("Journal Batch Name", LocationL."Item Batch Name");
-        ItemJournalLineL.DeleteAll(true);
+
 
         //Creation of Item Journal Line with Entry Type Sales
         PurchaseLineL.Reset();

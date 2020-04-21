@@ -1,9 +1,9 @@
-page 50070 "Approved requisitions"
+page 50071 "Approved requisitions Admin"
 {
     AdditionalSearchTerms = 'supply planning,mrp,mps';
     ApplicationArea = Basic, Suite, Planning;
     AutoSplitKey = true;
-    Caption = 'Approved requisitions assigned to me';
+    Caption = 'Approved requisitions (Admin)';
     DataCaptionFields = "Journal Batch Name";
     DelayedInsert = true;
     LinksAllowed = false;
@@ -719,7 +719,6 @@ page 50070 "Approved requisitions"
                         Carryoutactionreport.GetReqWkshLine(Rec);
                         CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
                         CurrPage.Update(false);
-                        CurrPage.Close();
                     end;
                 }
                 action(CarryOutActionMessageTransfer)
@@ -866,9 +865,6 @@ page 50070 "Approved requisitions"
                 Rec.SetRange("Item Category Code", LocationwisePurchaserG."Item Category Code");
         end;
         */
-        rec.FilterGroup(20);
-        Rec.SetRange("Purchaser Code", UserId);
-        rec.FilterGroup(2);
         OpenedFromBatch := ("Journal Batch Name" <> '') and ("Worksheet Template Name" = '');
         if OpenedFromBatch then begin
             CurrentJnlBatchName := "Journal Batch Name";

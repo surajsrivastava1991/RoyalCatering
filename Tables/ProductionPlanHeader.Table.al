@@ -32,6 +32,7 @@ table 50000 "Production Plan Header"
                 end eLSE begin
                     "Project No." := '';
                     "Event Type" := '';
+                    "BEO Line No." := 0;
                 end;
             end;
         }
@@ -49,6 +50,12 @@ table 50000 "Production Plan Header"
                 if SaleLineL.FindFirst() then begin
                     "No. of PAX" := SaleLineL.Quantity - SaleLineL."Quantity Shipped";
                     "Meal Description" := SaleLineL.Description;
+                    "Event Type" := SaleLineL."Menu Type";
+                end
+                else begin
+                    "No. of PAX" := 0;
+                    "Meal Description" := '';
+                    "Event Type" := '';
                 end;
             end;
         }

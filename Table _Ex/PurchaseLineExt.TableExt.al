@@ -54,6 +54,8 @@ tableextension 50025 "Purchase Line Ext" extends "Purchase Line"
                 ItemL.get("No.");
                 Validate(Quantity, "Qty. to Accept" + ("Qty. to Accept" * ItemL."Tolerance(%)") / 100);
                 "Exceed Qty." := ("Qty. to Accept" * ItemL."Tolerance(%)") / 100;
+                Validate("Qty. to Receive", "Qty. to Accept");
+                Validate("Qty. to Invoice", "Qty. to Accept");
             end;
         }
         field(50005; "Exceed Qty."; Decimal)

@@ -35,16 +35,25 @@ report 50054 "Carry Out Action Process"
                                 DeliveryDateGrouping := false;
                         end;
                     }
-                    field(DeliveryDateGrouping; DeliveryDateGrouping)
+                    field(SelectionFilter; SelectionFilter)
                     {
+                        Caption = 'Filter Selected Lines';
                         ApplicationArea = Planning;
-                        Caption = 'Delivery Date Grouping';
-                        ToolTip = 'Consolidated order line for same irrespective to delivery date';
+                        ToolTip = 'Filter on current selection?';
                         trigger OnValidate()
                         begin
-                            if not ItemGrouping then
-                                Error('Item Grouping must be enabled.');
+                            if SelectionFilter = true then begin
+                                ToDate := 0D;
+                                FromDate := 0D;
+                            end;
                         end;
+                    }
+                    field(DateFilter; DateFilter)
+                    {
+                        OptionCaption = 'Order Date,Receipt Date';
+                        ApplicationArea = Planning;
+                        Caption = 'Order/Receit Date';
+                        ToolTip = 'Order/Receit Date';
                     }
                     field(FromDate; FromDate)
                     {
@@ -94,9 +103,19 @@ report 50054 "Carry Out Action Process"
     begin
         OnBeforePreReport(PrintOrders);
         //Aplica.1.0 -->>
-        if (FromDate <> 0D) and (ToDate <> 0D) then
-            ReqLine.SetRange("Order Date", FromDate, ToDate);
-        //Aplica.1.0 <<--
+        if SelectionFilter = false then begin
+            ReqLine.MarkedOnly(false);
+            ReqLine.SetRange("Worksheet Template Name");
+            ReqLine.SetRange("Journal Batch Name");
+            ReqLine.SetRange("Line No.");
+            if (FromDate <> 0D) and (ToDate <> 0D) then
+                if DateFilter = DateFilter::"Order Date" then
+                    ReqLine.SetRange("Order Date", FromDate, ToDate)
+                else
+                    ReqLine.SetRange("Due Date", FromDate, ToDate);
+
+            //Aplica.1.0 <<--            
+        end;
         UseOneJnl(ReqLine);
     end;
 
@@ -121,6 +140,8 @@ report 50054 "Carry Out Action Process"
         Text000: Label 'cannot be filtered when you create orders';
         Text001: Label 'There is nothing to create.';
         Text003: Label 'You are now in worksheet %1.';
+        DateFilter: Option "Order Date","Receipt Date";
+        SelectionFilter: Boolean;
 
 
     procedure SetReqWkshLine(var NewReqLine: Record "Requisition Line")

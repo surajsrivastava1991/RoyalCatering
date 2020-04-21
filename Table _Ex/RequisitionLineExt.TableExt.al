@@ -22,6 +22,12 @@ tableextension 50059 "Requisition Line Ext" extends "Requisition Line"
             Caption = 'Vendor Trade Agreement';
             DataClassification = CustomerContent;
         }
+        field(50004; "Purchaser Code"; Code[50])
+        {
+            Caption = 'Purchase Code';
+            DataClassification = ToBeClassified;
+            TableRelation = "User Setup";
+        }
     }
 
 }

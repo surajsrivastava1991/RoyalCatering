@@ -19,5 +19,11 @@ tableextension 50021 "Item Ext" extends Item
         {
             DataClassification = CustomerContent;
         }
+        field(50003; "Menu Type"; Option)
+        {
+            OptionMembers = " ","Breakfast","Lunch","Dinner","Midnight","Coffee Break","Others";
+            OptionCaption = ' ,Breakfast,Lunch,Dinner,Midnight,Coffee Break,Others';
+            DataClassification = CustomerContent;
+        }
     }
 }

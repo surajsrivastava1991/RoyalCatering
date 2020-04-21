@@ -22,6 +22,10 @@ page 50037 "Purchase Indent Subpage"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table fields';
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(true);
+                    end;
                 }
                 field(Description; Description)
                 {

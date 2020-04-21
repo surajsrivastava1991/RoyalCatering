@@ -26,7 +26,7 @@ table 50071 "Locationwise Purchaser"
 
     keys
     {
-        key(PK; "Purchaser Code")
+        key(PK; Location, "Item Category Code")
         {
             Clustered = true;
         }
