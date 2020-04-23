@@ -60,6 +60,14 @@ report 50009 "Cost Allocation Report"
             {
 
             }
+            column(salesHeaderGProjectName; salesHeaderG."Project Description")
+            {
+
+            }
+            column(ProjectDescriptionEnable; ProjectDescriptionG)
+            {
+
+            }
             dataitem("Production Plan Line"; "Production Plan Line")
             {
                 DataItemTableView = sorting("Production Plan No.", "Line No.");
@@ -102,6 +110,7 @@ report 50009 "Cost Allocation Report"
             trigger OnAfterGetRecord()
             begin
                 CompInfoG.get();
+                salesHeaderG.Get(salesHeaderG."Document Type"::Order, "BEO No.");
             end;
 
             trigger OnPreDataItem()
@@ -132,6 +141,15 @@ report 50009 "Cost Allocation Report"
                         ToolTip = 'Delivery Date Filter';
 
                     }
+                    group(General)
+                    {
+                        field(ProjectDescriptionG; ProjectDescriptionG)
+                        {
+                            Caption = 'Project Description wise Grouping';
+                            ApplicationArea = All;
+                            ToolTip = 'Instead of Project Code ,Project Description will come';
+                        }
+                    }
                 }
             }
         }
@@ -140,8 +158,10 @@ report 50009 "Cost Allocation Report"
 
     var
         CompInfoG: record "Company Information";
+        salesHeaderG: Record "Sales Header";
         StartDate: Date;
         Enddate: Date;
+        ProjectDescriptionG: Boolean;
 
     procedure DateFilter(var StartDateP: Date; var EndDateP: Date)
     begin

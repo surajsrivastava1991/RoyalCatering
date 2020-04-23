@@ -88,7 +88,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Project_No_.Value</Value>
+                                  <Value>=iif(Fields!ProjectDescriptionEnable.Value,Fields!salesHeaderGProjectName.Value,Fields!Project_No_.Value)</Value>
                                   <Style>
                                     <FontWeight>Bold</FontWeight>
                                   </Style>
@@ -149,14 +149,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Kitchen_Location3">
+                        <Textbox Name="Kitchen_Location4">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Project_No_.Value</Value>
+                                  <Value>=iif(Fields!ProjectDescriptionEnable.Value, Fields!salesHeaderGProjectName.Value, Fields!Project_No_.Value)</Value>
                                   <Style>
                                     <FontWeight>Bold</FontWeight>
                                   </Style>
@@ -167,7 +167,7 @@
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Kitchen_Location1</rd:DefaultName>
+                          <rd:DefaultName>Kitchen_Location</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -1270,7 +1270,7 @@
                       <TablixMembers>
                         <TablixMember>
                           <TablixHeader>
-                            <Size>1in</Size>
+                            <Size>1.58458in</Size>
                             <CellContents>
                               <Textbox Name="Textbox5">
                                 <CanGrow>true</CanGrow>
@@ -1305,7 +1305,7 @@
                           <TablixMembers>
                             <TablixMember>
                               <TablixHeader>
-                                <Size>1in</Size>
+                                <Size>0.41542in</Size>
                                 <CellContents>
                                   <Textbox Name="Textbox12">
                                     <CanGrow>true</CanGrow>
@@ -1455,7 +1455,7 @@
                       <TablixMembers>
                         <TablixMember>
                           <TablixHeader>
-                            <Size>1in</Size>
+                            <Size>1.58458in</Size>
                             <CellContents>
                               <Textbox Name="Description">
                                 <CanGrow>true</CanGrow>
@@ -1488,7 +1488,7 @@
                           <TablixMembers>
                             <TablixMember>
                               <TablixHeader>
-                                <Size>1in</Size>
+                                <Size>0.41542in</Size>
                                 <CellContents>
                                   <Textbox Name="UOM">
                                     <CanGrow>true</CanGrow>
@@ -1675,7 +1675,7 @@
                       <TablixMembers>
                         <TablixMember>
                           <TablixHeader>
-                            <Size>1in</Size>
+                            <Size>1.58458in</Size>
                             <CellContents>
                               <Textbox Name="Textbox9">
                                 <CanGrow>true</CanGrow>
@@ -1712,7 +1712,7 @@
                           <TablixMembers>
                             <TablixMember>
                               <TablixHeader>
-                                <Size>1in</Size>
+                                <Size>0.41542in</Size>
                                 <CellContents>
                                   <Textbox Name="Textbox11">
                                     <CanGrow>true</CanGrow>
@@ -1806,7 +1806,7 @@
             </Style>
           </Tablix>
         </ReportItems>
-        <Height>2.70833in</Height>
+        <Height>2in</Height>
         <Style />
       </Body>
       <Width>8in</Width>
@@ -1984,6 +1984,12 @@ End Function
         </Field>
         <Field Name="Project_No_">
           <DataField>Project_No_</DataField>
+        </Field>
+        <Field Name="salesHeaderGProjectName">
+          <DataField>salesHeaderGProjectName</DataField>
+        </Field>
+        <Field Name="ProjectDescriptionEnable">
+          <DataField>ProjectDescriptionEnable</DataField>
         </Field>
         <Field Name="Production_Plan_No_">
           <DataField>Production_Plan_No_</DataField>
