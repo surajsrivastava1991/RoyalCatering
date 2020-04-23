@@ -35,6 +35,20 @@ report 50054 "Carry Out Action Process"
                                 DeliveryDateGrouping := false;
                         end;
                     }
+                    field(RequisitionDocFilter; RequisitionDocFilter)
+                    {
+                        Caption = 'Req. Document Grouping';
+                        ApplicationArea = Planning;
+                        ToolTip = 'Grouping based on requested documents?';
+                        trigger OnValidate()
+                        begin
+                            if RequisitionDocFilter = true then begin
+                                SelectionFilter := false;
+                                ToDate := 0D;
+                                FromDate := 0D;
+                            end;
+                        end;
+                    }
                     field(SelectionFilter; SelectionFilter)
                     {
                         Caption = 'Filter Selected Lines';
@@ -142,6 +156,7 @@ report 50054 "Carry Out Action Process"
         Text003: Label 'You are now in worksheet %1.';
         DateFilter: Option "Order Date","Receipt Date";
         SelectionFilter: Boolean;
+        RequisitionDocFilter: Boolean;
 
 
     procedure SetReqWkshLine(var NewReqLine: Record "Requisition Line")
@@ -171,6 +186,7 @@ report 50054 "Carry Out Action Process"
                 FieldError("Order Date", Text000);
             TempJnlBatchName := "Journal Batch Name";
             ReqWkshMakeOrders.Set(PurchOrderHeader, EndOrderDate, PrintOrders);
+            ReqWkshMakeOrders.SetDocumentGrouping(RequisitionDocFilter);
             ReqWkshMakeOrders.SetItemGrouping(ItemGrouping, DeliveryDateGrouping);
             ReqWkshMakeOrders.SetSuppressCommit(SuppressCommit);
             ReqWkshMakeOrders.CarryOutBatchAction(ReqLine);

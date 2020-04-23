@@ -70,6 +70,10 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         Text007: Label '<Month Text>';
         Text008: Label 'The combination of dimensions used in %1 %2, %3, %4 is blocked. %5';
         Text009: Label 'A dimension used in %1 %2, %3, %4 has caused an error. %5';
+        PrintOrder: Boolean;
+        TempTransHeaderToPrint: Record "Transfer Header" temporary;
+        RequisitionDocGrouping: Boolean;
+        TestVarG: Boolean;
 
     procedure CarryOutBatchAction(var ReqLine2: Record "Requisition Line")
     var
@@ -481,25 +485,48 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             //Aplica.1.0 -->>
             PurchSetup.Get();
             if ItemGrouping then
-                if not CheckInsertFinalizePurchaseOrderLine(ReqLine2, PurchOrderLine, true) then begin
-                    PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
-                    PurchOrderLine.Validate("Qty. to Accept");
-                    if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
-                        PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
-                        PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+                if DeliveryDateGrouping then begin
+                    if not CheckInsertFinalizePurchaseOrderLineDeliveryDate(ReqLine2, PurchOrderLine, true) then begin
+
+                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
+                        PurchOrderLine.Validate("Qty. to Accept");
+                        /*                        
+                            PurchOrderLine.Quantity += ReqLine2.Quantity;
+                            PurchOrderLine.Validate(Quantity);
+                        */
+                        if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
+                            PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
+                            PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+                        end;
+                        PurchOrderLine.Modify(true);
+                        PurchRequisitionLineG.reset();
+                        if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
+                            PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
+                            PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
+                            PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
+                            PurchRequisitionLineG.Modify();
+                        end;
+                        exit;
                     end;
-                    PurchOrderLine.Modify(true);
-                    PurchRequisitionLineG.reset();
-                    if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
-                        PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
-                        PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
-                        PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
-                        PurchRequisitionLineG.Modify();
+                end else
+                    if not CheckInsertFinalizePurchaseOrderLine(ReqLine2, PurchOrderLine, true) then begin
+                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
+                        PurchOrderLine.Validate("Qty. to Accept");
+                        if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
+                            PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
+                            PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+                        end;
+                        PurchOrderLine.Modify(true);
+                        PurchRequisitionLineG.reset();
+                        if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
+                            PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
+                            PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
+                            PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
+                            PurchRequisitionLineG.Modify();
+                        end;
+                        UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
+                        exit;
                     end;
-                    PurchOrderHeader2G.Get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
-                    UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
-                    exit;
-                end;
             //Aplica.1.0 <<--
 
             LineCount := LineCount + 1;
@@ -972,13 +999,18 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         IsHandled := false;
         if IsHandled then
             exit;
-
         with RequisitionLine do
-            SetCurrentKey(
-              "Worksheet Template Name", "Journal Batch Name", "Vendor No.",
-              "Sell-to Customer No.", "Ship-to Code", "Order Address Code", "Currency Code",
-              "Ref. Order Type", "Ref. Order Status", "Ref. Order No.",
-              "Location Code", "Transfer-from Code", "Purchasing Code");
+            //Aplica.1.0 -->>
+            if ("Replenishment System" = "Replenishment System"::Transfer) AND (RequisitionDocGrouping = true) then
+                SetCurrentKey("Req. Document No.")
+            else
+                //Aplica.1.0 <<--            
+        with RequisitionLine do
+                    SetCurrentKey(
+                      "Worksheet Template Name", "Journal Batch Name", "Vendor No.",
+                      "Sell-to Customer No.", "Ship-to Code", "Order Address Code", "Currency Code",
+                      "Ref. Order Type", "Ref. Order Status", "Ref. Order No.",
+                      "Location Code", "Transfer-from Code", "Purchasing Code", "No.", "Due Date");
     end;
 
     local procedure CheckAddressDetails(SalesOrderNo: Code[20]; SalesLineNo: Integer; UpdateAddressDetails: Boolean) Result: Boolean
@@ -1149,6 +1181,17 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         exit(CheckInsert);
     end;
 
+    local procedure CheckInsertFinalizeTransferOrderLine(RequisitionLine: Record "Requisition Line"; var TransferLineP: Record "Transfer Line"; UpdateAddressDetails: Boolean): Boolean
+    var
+        CheckInsert: Boolean;
+    begin
+        with RequisitionLine do
+            CheckInsert :=
+            (TransferLineP."Item No." <> "No.") or
+            (TransferLineP."Unit of Measure Code" <> "Unit of Measure Code");
+        exit(CheckInsert);
+    end;
+
     procedure SetItemGrouping(itemGroupingp: Boolean; deliveryDateGroupingP: Boolean)
     begin
         ItemGrouping := itemGroupingp;
@@ -1161,5 +1204,146 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             PurchaseHeaderP."Expected Receipt Date" := NewDate;
             PurchaseHeaderP.modify();
         end;
+    end;
+    //Create Transfer Orders
+    procedure InsertTransLine(ReqLine: Record "Requisition Line"; var TransHeader: Record "Transfer Header")
+    var
+        TransLine: Record "Transfer Line";
+        NextLineNoL: Integer;
+    begin
+        if RequisitionDocGrouping then begin
+            if ReqLine."Req. Document No." <> TransHeader."Req. Document No." then
+                InsertTransHeader(ReqLine, TransHeader);
+        end else
+            if (ReqLine."Transfer-from Code" <> TransHeader."Transfer-from Code") or
+               (ReqLine."Location Code" <> TransHeader."Transfer-to Code")
+            then
+                InsertTransHeader(ReqLine, TransHeader);
+
+        //Aplica.1.0 -->>
+        if (ItemGrouping = true) and (not CheckInsertFinalizeTransferOrderLine(ReqLine, TransLine, true)) then begin
+            TransLine.Quantity += ReqLine.Quantity;
+            TransLine.Validate(Quantity);
+            TransLine.Modify(true);
+            PurchRequisitionLineG.reset();
+            if PurchRequisitionLineG.GET(ReqLine."Req. Document No.", ReqLine."Req. Line No.") then begin
+                PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Transfer Order";
+                PurchRequisitionLineG."Ref. Document No." := TransLine."Document No.";
+                PurchRequisitionLineG."Ref. Document Line No." := TransLine."Line No.";
+                PurchRequisitionLineG.Modify();
+            end;
+            exit;
+        end;
+        //Aplica.1.0 <<--
+        TransLine.SetRange("Document No.", TransHeader."No.");
+        if TransLine.FindLast() then
+            NextLineNoL := TransLine."Line No." + 10000
+        else
+            NextLineNoL := 10000;
+
+        TransLine.Init();
+        TransLine.BlockDynamicTracking(true);
+        TransLine."Document No." := TransHeader."No.";
+        TransLine."Line No." := NextLineNoL;
+        TransLine.Validate("Item No.", ReqLine."No.");
+        TransLine.Description := ReqLine.Description;
+        TransLine."Description 2" := ReqLine."Description 2";
+        TransLine.Validate("Variant Code", ReqLine."Variant Code");
+        TransLine.Validate("Transfer-from Code", ReqLine."Transfer-from Code");
+        TransLine.Validate("Transfer-to Code", ReqLine."Location Code");
+        TransLine.Validate(Quantity, ReqLine.Quantity);
+        TransLine.Validate("Unit of Measure Code", ReqLine."Unit of Measure Code");
+        TransLine."Shortcut Dimension 1 Code" := ReqLine."Shortcut Dimension 1 Code";
+        TransLine."Shortcut Dimension 2 Code" := ReqLine."Shortcut Dimension 2 Code";
+        TransLine."Dimension Set ID" := ReqLine."Dimension Set ID";
+        TransLine."Receipt Date" := ReqLine."Due Date";
+        TransLine."Shipment Date" := ReqLine."Transfer Shipment Date";
+        TransLine.Validate("Planning Flexibility", ReqLine."Planning Flexibility");
+        TransLine.Insert();
+        //Aplica.1.0 -->>
+        if PurchRequisitionLineG.GET(ReqLine."Req. Document No.", ReqLine."Req. Line No.") then begin
+            PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Transfer Order";
+            PurchRequisitionLineG."Ref. Document No." := TransLine."Document No.";
+            PurchRequisitionLineG."Ref. Document Line No." := TransLine."Line No.";
+            PurchRequisitionLineG.Modify();
+        end;
+        //Aplica.1.0 <<--
+    end;
+
+    procedure InsertTransHeader(ReqLine: Record "Requisition Line"; var TransHeader: Record "Transfer Header")
+    var
+        InvtSetup: Record "Inventory Setup";
+    begin
+        InvtSetup.Get;
+        InvtSetup.TestField("Transfer Order Nos.");
+
+        with ReqLine do begin
+            TransHeader.Init;
+            TransHeader."No." := '';
+            TransHeader."Posting Date" := WorkDate;
+            TransHeader.Insert(true);
+            TransHeader.Validate("Transfer-from Code", "Transfer-from Code");
+            TransHeader.Validate("Transfer-to Code", "Location Code");
+            TransHeader."Receipt Date" := "Due Date";
+            TransHeader."Shipment Date" := "Transfer Shipment Date";
+            TransHeader."Shortcut Dimension 1 Code" := "Shortcut Dimension 1 Code";
+            TransHeader."Shortcut Dimension 2 Code" := "Shortcut Dimension 2 Code";
+            TransHeader."Dimension Set ID" := "Dimension Set ID";
+            TransHeader.Modify();
+            TempDocumentEntry.Init();
+            TempDocumentEntry."Table ID" := DATABASE::"Transfer Header";
+            TempDocumentEntry."Document No." := TransHeader."No.";
+            TempDocumentEntry."Entry No." := TempDocumentEntry.Count + 1;
+            TempDocumentEntry.Insert;
+        end;
+
+        if PrintOrder then begin
+            TempTransHeaderToPrint."No." := TransHeader."No.";
+            TempTransHeaderToPrint.Insert();
+        end;
+    end;
+
+    procedure SetPrintOrder(OrderPrinting: Boolean)
+    begin
+        PrintOrder := OrderPrinting;
+    end;
+
+    procedure PrintTransferOrders()
+    begin
+        GetTransferOrdersToPrint(TempTransHeaderToPrint);
+        if TempTransHeaderToPrint.FindSet() then begin
+            PrintOrder := true;
+            repeat
+                PrintTransferOrder(TempTransHeaderToPrint);
+            until TempTransHeaderToPrint.Next() = 0;
+
+            TempTransHeaderToPrint.DeleteAll();
+        end;
+    end;
+
+    procedure GetTransferOrdersToPrint(var TransferHeader: Record "Transfer Header")
+    begin
+        if TempTransHeaderToPrint.FindSet() then
+            repeat
+                TransferHeader := TempTransHeaderToPrint;
+                TransferHeader.Insert();
+            until TempTransHeaderToPrint.Next() = 0;
+    end;
+
+    procedure PrintTransferOrder(TransHeader: Record "Transfer Header")
+    var
+        ReportSelection: Record "Report Selections";
+        TransHeader2: Record "Transfer Header";
+    begin
+        if PrintOrder then begin
+            TransHeader2 := TransHeader;
+            TransHeader2.SetRecFilter();
+            ReportSelection.PrintWithGUIYesNoWithCheck(ReportSelection.Usage::Inv1, TransHeader2, false, 0);
+        end;
+    end;
+
+    procedure SetDocumentGrouping(RequisitionDocFilterp: Boolean)
+    begin
+        RequisitionDocGrouping := RequisitionDocFilterp;
     end;
 }

@@ -27,6 +27,7 @@ table 50036 "Purchase Indent Line"
                 "Item Category Code" := PurchIndentHdrG."Item Category Code";
                 "Receiving Location" := PurchIndentHdrG."Receiving Location";
                 "Requested Date" := PurchIndentHdrG."Requested Date";
+                "From Location" := PurchIndentHdrG."From Location";
             end;
         }
         field(5; "No."; Code[20])
@@ -54,7 +55,7 @@ table 50036 "Purchase Indent Line"
                         "Unit of Measure Code" := ItemG."Purch. Unit of Measure";
                         Validate("Requested Date");
                     end;
-                LocationwisePurchaser.get("Receiving Location","Item Category Code");
+                LocationwisePurchaser.get("Receiving Location", "Item Category Code");
                 "Purchaser Code" := LocationwisePurchaser."Purchaser Code";
             end;
         }
@@ -155,6 +156,12 @@ table 50036 "Purchase Indent Line"
             DataClassification = ToBeClassified;
             TableRelation = "User Setup";
         }
+        field(24; "From Location"; Code[10])
+        {
+            Caption = 'From Location';
+            DataClassification = CustomerContent;
+            TableRelation = Location;
+        }
     }
 
     keys
@@ -174,7 +181,7 @@ table 50036 "Purchase Indent Line"
         PurchIndentHdrG: record "Purchase Indent Header";
         ItemG: Record Item;
         PurIndHdrG: Record "Purchase Indent Header";
-        LocationwisePurchaser: Record "Locationwise Purchaser";        
+        LocationwisePurchaser: Record "Locationwise Purchaser";
         LeadTimeMgt: Codeunit "Lead-Time Management";
 
 }

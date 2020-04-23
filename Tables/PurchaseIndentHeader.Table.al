@@ -81,6 +81,12 @@ table 50035 "Purchase Indent Header"
             Caption = 'Item Category Code';
             TableRelation = "Item Category";
         }
+        field(12; "From Location"; Code[10])
+        {
+            Caption = 'From Location';
+            DataClassification = CustomerContent;
+            TableRelation = Location;
+        }
         field(107; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
@@ -193,6 +199,8 @@ table 50035 "Purchase Indent Header"
                     RequisitionLineG.Validate("No.", "No.");
                     RequisitionLineG.Validate("Location Code", "Receiving Location");
                     RequisitionLineG.Validate(Quantity, Quantity);
+                    if "From Location" <> '' then
+                        RequisitionLineG.Validate("Transfer-from Code", "From Location");
                     /*
                     if "Direct Unit Cost" <> 0 then begin
                         RequisitionLineG."Direct Unit Cost" := "Direct Unit Cost";
