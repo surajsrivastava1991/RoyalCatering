@@ -481,48 +481,25 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             //Aplica.1.0 -->>
             PurchSetup.Get();
             if ItemGrouping then
-                if DeliveryDateGrouping then begin
-                    if not CheckInsertFinalizePurchaseOrderLineDeliveryDate(ReqLine2, PurchOrderLine, true) then begin
-
-                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
-                        PurchOrderLine.Validate("Qty. to Accept");
-                        /*                        
-                            PurchOrderLine.Quantity += ReqLine2.Quantity;
-                            PurchOrderLine.Validate(Quantity);
-                        */
-                        if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
-                            PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
-                            PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
-                        end;
-                        PurchOrderLine.Modify(true);
-                        PurchRequisitionLineG.reset();
-                        if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
-                            PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
-                            PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
-                            PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
-                            PurchRequisitionLineG.Modify();
-                        end;
-                        exit;
+                if not CheckInsertFinalizePurchaseOrderLine(ReqLine2, PurchOrderLine, true) then begin
+                    PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
+                    PurchOrderLine.Validate("Qty. to Accept");
+                    if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
+                        PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
+                        PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
                     end;
-                end else
-                    if not CheckInsertFinalizePurchaseOrderLine(ReqLine2, PurchOrderLine, true) then begin
-                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
-                        PurchOrderLine.Validate("Qty. to Accept");
-                        if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
-                            PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
-                            PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
-                        end;
-                        PurchOrderLine.Modify(true);
-                        PurchRequisitionLineG.reset();
-                        if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
-                            PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
-                            PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
-                            PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
-                            PurchRequisitionLineG.Modify();
-                        end;
-                        UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
-                        exit;
+                    PurchOrderLine.Modify(true);
+                    PurchRequisitionLineG.reset();
+                    if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
+                        PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
+                        PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
+                        PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
+                        PurchRequisitionLineG.Modify();
                     end;
+                    PurchOrderHeader2G.Get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
+                    UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
+                    exit;
+                end;
             //Aplica.1.0 <<--
 
             LineCount := LineCount + 1;
@@ -616,6 +593,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
             PurchRequisitionLineG.Modify();
         end;
+        PurchOrderHeader2G.Get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
         UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
         //Aplica.1.0 <<--
     end;
@@ -682,6 +660,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             if SpecialOrder then
                 if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
                     PurchOrderHeader."Shipment Method Code" := Vendor."Shipment Method Code";
+            PurchOrderHeader."Assigned User ID" := "Purchaser Code";
             PurchOrderHeader.Modify();
             PurchOrderHeader.Mark(true);
             TempDocumentEntry.Init();

@@ -70,15 +70,16 @@ codeunit 50000 "General Ledger Posting"
     begin
         LineNoG := 0;
         GeneralLedgerSetupL.Get();
+
+
+        LocationL.Get(PurchaseHeaderP."location Code");
+        if LocationL."Location Type" = LocationL."Location Type"::" " then
+            exit;
         //Deletion the previous entries
         ItemJournalLineL.Reset();
         ItemJournalLineL.SetRange("Journal Template Name", LocationL."Item Template Name");
         ItemJournalLineL.setrange("Journal Batch Name", LocationL."Item Batch Name");
         ItemJournalLineL.DeleteAll(true);
-
-        LocationL.Get(PurchaseHeaderP."location Code");
-        if LocationL."Location Type" = LocationL."Location Type"::" " then
-            exit;
 
         ItemjournalBatchL.Get(LocationL."Item Template Name", LocationL."Item Batch Name");
         DocumentNoL := NoSeriesManagementG.GetNextNo(ItemjournalBatchL."No. Series", WorkDate(), true);
@@ -211,8 +212,7 @@ codeunit 50000 "General Ledger Posting"
         LineNoG := 0;
         GeneralLedgerSetupL.Get();
         LocationL.Get(PurchaseHeaderP."Location Code");
-        if LocationL."Location Type" = LocationL."Location Type"::" " then
-            exit;
+
         LocationL.TestField("Reject Location");
 
         ItemjournalBatchL.Get(LocationL."Transfer Template Name", LocationL."Transfer Batch Name");

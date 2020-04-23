@@ -28,21 +28,26 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    MultiLine = true;
                 }
                 field("Mail Body3"; "Mail Body3")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    MultiLine = true;
+
                 }
                 field("Mail Body4"; "Mail Body4")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    Visible = false;
                 }
                 field("Mail Body5"; "Mail Body5")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    Visible = false;
                 }
             }
         }
@@ -76,7 +81,7 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                     PurchreceiptHeaderL: Record "Purch. Rcpt. Header";
                     PurchLineL: Record "Purchase Line";
                     ItemJrlLinePostingL: codeunit "Item Jnl.-Post Line";
-                    JrlLinePostingL: codeunit "Item Jnl.-Post";
+                    JrlLinePostingL: codeunit "Item Journal Posting";
                     DocumentNoL: Code[20];
                 begin
                     TestField("Location Code");
@@ -140,7 +145,7 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                         repeat
                             PurchLineL."Rejected Qty." += PurchLineL."Qty To Reject";
                             PurchLineL."Qty To Reject" := 0;
-                            PurchLineL."Qty. to Accept" := PurchLineL.Quantity - PurchLineL."Quantity Received";
+                            // PurchLineL."Qty. to Accept" := PurchLineL.Quantity - PurchLineL."Quantity Received";
                             PurchLineL.Modify();
                         until PurchLineL.Next() = 0;
                 end;

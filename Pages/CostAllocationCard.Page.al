@@ -368,6 +368,25 @@ page 50016 "Cost Allocation Card"
                     end;
 
                 }
+                action("Cost Allocation Report")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Project wise costing report ';
+                    Image = Report;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Report;
+                    trigger OnAction()
+                    var
+                        CostAllocationReportL: Report "Cost Allocation Report";
+                    begin
+                        Clear(CostAllocationReportL);
+                        CostAllocationReportL.DateFilter("From Date", "To Date");
+                        CostAllocationReportL.RunModal();
+                    end;
+                }
+
             }
 
         }

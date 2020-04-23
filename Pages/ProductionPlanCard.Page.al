@@ -111,6 +111,27 @@ page 50013 "Production Plan Card"
                         Page.RunModal(50030, Rec);
                     end;
                 }
+                action("Delivery Note Report")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Delivery Note report ';
+                    Image = Report;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedIsBig = true;
+                    PromotedCategory = Report;
+                    trigger OnAction()
+                    var
+                        productionPlanHeaderL: record "Production Plan Header";
+                    begin
+                        productionPlanHeaderL.Reset();
+                        productionPlanHeaderL.SetRange("Production Plan No.", "Production Plan No.");
+                        if productionPlanHeaderL.FindFirst() then
+                            Report.RunModal(50010, true, true, productionPlanHeaderL);
+                    end;
+                }
+
+
             }
         }
     }

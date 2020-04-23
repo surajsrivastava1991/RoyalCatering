@@ -6,6 +6,10 @@ pageextension 50026 "Purchase Line subform Ext" extends "Purchase Order Subform"
         {
             Editable = false;
         }
+        modify("Direct Unit Cost")
+        {
+            Editable = EditableG;
+        }
         addafter(Quantity)
         {
             field("Qty. to Accept"; "Qty. to Accept")
@@ -56,4 +60,24 @@ pageextension 50026 "Purchase Line subform Ext" extends "Purchase Order Subform"
         }
 
     }
+    var
+        EditableG: Boolean;
+
+    trigger OnAfterGetRecord()
+    begin
+        if "Vendor Trade Agreement" then
+            EditableG := false
+        else
+            EditableG := true;
+
+    end;
+
+    trigger OnOpenPage()
+    begin
+        if "Vendor Trade Agreement" then
+            EditableG := false
+        else
+            EditableG := true;
+
+    end;
 }

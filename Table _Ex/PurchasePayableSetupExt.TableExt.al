@@ -3,20 +3,22 @@ tableextension 50050 "Purchase & Payable Setup Ext" extends "Purchases & Payable
     fields
     {
         // Add changes to table fields here
-        field(50000; "Mail Body1"; Text[100])
+        field(50000; "Mail Body1"; Text[50])
         {
             DataClassification = CustomerContent;
+            Caption = 'Salutation';
 
         }
-        field(50001; "Mail Body2"; Text[100])
+        field(50001; "Mail Body2"; Text[2000])
         {
             DataClassification = CustomerContent;
+            Caption = 'Mail Body';
 
         }
-        field(50002; "Mail Body3"; Text[100])
+        field(50002; "Mail Body3"; Text[500])
         {
             DataClassification = CustomerContent;
-
+            Caption = 'Signature Text';
         }
         field(50003; "Mail Body4"; Text[100])
         {
@@ -84,6 +86,11 @@ tableextension 50050 "Purchase & Payable Setup Ext" extends "Purchases & Payable
         {
             Caption = 'Group on Delivery Date';
             DataClassification = CustomerContent;
+        }
+        field(50013; "Signature Image"; Blob)
+        {
+            DataClassification = CustomerContent;
+            Subtype = Bitmap;
         }
     }
 }

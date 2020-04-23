@@ -225,7 +225,7 @@ page 50038 "Purchase Indent Card"
                     Enabled = NOT OpenApprovalEntriesExist AND CanRequestApprovalForFlow;
                     Image = SendApprovalRequest;
                     Promoted = true;
-                    PromotedCategory = Category7;
+                    PromotedCategory = Category9;
                     PromotedIsBig = true;
                     PromotedOnly = true;
                     ToolTip = 'Request approval of the document.';
@@ -245,7 +245,7 @@ page 50038 "Purchase Indent Card"
                     Enabled = CanCancelApprovalForRecord OR CanCancelApprovalForFlow;
                     Image = CancelApprovalRequest;
                     Promoted = true;
-                    PromotedCategory = Category7;
+                    PromotedCategory = Category9;
                     PromotedIsBig = true;
                     PromotedOnly = true;
                     ToolTip = 'Cancel the approval request.';

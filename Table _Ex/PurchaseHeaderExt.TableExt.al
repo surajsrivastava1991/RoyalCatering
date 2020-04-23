@@ -3,17 +3,18 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
     fields
     {
         // Add changes to table fields here
-        field(50000; "Mail Body1"; Text[100])
+        field(50000; "Mail Body1"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Salutation';
+
+        }
+        field(50001; "Mail Body2"; Text[2000])
         {
             DataClassification = CustomerContent;
 
         }
-        field(50001; "Mail Body2"; Text[100])
-        {
-            DataClassification = CustomerContent;
-
-        }
-        field(50002; "Mail Body3"; Text[100])
+        field(50002; "Mail Body3"; Text[500])
         {
             DataClassification = CustomerContent;
 
@@ -59,6 +60,7 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
         UserSetupL: Record "User Setup";
         LocationL: Record Location;
         CompanyInfoL: Record "Company Information";
+        PurchPaySetupL: Record "Purchases & Payables Setup";
         SMTPMailL: Codeunit "SMTP Mail";
         TempBlob: Codeunit "Temp Blob";
         OutputStream: OutStream;
@@ -72,7 +74,8 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
             Error(SmtpConfigErr);
         //
         CompanyInfoL.Get();
-        URL := System.GETURL(ClientType::SOAP, CompanyInfoL.Name, ObjectType::Page, 50, Rec);
+        PurchPaySetupL.Get();
+        // URL := System.GETURL(ClientType::SOAP, CompanyInfoL.Name, ObjectType::Page, 50, Rec);
         TempBlob.CreateOutStream(OutputStream);
 
         RecRef.GetTable(Rec);
@@ -105,10 +108,16 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
         SMTPMailL.Initialize();
         SMTPMailL.AddFrom(SMTPMailSetup."Send As", SMTPMailSetup."User ID");
         SMTPMailL.AddRecipients(EmailToL);
-        SMTPMailL.AddSubject('Company Name :' + CompanyInfoL.Name + ', Purchase Order: ' + "No.");
-        SMTPMailL.AddBody("Mail Body1" + "Mail Body2" + "Mail Body3" + "Mail Body4" + "Mail Body5");
-        SMTPMailL.AddBody('<Br>');
-        SMTPMailL.AddBody(URL);
+        SMTPMailL.AddSubject('Company Name :' + CompanyInfoL.Name + ', Purchase Order: ' + "No." + ' PO Date: ' + Format("Order Date"));
+        SMTPMailL.AddBody("Mail Body1");
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody("Mail Body2");
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody("Mail Body3");
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody('<img src="C:\Users\Aplica\Desktop\123321.jpg" alt="Smiley face" height="100" width="350">');
+        SMTPMailL.AppendBody('<Br>');
+        // SMTPMailL.AddBody(URL);
         SMTPMailL.AddAttachmentStream(InputStream, "No." + '.pdf');
         if not SmtpMailL.Send() then
             Error(SmtpMailL.GetLastSendMailErrorText())

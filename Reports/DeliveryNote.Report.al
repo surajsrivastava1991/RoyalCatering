@@ -18,6 +18,19 @@ report 50010 "Delivery Note"
             {
 
             }
+            column(CustomerGName; CustomerG.Name)
+            {
+
+            }
+            column(CustomerGAdd1; CustomerG.Address)
+            { }
+            column(CustomerGAdd2; CustomerG."Address 2")
+            { }
+            column(SalesHeaderG; SalesHeaderG."Event")
+            {
+
+            }
+
             column(VATRegCompInfoG; CompInfoG."VAT Registration No.")
             {
 
@@ -43,11 +56,21 @@ report 50010 "Delivery Note"
             {
 
             }
-            column(Kitchen_Location; "Kitchen Location")
+            column(Kitchen_Location; SalesHeaderG."kitchen Location Name")
             {
 
             }
             column(Project_No_; "Project No.")
+            {
+
+            }
+            column(SalesHeaderGCurrency; SalesHeaderG."Currency Code")
+            {
+
+            }
+            column(EventDate; SalesHeaderG."Date of function start")
+            { }
+            column(DayName; DayName)
             {
 
             }
@@ -94,6 +117,11 @@ report 50010 "Delivery Note"
             begin
                 CompInfoG.get();
                 CompInfoG.CalcFields(Picture);
+                SalesHeaderG.Get(SalesHeaderG."Document Type"::Order, "BEO No.");
+
+                CustomerG.get(SalesHeaderG."Sell-to Customer No.");
+                DayName := GetWeekDay("Delivery Date");
+
             end;
 
             trigger OnPreDataItem()
@@ -107,4 +135,18 @@ report 50010 "Delivery Note"
 
     var
         CompInfoG: record "Company Information";
+        SalesHeaderG: Record "Sales Header";
+        CustomerG: Record Customer;
+        DayName: Text[10];
+
+    Procedure GetWeekDay(var WeekDateP: Date): Text
+    var
+        DateL: record Date;
+    begin
+        WITH DateL DO BEGIN
+            GET("Period Type"::Date, WeekDateP);
+            EXIT("Period Name");
+        END;
+    end;
+
 }

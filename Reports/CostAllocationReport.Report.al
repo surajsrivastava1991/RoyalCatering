@@ -142,4 +142,12 @@ report 50009 "Cost Allocation Report"
         CompInfoG: record "Company Information";
         StartDate: Date;
         Enddate: Date;
+
+    procedure DateFilter(var StartDateP: Date; var EndDateP: Date)
+    begin
+        StartDate := StartDateP;
+        Enddate := EndDateP;
+    end;
+
+
 }

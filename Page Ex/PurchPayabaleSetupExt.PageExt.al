@@ -10,27 +10,37 @@ pageextension 50050 "Purch & Payabale Setup Ext" extends "Purchases & Payables S
                 field("Mail Body1"; "Mail Body1")
                 {
                     ApplicationArea = all;
-                    ToolTip = 'Table field';
+                    ToolTip = 'Salutation ';
                 }
                 field("Mail Body2"; "Mail Body2")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    MultiLine = true;
                 }
                 field("Mail Body3"; "Mail Body3")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    MultiLine = true;
                 }
                 field("Mail Body4"; "Mail Body4")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    Visible = false;
                 }
                 field("Mail Body5"; "Mail Body5")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
+                    Visible = false;
+
+                }
+                field("Signature Image"; "Signature Image")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Signature Image';
                 }
 
             }
