@@ -6,7 +6,7 @@ page 50034 "Transfer Indent List"
     SourceTable = "Purchase Indent Header";
     CardPageId = "Transfer Indent";
     Caption = 'Transfer Requisitions';
-    SourceTableView = where("Replishment Type" = CONST(2));
+    SourceTableView = where("Replenishment Type" = CONST(2));
     layout
     {
         area(Content)

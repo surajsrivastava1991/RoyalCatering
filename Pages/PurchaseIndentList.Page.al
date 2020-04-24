@@ -6,7 +6,7 @@ page 50039 "Purchase Indent List"
     SourceTable = "Purchase Indent Header";
     CardPageId = "Purchase Indent Card";
     Caption = 'Purchase Requisitions';
-    SourceTableView = where("Replishment Type" = CONST(1));
+    SourceTableView = where("Replenishment Type" = CONST(1));
     layout
     {
         area(Content)

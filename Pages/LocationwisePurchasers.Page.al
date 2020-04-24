@@ -1,6 +1,6 @@
 page 50067 "Locationwise Purchasers"
 {
-    Caption = 'Requisition Purchaser setup';
+    Caption = 'Requisition user setup';
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Lists;
@@ -12,7 +12,7 @@ page 50067 "Locationwise Purchasers"
         {
             repeater(GroupName)
             {
-                field("Item Category Code"; "Item Category Code")
+                field("Requisition Type"; "Requisition Type")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
@@ -22,8 +22,14 @@ page 50067 "Locationwise Purchasers"
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
                 }
+                field("Item Category Code"; "Item Category Code")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
                 field("Purchaser Code"; "Purchaser Code")
                 {
+                    Caption = 'Assigned User ID';
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
                 }

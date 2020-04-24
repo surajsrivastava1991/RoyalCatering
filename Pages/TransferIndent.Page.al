@@ -48,6 +48,11 @@ page 50068 "Transfer Indent"
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
+                field("From Location"; "From Location")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table field';
+                }
                 field(Requester; Requester)
                 {
                     ApplicationArea = All;
@@ -280,7 +285,7 @@ page 50068 "Transfer Indent"
     }
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        "Replishment Type" := "Replishment Type"::Transfer;
+        "Replenishment Type" := "Replenishment Type"::Transfer;
     end;
 
     trigger OnAfterGetRecord()

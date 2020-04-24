@@ -12,7 +12,7 @@ table 50035 "Purchase Indent Header"
             begin
                 if "No." <> xRec."No." then begin
                     PurchseSetupG.Get();
-                    if "Replishment Type" = "Replishment Type"::Purchase then
+                    if "Replenishment Type" = "Replenishment Type"::Purchase then
                         NoSeriesMgtG.TestManual(PurchseSetupG."Requisition Nos.(Purchase)")
                     else
                         NoSeriesMgtG.TestManual(PurchseSetupG."Requisition Nos.(Transfer)");
@@ -34,9 +34,9 @@ table 50035 "Purchase Indent Header"
             OptionCaption = 'Open,Released,Pending Approval';
             OptionMembers = Open,Released,"Pending Approval";
         }
-        field(4; "Replishment Type"; Option)
+        field(4; "Replenishment Type"; Option)
         {
-            Caption = 'Replishment Type';
+            Caption = 'Replenishment Type';
             DataClassification = CustomerContent;
             OptionMembers = " ",Purchase,Transfer;
             OptionCaption = ' ,Purchase,Transfer';
@@ -107,7 +107,7 @@ table 50035 "Purchase Indent Header"
     begin
         if "No." = '' then begin
             PurchseSetupG.Get();
-            if "Replishment Type" = "Replishment Type"::Purchase then begin
+            if "Replenishment Type" = "Replenishment Type"::Purchase then begin
                 PurchseSetupG.TestField("Requisition Nos.(Purchase)");
                 NoSeriesMgtG.InitSeries(PurchseSetupG."Requisition Nos.(Purchase)", xRec."No. Series", Today, "No.", "No. Series");
             end else begin
@@ -141,7 +141,7 @@ table 50035 "Purchase Indent Header"
         with OldRequisitionHeaderP do begin
             Copy(Rec);
             PurchseSetupL.Get();
-            if "Replishment Type" = "Replishment Type"::Purchase then begin
+            if "Replenishment Type" = "Replenishment Type"::Purchase then begin
                 PurchseSetupL.TestField("Requisition Nos.(Purchase)");
 
                 if NoSeriesMgtG.SelectSeries(PurchseSetupL."Requisition Nos.(Purchase)", OldRequisitionHeaderP."No. Series", "No. Series") then begin
@@ -188,12 +188,7 @@ table 50035 "Purchase Indent Header"
                     RequisitionLineG."Worksheet Template Name" := PurchaseSetup."Req. Wksh. Template";
                     RequisitionLineG."Journal Batch Name" := PurchaseSetup."Requisition Wksh. Name";
                     RequisitionLineG."Line No." := LineNoG;
-                    if RequisitionHdrG."Replishment Type" = RequisitionHdrG."Replishment Type"::Purchase then
-                        RequisitionLineG."Replenishment System" := RequisitionLineG."Replenishment System"::Purchase
-                    else
-                        if RequisitionHdrG."Replishment Type" = RequisitionHdrG."Replishment Type"::Transfer then
-                            RequisitionLineG."Replenishment System" := RequisitionLineG."Replenishment System"::Transfer;
-                    //RequisitionLineG.Validate("Replenishment System");
+
                     //LineNoG += 10000;
                     RequisitionLineG.Validate(Type, Type);
                     RequisitionLineG.Validate("No.", "No.");
@@ -210,6 +205,12 @@ table 50035 "Purchase Indent Header"
                     //RequisitionLineG.Validate("Vendor No.", "Buy-from Vendor No.");
                     RequisitionLineG.SetCurrFieldNo(12);
                     RequisitionLineG.Validate("Due Date", "Requested Date");
+                    if "Replenishment Type" = "Replenishment Type"::Purchase then
+                        RequisitionLineG."Replenishment System" := RequisitionLineG."Replenishment System"::Purchase
+                    else
+                        if "Replenishment Type" = "Replenishment Type"::Transfer then
+                            RequisitionLineG."Replenishment System" := RequisitionLineG."Replenishment System"::Transfer;
+                    RequisitionLineG.Validate("Replenishment System");
                     RequisitionHdrG.GET("Document No.");
                     RequisitionLineG."Req. Document No." := "No.";
                     RequisitionLineG."Req. Line No." := "Line No.";

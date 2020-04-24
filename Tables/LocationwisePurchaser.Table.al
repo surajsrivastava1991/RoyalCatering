@@ -22,11 +22,17 @@ table 50071 "Locationwise Purchaser"
             DataClassification = CustomerContent;
             TableRelation = "Item Category";
         }
+        field(4; "Requisition Type"; Option)
+        {
+            OptionMembers = Purchase,Transfer;
+            Caption = 'Requisition Type';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
     {
-        key(PK; Location, "Item Category Code")
+        key(PK; Location, "Item Category Code", "Requisition Type")
         {
             Clustered = true;
         }

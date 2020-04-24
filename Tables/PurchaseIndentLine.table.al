@@ -8,7 +8,6 @@ table 50036 "Purchase Indent Line"
         {
             Editable = false;
             DataClassification = CustomerContent;
-
         }
         field(2; "Line No."; Integer)
         {
@@ -27,6 +26,7 @@ table 50036 "Purchase Indent Line"
                 "Item Category Code" := PurchIndentHdrG."Item Category Code";
                 "Receiving Location" := PurchIndentHdrG."Receiving Location";
                 "Requested Date" := PurchIndentHdrG."Requested Date";
+                "Replenishment Type" := PurchIndentHdrG."Replenishment Type";
                 "From Location" := PurchIndentHdrG."From Location";
             end;
         }
@@ -55,8 +55,13 @@ table 50036 "Purchase Indent Line"
                         "Unit of Measure Code" := ItemG."Purch. Unit of Measure";
                         Validate("Requested Date");
                     end;
-                LocationwisePurchaser.get("Receiving Location", "Item Category Code");
-                "Purchaser Code" := LocationwisePurchaser."Purchaser Code";
+                if "Replenishment Type" = "Replenishment Type"::Purchase then begin
+                    LocationwisePurchaser.get("Receiving Location", "Item Category Code", 0);
+                    "Purchaser Code" := LocationwisePurchaser."Purchaser Code";
+                end else begin
+                    LocationwisePurchaser.get("From Location", "Item Category Code", 1);
+                    "Purchaser Code" := LocationwisePurchaser."Purchaser Code";
+                end;
             end;
         }
         field(6; "Description"; Text[100])
@@ -139,10 +144,10 @@ table 50036 "Purchase Indent Line"
             begin
                 if "Requested Date" = 0D then
                     exit;
-                if PurIndHdrG."Replishment Type" = PurIndHdrG."Replishment Type"::Purchase then
+                if PurIndHdrG."Replenishment Type" = PurIndHdrG."Replenishment Type"::Purchase then
                     Validate("Order Date",
                           LeadTimeMgt.PlannedEndingDate("No.", "Receiving Location", "Variant Code", "Requested Date", '', 1));
-                if PurIndHdrG."Replishment Type" = PurIndHdrG."Replishment Type"::Transfer then
+                if PurIndHdrG."Replenishment Type" = PurIndHdrG."Replenishment Type"::Transfer then
                     Validate("Order Date",
                           LeadTimeMgt.PlannedEndingDate("No.", "Receiving Location", "Variant Code", "Requested Date", '', 3))
             end;
@@ -161,6 +166,20 @@ table 50036 "Purchase Indent Line"
             Caption = 'From Location';
             DataClassification = CustomerContent;
             TableRelation = Location;
+        }
+        field(25; "Transaction Status"; Option)
+        {
+            OptionMembers = " ","Partially Received",Received;
+            Caption = 'Transaction Status';
+            DataClassification = CustomerContent;
+        }
+        field(26; "Replenishment Type"; Option)
+        {
+            Caption = 'Replenishment Type';
+            DataClassification = CustomerContent;
+            OptionMembers = " ",Purchase,Transfer;
+            OptionCaption = ' ,Purchase,Transfer';
+            Editable = false;
         }
     }
 

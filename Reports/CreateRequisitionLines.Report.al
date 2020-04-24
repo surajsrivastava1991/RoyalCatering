@@ -29,7 +29,7 @@ report 50053 "Create Requisition Lines"
                     RequisitionLineG."Worksheet Template Name" := PurchaseSetup."Req. Wksh. Template";
                     RequisitionLineG."Journal Batch Name" := PurchaseSetup."Requisition Wksh. Name";
                     RequisitionLineG."Line No." := LineNoG;
-                    RequisitionLineG."Replenishment System" := RequisitionHdrG."Replishment Type";
+                    RequisitionLineG."Replenishment System" := RequisitionHdrG."Replenishment Type";
                     LineNoG += 10000;
                     RequisitionLineG.Validate(Type, Type);
                     RequisitionLineG.Validate("No.", "No.");
@@ -37,7 +37,7 @@ report 50053 "Create Requisition Lines"
                     RequisitionLineG.Validate(Quantity, Quantity);
                     //RequisitionLineG.Validate("Vendor No.", "Buy-from Vendor No.");
                     RequisitionHdrG.GET("Document No.");
-                    RequisitionLineG.Validate("Replenishment System", RequisitionHdrG."Replishment Type");
+                    RequisitionLineG.Validate("Replenishment System", RequisitionHdrG."Replenishment Type");
                     RequisitionLineG."Req. Document No." := "No.";
                     RequisitionLineG."Req. Line No." := "Line No.";
                     RequisitionLineG.Insert(true);

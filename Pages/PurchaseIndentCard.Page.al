@@ -11,7 +11,7 @@ page 50038 "Purchase Indent Card"
         {
             group(General)
             {
-                field("Replishment Type"; "Replishment Type")
+                field("Replishment Type"; "Replenishment Type")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
@@ -283,7 +283,7 @@ page 50038 "Purchase Indent Card"
     }
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        "Replishment Type" := "Replishment Type"::Purchase;
+        "Replenishment Type" := "Replenishment Type"::Purchase;
     end;
 
     trigger OnAfterGetRecord()

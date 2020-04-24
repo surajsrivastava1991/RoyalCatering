@@ -37,6 +37,7 @@ report 50054 "Carry Out Action Process"
                     }
                     field(RequisitionDocFilter; RequisitionDocFilter)
                     {
+                        //Visible = TransferVisibilityG;
                         Caption = 'Req. Document Grouping';
                         ApplicationArea = Planning;
                         ToolTip = 'Grouping based on requested documents?';
@@ -157,6 +158,8 @@ report 50054 "Carry Out Action Process"
         DateFilter: Option "Order Date","Receipt Date";
         SelectionFilter: Boolean;
         RequisitionDocFilter: Boolean;
+        TransferVisibilityG: Boolean;
+        PurchaseVisibilityG: Boolean;
 
 
     procedure SetReqWkshLine(var NewReqLine: Record "Requisition Line")
@@ -218,6 +221,18 @@ report 50054 "Carry Out Action Process"
         PurchOrderHeader."Posting Date" := PostingDate;
         PurchOrderHeader."Expected Receipt Date" := ExpectedReceiptDate;
         PurchOrderHeader."Your Reference" := YourRef;
+    end;
+
+    procedure EnablePurchaseFields()
+    begin
+        PurchaseVisibilityG := true;
+        TransferVisibilityG := false;
+    end;
+
+    procedure EnableTransferFields()
+    begin
+        TransferVisibilityG := true;
+        PurchaseVisibilityG := false;
     end;
 
     procedure SetHideDialog(NewHideDialog: Boolean)
