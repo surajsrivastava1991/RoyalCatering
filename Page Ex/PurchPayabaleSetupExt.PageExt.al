@@ -7,35 +7,56 @@ pageextension 50050 "Purch & Payabale Setup Ext" extends "Purchases & Payables S
         {
             group("Email Body")
             {
-                field("Mail Body1"; "Mail Body1")
+                field(Salutation; Salutation)
                 {
                     ApplicationArea = all;
-                    ToolTip = 'Salutation ';
+                    ToolTip = 'Table field';
                 }
-                field("Mail Body2"; "Mail Body2")
+                field("Body Line1"; "Body Line1")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     MultiLine = true;
                 }
-                field("Mail Body3"; "Mail Body3")
+                field("Body Line2"; "Body Line2")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     MultiLine = true;
-                }
-                field("Mail Body4"; "Mail Body4")
-                {
-                    ApplicationArea = all;
-                    ToolTip = 'Table field';
-                    Visible = false;
-                }
-                field("Mail Body5"; "Mail Body5")
-                {
-                    ApplicationArea = all;
-                    ToolTip = 'Table field';
-                    Visible = false;
 
+                }
+                field(Thanking; Thanking)
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    Visible = true;
+                }
+                field("Person Singnature"; "Person Singnature")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    Visible = true;
+                }
+                field("Signature (Company Name)"; "Signature (Company Name)")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Singnature 1"; "Singnature 1")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Singnature 2"; "Singnature 2")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Singnature 3"; "Singnature 3")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    Visible = true;
                 }
                 field("Signature Image"; "Signature Image")
                 {
@@ -69,20 +90,24 @@ pageextension 50050 "Purch & Payabale Setup Ext" extends "Purchases & Payables S
                     ApplicationArea = All;
                     ToolTip = 'Requisition fields';
                 }
-                field("Quote all"; "Quote all")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Requisition fields';
-                }
-                field("Check Vendor Trade Agreement"; "Check Vendor Trade Agreement")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Requisition fields';
-                }
                 field("Item Grouping"; "Item Grouping")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Requisition fields';
+                }
+                group("Purchase Quotes")
+                {
+                    field("Quote all"; "Quote all")
+                    {
+                        Caption = 'Purchase Quote Mandatory';
+                        ApplicationArea = All;
+                        ToolTip = 'Requisition fields';
+                    }
+                    field("Check Vendor Trade Agreement"; "Check Vendor Trade Agreement")
+                    {
+                        ApplicationArea = All;
+                        ToolTip = 'Requisition fields';
+                    }
                 }
             }
         }

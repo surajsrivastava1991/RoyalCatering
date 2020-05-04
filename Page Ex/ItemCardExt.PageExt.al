@@ -11,8 +11,9 @@ pageextension 50022 "Item Card Ext" extends "Item Card"
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
-                field("BEO Item Type"; "BEO Item Type")
+                field("Item Type"; "Item Type")
                 {
+                    Caption = 'Item Type';
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
@@ -30,6 +31,11 @@ pageextension 50022 "Item Card Ext" extends "Item Card"
                 {
                     ApplicationArea = all;
                     ToolTip = 'Menu Type for grouping in Production plan or report';
+                }
+                field("Quote Mandatory"; "Quote Mandatory")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Quotation creation mandatory after requisition';
                 }
             }
             // Add changes to page layout here

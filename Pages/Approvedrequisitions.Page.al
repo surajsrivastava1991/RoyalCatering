@@ -13,6 +13,7 @@ page 50070 "Approved requisitions"
     SourceTable = "Requisition Line";
     UsageCategory = Tasks;
     DeleteAllowed = false;
+    InsertAllowed = false;
 
     layout
     {
@@ -170,6 +171,11 @@ page 50070 "Approved requisitions"
                         ShowShortcutDimCode(ShortcutDimCode);
                     end;
                 }
+                field("Vendors For Quotation"; "Vendors For Quotation")
+                {
+                    ApplicationArea = Planning;
+                    ToolTip = 'Table Fields';
+                }
                 field("Vendor Item No."; "Vendor Item No.")
                 {
                     ApplicationArea = Planning;
@@ -207,6 +213,16 @@ page 50070 "Approved requisitions"
                     Visible = false;
                 }
                 field("Vendor Trade Agreement"; "Vendor Trade Agreement")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
+                field("Purchase quote mandatory"; "Purchase quote mandatory")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
+                field("Order/Quote"; "Order/Quote")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
@@ -418,6 +434,7 @@ page 50070 "Approved requisitions"
             {
                 Caption = '&Line';
                 Image = Line;
+                /*
                 action(Card)
                 {
                     ApplicationArea = Planning;
@@ -431,6 +448,7 @@ page 50070 "Approved requisitions"
                     ShortCutKey = 'Shift+F7';
                     ToolTip = 'View or change detailed information about the item or resource.';
                 }
+                */
                 group("Item Availability by")
                 {
                     Caption = 'Item Availability by';
@@ -527,6 +545,7 @@ page 50070 "Approved requisitions"
                         end;
                     }
                 }
+                /*
                 action(Dimensions)
                 {
                     AccessByPermission = TableData Dimension = R;
@@ -563,6 +582,7 @@ page 50070 "Approved requisitions"
                         OpenItemTrackingLines();
                     end;
                 }
+                */
             }
         }
         area(processing)
@@ -571,6 +591,7 @@ page 50070 "Approved requisitions"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+                /*
                 action(CalculatePlan)
                 {
                     ApplicationArea = Planning;
@@ -590,6 +611,8 @@ page 50070 "Approved requisitions"
                         Clear(CalculatePlan);
                     end;
                 }
+                
+
                 group("Drop Shipment")
                 {
                     Caption = 'Drop Shipment';
@@ -633,75 +656,17 @@ page 50070 "Approved requisitions"
                         end;
                     }
                 }
-                group("Special Order")
-                {
-                    Caption = 'Special Order';
-                    Image = SpecialOrder;
-                    action(Action53)
-                    {
-                        AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
-                        ApplicationArea = Planning;
-                        Caption = 'Get &Sales Orders';
-                        Ellipsis = true;
-                        Image = "Order";
-                        Promoted = true;
-                        PromotedOnly = true;
-                        PromotedCategory = Category5;
-                        ToolTip = 'Copy sales lines to the requisition worksheet. You can use the batch job to create requisition worksheet proposal lines from sales lines for drop shipments or special orders.';
-
-                        trigger OnAction()
-                        begin
-                            GetSalesOrder.SetReqWkshLine(Rec, 1);
-                            GetSalesOrder.RunModal();
-                            Clear(GetSalesOrder);
-                        end;
-                    }
-                    action(Action75)
-                    {
-                        AccessByPermission = TableData "Sales Shipment Header" = R;
-                        ApplicationArea = Planning;
-                        Caption = 'Sales &Order';
-                        Image = Document;
-                        Promoted = true;
-                        PromotedOnly = true;
-                        PromotedCategory = Category5;
-                        ToolTip = 'Create a new sales order for an item that is shipped directly from the vendor to the customer. The Drop Shipment check box must be selected on the sales order line, and the Vendor No. field must be filled on the item card.';
-
-                        trigger OnAction()
-                        begin
-                            SalesHeader.SetRange("No.", "Sales Order No.");
-                            SalesOrder.SetTableView(SalesHeader);
-                            SalesOrder.Editable := false;
-                            SalesOrder.Run();
-                        end;
-                    }
-                }
+                
                 separator(Action81)
                 {
                 }
-                action(Reserve)
-                {
-                    ApplicationArea = Reservation;
-                    Caption = '&Reserve';
-                    Image = Reserve;
-                    Promoted = true;
-                    PromotedCategory = Process;
-                    PromotedIsBig = true;
-                    PromotedOnly = true;
-                    ToolTip = 'Reserve one or more units of the item on the job planning line, either from inventory or from incoming supply.';
-
-                    trigger OnAction()
-                    begin
-                        CurrPage.SaveRecord();
-                        ShowReservation();
-                    end;
-                }
+                */
                 action(CarryOutActionMessagePurchase)
                 {
                     ApplicationArea = Planning;
                     Caption = 'Create Purchase Documents';
                     Ellipsis = true;
-                    Image = CarryOutActionMessage;
+                    Image = Purchase;
                     Promoted = true;
                     PromotedOnly = true;
                     PromotedCategory = Process;
@@ -713,8 +678,40 @@ page 50070 "Approved requisitions"
                         Carryoutactionreport: Report "Carry Out Action Process";
                     begin
                         Rec.SetRange("Replenishment System", "Replenishment System"::Purchase);
+                        rec.SetRange("Order/Quote", "Order/Quote"::"Purchase Order");
                         CurrPage.SetSelectionFilter(Rec);
                         Carryoutactionreport.SetReqWkshLine(Rec);
+                        Carryoutactionreport.PurchaseTypeFilter();
+                        //Carryoutactionreport.EnablePurchaseFields();
+                        Carryoutactionreport.RunModal();
+                        Carryoutactionreport.GetReqWkshLine(Rec);
+                        CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
+                        CurrPage.Update(false);
+                        CurrPage.Close();
+                    end;
+                }
+                action(CarryOutActionMessageQuote)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Create Purchase Quotes';
+                    Ellipsis = true;
+                    Image = Quote;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    ToolTip = 'Use a batch job to help you create actual supply orders from the order proposals.';
+
+                    trigger OnAction()
+                    var
+                        Carryoutactionreport: Report "Carry Out Action Process";
+                    begin
+                        Rec.SetRange("Replenishment System", "Replenishment System"::Purchase);
+                        Rec.SetRange("Order/Quote", "Order/Quote"::"Purchase Quote");
+                        CurrPage.SetSelectionFilter(Rec);
+                        Carryoutactionreport.SetReqWkshLine(Rec);
+                        Carryoutactionreport.QuoteTypeFilter();
+                        //Carryoutactionreport.EnablePurchaseFields();
                         Carryoutactionreport.RunModal();
                         Carryoutactionreport.GetReqWkshLine(Rec);
                         CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
@@ -727,7 +724,7 @@ page 50070 "Approved requisitions"
                     ApplicationArea = Planning;
                     Caption = 'Create Transfer Documents';
                     Ellipsis = true;
-                    Image = CarryOutActionMessage;
+                    Image = TransferOrder;
                     Promoted = true;
                     PromotedOnly = true;
                     PromotedCategory = Process;
@@ -736,17 +733,49 @@ page 50070 "Approved requisitions"
 
                     trigger OnAction()
                     var
-                        Carryoutactionreport: Report "Carry Out Action Process";
+                        Carryoutactionreport: Report "Carry Out Action Process-Tran.";
                     begin
                         Rec.SetRange("Replenishment System", "Replenishment System"::Transfer);
                         Carryoutactionreport.SetReqWkshLine(Rec);
+                        Carryoutactionreport.EnableTransferFields();
                         Carryoutactionreport.RunModal();
                         Carryoutactionreport.GetReqWkshLine(Rec);
                         CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
                         CurrPage.Update(false);
                     end;
                 }
+                action(CancelRequisitionLines)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Cancel Requisition Lines';
+                    Ellipsis = true;
+                    Image = CancelIndent;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    ToolTip = 'Cancel Selected Requisition Lines';
+
+                    trigger OnAction()
+                    var
+                        RequiLinesL: Record "Requisition Line";
+                        ReqWorksheetCUL: Codeunit "Req. Wksh.-Make Order-Mofified";
+                    begin
+                        if Confirm('Do you want to cancell selected lines?') then
+                            RequiLinesL.Reset();
+                        CurrPage.SetSelectionFilter(RequiLinesL);
+                        RequiLinesL.ModifyAll(Cancelled, true);
+                        CurrPage.Update(false);
+                        /*
+                        if RequiLinesL.FindSet() then
+                            repeat
+
+                            until RequiLinesL.next() = 0;
+                        */
+                    end;
+                }
             }
+            /*
             group("Order Tracking")
             {
                 Caption = 'Order Tracking';
@@ -771,7 +800,9 @@ page 50070 "Approved requisitions"
                     end;
                 }
             }
+            */
         }
+        /*
         area(reporting)
         {
             action("Inventory Availability")
@@ -830,6 +861,7 @@ page 50070 "Approved requisitions"
                 ToolTip = 'View a list of items on order from vendors. It also shows the expected receipt date and the quantity and amount on back orders. The report can be used, for example, to see when items should be received and whether a reminder of a back order should be issued.';
             }
         }
+        */
     }
 
     trigger OnAfterGetCurrRecord()
@@ -866,9 +898,10 @@ page 50070 "Approved requisitions"
                 Rec.SetRange("Item Category Code", LocationwisePurchaserG."Item Category Code");
         end;
         */
-        rec.FilterGroup(20);
-        Rec.SetRange("Purchaser Code", UserId);
         rec.FilterGroup(2);
+        rec.SetRange(Cancelled, false);
+        Rec.SetRange("Purchaser Code", UserId);
+        rec.FilterGroup(0);
         OpenedFromBatch := ("Journal Batch Name" <> '') and ("Worksheet Template Name" = '');
         if OpenedFromBatch then begin
             CurrentJnlBatchName := "Journal Batch Name";
@@ -876,7 +909,7 @@ page 50070 "Approved requisitions"
             exit;
         end;
         OnBeforeTemplateSelection(Rec, CurrentJnlBatchName);
-        ReqJnlManagement.TemplateSelection(PAGE::"Req. Worksheet", false, 0, Rec, JnlSelected);
+        ReqJnlManagement.TemplateSelection(PAGE::"Approved requisitions", false, 0, Rec, JnlSelected);
         if not JnlSelected then
             Error('');
 
@@ -888,6 +921,7 @@ page 50070 "Approved requisitions"
         SalesHeader: Record "Sales Header";
         GetSalesOrder: Report "Get Sales Orders";
         CalculatePlan: Report "Calculate Plan - Req. Wksh.";
+        ReqLineG: Record "Requisition Line";
         ReqJnlManagement: Codeunit ReqJnlManagement;
         ItemAvailFormsMgt: Codeunit "Item Availability Forms Mgt";
         ChangeExchangeRate: Page "Change Exchange Rate";

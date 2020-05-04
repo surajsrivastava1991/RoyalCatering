@@ -16,5 +16,11 @@ tableextension 50053 "Sales Setup Ext" extends "Sales & Receivables Setup" //MyT
             DataClassification = CustomerContent;
 
         }
+        field(50002; "Maintenance Service No."; Code[20])
+        {
+            Caption = 'Maintenance Service No.';
+            TableRelation = "No. Series";
+            DataClassification = CustomerContent;
+        }
     }
 }

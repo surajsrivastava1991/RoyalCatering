@@ -66,6 +66,11 @@ page 50038 "Purchase Indent Card"
                     ApplicationArea = All;
                     ToolTip = 'Table Field';
                 }
+                field("Transaction Status"; "Transaction Status")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Field';
+                }
 
             }
 
@@ -190,8 +195,9 @@ page 50038 "Purchase Indent Card"
                         if (PurIndentApprovalCUL.IsPurchaseIndentDocumentApprovalsWorkflowEnabled(Rec)) and (Rec."Approval Status" = rec."Approval Status"::Open) then
                             ERROR(Text002);
                         Rec."Approval Status" := rec."Approval Status"::Released;
+                        Validate("Approval Status");
                         CurrPage.Update(true);
-                        //CreateRequisitionLines();//Create Requisition Lines
+                        CreateRequisitionLines();//Create Requisition Lines
                     end;
                 }
                 action(Reopen)

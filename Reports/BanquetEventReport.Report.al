@@ -91,6 +91,14 @@ report 50051 "Banquet Event Report"
             column(TypeofEvent; "Type of Event")
             {
             }
+            column("Event"; "Event")
+            {
+
+            }
+            column(Location_BEO; "Location BEO")
+            {
+
+            }
             column(TypeofSale; "Type of Sale")
             {
             }
@@ -181,10 +189,18 @@ report 50051 "Banquet Event Report"
             {
 
             }
+            column(PreparedByNameG; PreparedByNameG)
+            {
+
+            }
             trigger OnAfterGetRecord()
             begin
                 IF DimSetEntrisG.GET("Dimension Set ID", 'PROJECT') then;
                 DimSetEntrisG.CalcFields(DimSetEntrisG."Dimension Value Name");
+                EmployeeG.Reset();
+                EmployeeG.SetRange("No.", SalesOrder."Prepared By");
+                if EmployeeG.FindFirst() then
+                    PreparedByNameG := EmployeeG."First Name" + ' ' + EmployeeG."Middle Name" + ' ' + EmployeeG."Last Name";
             end;
         }
     }
@@ -197,5 +213,7 @@ report 50051 "Banquet Event Report"
     var
         DimSetEntrisG: Record "Dimension Set Entry";
         CompamyInfoG: Record "Company Information";
+        EmployeeG: Record Employee;
+        PreparedByNameG: Text[250];
 
 }

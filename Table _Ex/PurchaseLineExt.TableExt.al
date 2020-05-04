@@ -16,6 +16,25 @@ tableextension 50025 "Purchase Line Ext" extends "Purchase Line"
                 "Qty To Reject" := 0;
             end;
         }
+        modify("Unit of Measure Code")
+        {
+            trigger OnAfterValidate()
+            VAr
+                ItemUnitOfMeasureL: Record "Item Unit of Measure";
+                FixedAssetL: Record "Fixed Asset";
+            begin
+                if (Type = Type::"Fixed Asset") and ("Unit of Measure Code" <> '') then begin
+                    FixedAssetL.Get("No.");
+                    if FixedAssetL."Item No." <> '' then begin
+                        ItemUnitOfMeasureL.Reset();
+                        ItemUnitOfMeasureL.SetRange("Item No.", FixedAssetL."Item No.");
+                        ItemUnitOfMeasureL.SetRange(Code, "Unit of Measure Code");
+                        if ItemUnitOfMeasureL.IsEmpty() then
+                            Error('Selected UOM is unavailable in Item unit of measure Table for Item No %1', FixedAssetL."Item No.");
+                    end;
+                end;
+            end;
+        }
         field(50000; "Vendor Trade Agreement"; Boolean)
         {
             DataClassification = CustomerContent;
@@ -51,11 +70,20 @@ tableextension 50025 "Purchase Line Ext" extends "Purchase Line"
             var
                 ItemL: Record Item;
             begin
-                ItemL.get("No.");
-                Validate(Quantity, "Qty. to Accept" + ("Qty. to Accept" * ItemL."Tolerance(%)") / 100);
-                "Exceed Qty." := ("Qty. to Accept" * ItemL."Tolerance(%)") / 100;
-                Validate("Qty. to Receive", "Qty. to Accept");
-                Validate("Qty. to Invoice", "Qty. to Accept");
+                if ItemL.get("No.") then begin
+                    Validate(Quantity, "Qty. to Accept" + ("Qty. to Accept" * ItemL."Tolerance(%)") / 100);
+                    "Exceed Qty." := ("Qty. to Accept" * ItemL."Tolerance(%)") / 100;
+                    Validate("Qty. to Receive", "Qty. to Accept");
+                    Validate("Qty. to Invoice", "Qty. to Accept");
+                    Validate("Direct Unit Cost");
+                end else begin
+                    Validate(Quantity, "Qty. to Accept");
+                    "Exceed Qty." := 0;
+                    Validate("Qty. to Receive", "Qty. to Accept");
+                    Validate("Qty. to Invoice", "Qty. to Accept");
+                    Validate("Direct Unit Cost");
+                end;
+
             end;
         }
         field(50005; "Exceed Qty."; Decimal)

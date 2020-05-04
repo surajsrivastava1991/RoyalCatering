@@ -11,6 +11,7 @@ report 50052 "Delete Purchase Orders"
         {
             trigger OnAfterGetRecord()
             begin
+                Flag1G := false;
                 PurchaseHeaderG.get(PurchaseHeader."Document Type", PurchaseHeader."No.");
                 PurchaseLineG.Reset();
                 PurchaseLineG.SetRange("Document Type", "Document Type");
@@ -18,13 +19,12 @@ report 50052 "Delete Purchase Orders"
                 if PurchaseLineG.FindSet() then
                     repeat
                         PurchaseLineG.LockTable();
-                        IF not (PurchaseLineG.Quantity <= (PurchaseLineG."Quantity Invoiced" + PurchaseLineG."Qty under delivery")) then
+                        IF (PurchaseLineG.Quantity > (PurchaseLineG."Quantity Invoiced" + PurchaseLineG."Qty under delivery" + PurchaseLineG."Exceed Qty.")) then
                             Flag1G := true;
                     until PurchaseLineG.Next() = 0;
-                if Flag1G = false then begin
+                if not Flag1G then begin
                     ArchiveManagementG.ArchivePurchDocument(PurchaseHeaderG);
                     PurchaseHeaderG.Delete(TRUE);
-
                 end;
                 //MESSAGE(PurchaseHeaderG."No.");
             end;

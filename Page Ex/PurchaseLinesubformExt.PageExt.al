@@ -56,7 +56,11 @@ pageextension 50026 "Purchase Line subform Ext" extends "Purchase Order Subform"
                 ApplicationArea = All;
                 ToolTip = 'Which will not be received in future.';
             }
-
+            field("Depreciation Book Code"; "Depreciation Book Code")
+            {
+                ApplicationArea = ALL;
+                ToolTip = 'Depreciation Book Code';
+            }
         }
 
     }

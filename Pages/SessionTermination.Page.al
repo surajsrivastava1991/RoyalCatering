@@ -1,7 +1,7 @@
-page 50001 Sessions
+page 50001 "Session Termination"
 {
     PageType = List;
-    ApplicationArea = All;
+    ApplicationArea = all;
     UsageCategory = Lists;
     SourceTable = "Active Session";
     Editable = false;
@@ -14,47 +14,58 @@ page 50001 Sessions
             {
                 field("Client Computer Name"; "Client Computer Name")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Client Type"; "Client Type")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Database Name"; "Database Name")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Login Datetime"; "Login Datetime")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Server Computer Name"; "Server Computer Name")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Server Instance ID"; "Server Instance ID")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Server Instance Name"; "Server Instance Name")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Session ID"; "Session ID")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("Session Unique ID"; "Session Unique ID")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("User SID"; "User SID")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
                 field("User ID"; "User ID")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = all;
+                    ToolTip = 'Table Field';
                 }
             }
         }
@@ -67,7 +78,8 @@ page 50001 Sessions
         {
             action("Kill Selected Sessions")
             {
-                ApplicationArea = All;
+                ApplicationArea = all;
+                ToolTip = 'Table Field';
                 Promoted = true;
                 PromotedIsBig = true;
                 Image = Cancel;
@@ -82,13 +94,14 @@ page 50001 Sessions
                             SessionG2.SetRange("User ID", SessionG."User ID");
                             if SessionG2.FindSet() then
                                 StopSession(SessionG2."Session ID");
-                        until SessionG.next = 0;
+                        until SessionG.next() = 0;
                     CurrPage.Update();
                 end;
             }
             action("Kill All Sessions")
             {
                 ApplicationArea = all;
+                ToolTip = 'Table Field';
                 Promoted = true;
                 PromotedIsBig = true;
                 Image = Stop;
@@ -96,13 +109,13 @@ page 50001 Sessions
                 begin
                     if not Confirm(KillAllAessionsTxt) then
                         EXIT;
-                    SessionG.RESET;
+                    SessionG.RESET();
                     SessionG.SetFilter("User ID", '<>%1', UserId);
                     IF SessionG.FindSet() then
                         repeat
                             StopSession(SessionG."Session ID");
 
-                        until SessionG.NEXT = 0;
+                        until SessionG.NEXT() = 0;
                     CurrPage.Update();
                 end;
 

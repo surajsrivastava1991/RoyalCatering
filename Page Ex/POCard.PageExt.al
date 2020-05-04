@@ -19,35 +19,56 @@ pageextension 50004 "PO Card" extends "Purchase Order"
         {
             group("Email Body")
             {
-                field("Mail Body1"; "Mail Body1")
+                field(Salutation; Salutation)
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
-                field("Mail Body2"; "Mail Body2")
+                field("Body Line1"; "Body Line1")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     MultiLine = true;
                 }
-                field("Mail Body3"; "Mail Body3")
+                field("Body Line2"; "Body Line2")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     MultiLine = true;
 
                 }
-                field("Mail Body4"; "Mail Body4")
+                field(Thanking; Thanking)
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
-                    Visible = false;
+                    Visible = true;
                 }
-                field("Mail Body5"; "Mail Body5")
+                field("Person Singnature"; "Person Singnature")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
-                    Visible = false;
+                    Visible = true;
+                }
+                field("Signature (Company Name)"; "Signature (Company Name)")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Singnature 1"; "Singnature 1")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Singnature 2"; "Singnature 2")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Singnature 3"; "Singnature 3")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    Visible = true;
                 }
             }
         }
@@ -124,8 +145,8 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                     ItemjrlLineL.SetRange("Journal Batch Name", LocationG."Item Batch Name");
                     if ItemjrlLineL.FindFirst() then
                         repeat
-                            if LocationG."Location Type" <> LocationG."Location Type"::" " then
-                                ItemJrlLinePostingL.Run(ItemjrlLineL);
+                            //if LocationG."Location Type" <> LocationG."Location Type"::" " then
+                            ItemJrlLinePostingL.Run(ItemjrlLineL);
                         until ItemjrlLineL.Next() = 0;
 
                     //For Rejected Qty Reclassification Posting

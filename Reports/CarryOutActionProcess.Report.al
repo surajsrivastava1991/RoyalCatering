@@ -24,32 +24,6 @@ report 50054 "Carry Out Action Process"
                         Caption = 'Print Orders';
                         ToolTip = 'Specifies whether to print the purchase orders after they are created.';
                     }
-                    field(ItemGrouping; ItemGrouping)
-                    {
-                        ApplicationArea = Planning;
-                        Caption = 'Item Grouping';
-                        ToolTip = 'Consolidated order line for same items';
-                        trigger OnValidate()
-                        begin
-                            if ItemGrouping = false then
-                                DeliveryDateGrouping := false;
-                        end;
-                    }
-                    field(RequisitionDocFilter; RequisitionDocFilter)
-                    {
-                        //Visible = TransferVisibilityG;
-                        Caption = 'Req. Document Grouping';
-                        ApplicationArea = Planning;
-                        ToolTip = 'Grouping based on requested documents?';
-                        trigger OnValidate()
-                        begin
-                            if RequisitionDocFilter = true then begin
-                                SelectionFilter := false;
-                                ToDate := 0D;
-                                FromDate := 0D;
-                            end;
-                        end;
-                    }
                     field(SelectionFilter; SelectionFilter)
                     {
                         Caption = 'Filter Selected Lines';
@@ -81,6 +55,26 @@ report 50054 "Carry Out Action Process"
                         ApplicationArea = Planning;
                         Caption = 'To Date';
                         ToolTip = 'Order date filter';
+                    }
+                }
+                group("Line Grouping")
+                {
+                    field(ItemGrouping; ItemGrouping)
+                    {
+                        ApplicationArea = Planning;
+                        Caption = 'Item Grouping';
+                        ToolTip = 'Consolidated order line for same items';
+                        trigger OnValidate()
+                        begin
+                            if ItemGrouping = false then
+                                DeliveryDateGrouping := false;
+                        end;
+                    }
+                    field(DeliveryDateGrouping; DeliveryDateGrouping)
+                    {
+                        ApplicationArea = Planning;
+                        Caption = 'Delivery Date Grouping';
+                        ToolTip = 'Consolidated order line for same items';
                     }
                 }
             }
@@ -123,6 +117,9 @@ report 50054 "Carry Out Action Process"
             ReqLine.SetRange("Worksheet Template Name");
             ReqLine.SetRange("Journal Batch Name");
             ReqLine.SetRange("Line No.");
+            ReqLine.SetRange("Replenishment System", ReplinishmentTypeG);
+            ReqLine.SetRange("Order/Quote", PurchaseOrQuoteG);
+            ReqLine.SetRange(Cancelled, false);
             if (FromDate <> 0D) and (ToDate <> 0D) then
                 if DateFilter = DateFilter::"Order Date" then
                     ReqLine.SetRange("Order Date", FromDate, ToDate)
@@ -160,6 +157,8 @@ report 50054 "Carry Out Action Process"
         RequisitionDocFilter: Boolean;
         TransferVisibilityG: Boolean;
         PurchaseVisibilityG: Boolean;
+        ReplinishmentTypeG: Integer;
+        PurchaseOrQuoteG: Integer;
 
 
     procedure SetReqWkshLine(var NewReqLine: Record "Requisition Line")
@@ -168,6 +167,7 @@ report 50054 "Carry Out Action Process"
         ReqWkshTmpl.Get(NewReqLine."Worksheet Template Name");
 
         OnAfterSetReqWkshLine(NewReqLine);
+        TransferVisibilityG := true;
     end;
 
     procedure GetReqWkshLine(var NewReqLine: Record "Requisition Line")
@@ -233,6 +233,24 @@ report 50054 "Carry Out Action Process"
     begin
         TransferVisibilityG := true;
         PurchaseVisibilityG := false;
+    end;
+
+    procedure PurchaseTypeFilter()
+    begin
+        ReplinishmentTypeG := ReqLine."Replenishment System"::Purchase;
+        PurchaseOrQuoteG := ReqLine."Order/Quote"::"Purchase Order";
+    end;
+
+    procedure QuoteTypeFilter()
+    begin
+        ReplinishmentTypeG := ReqLine."Replenishment System"::Purchase;
+        PurchaseOrQuoteG := ReqLine."Order/Quote"::"Purchase Quote";
+    end;
+
+    procedure TransferTypeFilte()
+    begin
+        ReplinishmentTypeG := ReqLine."Replenishment System"::Transfer;
+        PurchaseOrQuoteG := ReqLine."Order/Quote"::" ";
     end;
 
     procedure SetHideDialog(NewHideDialog: Boolean)

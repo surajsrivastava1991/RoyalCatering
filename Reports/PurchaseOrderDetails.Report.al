@@ -132,7 +132,7 @@ report 50003 "Purchase Order Details"
                 {
 
                 }
-                column(Quantity; Quantity)
+                column(Quantity; "Qty. to Accept")
                 {
 
                 }
@@ -148,7 +148,7 @@ report 50003 "Purchase Order Details"
                 {
 
                 }
-                column(Line_Amount; "Line Amount")
+                column(Line_Amount; LineAmountG)
                 {
 
                 }
@@ -156,11 +156,11 @@ report 50003 "Purchase Order Details"
                 {
 
                 }
-                column(Line_Discount_Amount; "Line Discount Amount")
+                column(Line_Discount_Amount; DiscountAmt)
                 {
 
                 }
-                column(VAT_Base_Amount; "VAT Base Amount")
+                column(VAT_Base_Amount; LineAmountG)
                 {
 
                 }
@@ -182,8 +182,12 @@ report 50003 "Purchase Order Details"
 
                 trigger OnAfterGetRecord()
                 begin
-                    DiscountAmt += "Purchase Line"."Line Discount Amount";
-                    VatAmt := "Purchase Line".Amount * ("VAT %" / 100);
+                    // QuantityG := "Purchase Line"."Qty. to Accept";
+                    LineAmountG := "Purchase Line"."Qty. to Accept" * "Purchase Line"."Unit Cost";
+                    DiscountAmt := (LineAmountG * "Purchase Line"."Line Discount %") / 100;
+                    VatAmt := LineAmountG * ("Purchase Line"."VAT %" / 100);
+                    TotalLineAmountG := LineAmountG + VatAmt - DiscountAmt;
+
                 end;
             }
             trigger OnPreDataItem()
@@ -192,21 +196,34 @@ report 50003 "Purchase Order Details"
                 CompInfoG.CalcFields(Picture);
                 GLEntryG.Get();
                 DiscountAmt := 0;
+                GrandTotalG := 0;
             end;
 
             trigger OnAfterGetRecord()
             begin
-                CheckG.InitTextVariable();
+
+                PurchaseLineG.Reset();
+                PurchaseLineG.SetRange("Document Type", PurchaseHeader."Document Type");
+                PurchaseLineG.SetRange("Document No.", PurchaseHeader."No.");
+                if PurchaseLineG.FindSet() then
+                    repeat
+                        GrandTotalG += (PurchaseLineG."Qty. to Accept" * PurchaseLineG."Unit Cost") * (1 + (PurchaseLineG."VAT %" / 100) - (PurchaseLineG."Line Discount %") / 100);
+                    until PurchaseLineG.Next() = 0;
+
+
+
+
+
                 VendorG.Get(PurchaseHeader."Buy-from Vendor No.");
                 FAXNo := VendorG."Fax No.";
                 VATRegNo := VendorG."VAT Registration No.";
                 ProjectNameG := '';
-                CheckG.FormatNoText(AmountinWordsG, PurchaseHeader."Amount Including VAT", 'AED');
+                CheckG.InitTextVariable();
+                CheckG.FormatNoText(AmountinWordsG, GrandTotalG, 'AED');
                 if PurchaseHeader."Shortcut Dimension 1 Code" <> '' then begin
                     DimensionValueG.Get(GLEntryG."Global Dimension 1 Code", PurchaseHeader."Shortcut Dimension 1 Code");
                     ProjectNameG := DimensionValueG.Name;
                 end;
-
             end;
 
         }
@@ -236,12 +253,16 @@ report 50003 "Purchase Order Details"
         DimensionValueG: Record "Dimension Value";
         GLEntryG: record "General Ledger Setup";
         VendorG: Record Vendor;
+        PurchaseLineG: Record "Purchase Line";
 
         CheckG: Report Check;
         AmountinWordsG: array[1] of Text;
 
         ProjectNameG: Text[50];
         FAXNo: text[30];
+        LineAmountG: Decimal;
+        TotalLineAmountG: Decimal;
+        GrandTotalG: Decimal;
         VATRegNo: code[20];
         DiscountAmt: Decimal;
         VatAmt: Decimal;

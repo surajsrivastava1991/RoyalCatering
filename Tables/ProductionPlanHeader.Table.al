@@ -130,12 +130,12 @@ table 50000 "Production Plan Header"
 
     trigger OnModify()
     begin
-        // if Status = Status::Posted then
-        //     Error('Production Plan has been delivered ');
+        testfield(Status, Status::Open);
     end;
 
     trigger OnDelete()
     begin
+        testfield(Status, Status::Open);
         ProductionPlanLineG.Reset();
         ProductionPlanLineG.SetRange("Production Plan No.", "Production Plan No.");
         ProductionPlanLineG.DeleteAll();

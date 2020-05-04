@@ -17,7 +17,7 @@ table 50031 "Copy Production Line"
         field(3; "Item No."; code[20])
         {
             DataClassification = CustomerContent;
-            TableRelation = Item where("BEO Item Type" = filter('Recipe Item'));
+            TableRelation = Item where("Item Type" = filter('Recipe Item'));
             trigger OnValidate()
             var
                 ItemL: Record Item;

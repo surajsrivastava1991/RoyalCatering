@@ -418,6 +418,7 @@ page 50071 "Approved requisitions Admin"
             {
                 Caption = '&Line';
                 Image = Line;
+                /*
                 action(Card)
                 {
                     ApplicationArea = Planning;
@@ -431,6 +432,7 @@ page 50071 "Approved requisitions Admin"
                     ShortCutKey = 'Shift+F7';
                     ToolTip = 'View or change detailed information about the item or resource.';
                 }
+                */
                 group("Item Availability by")
                 {
                     Caption = 'Item Availability by';
@@ -527,6 +529,7 @@ page 50071 "Approved requisitions Admin"
                         end;
                     }
                 }
+                /*
                 action(Dimensions)
                 {
                     AccessByPermission = TableData Dimension = R;
@@ -563,6 +566,7 @@ page 50071 "Approved requisitions Admin"
                         OpenItemTrackingLines();
                     end;
                 }
+                */
             }
         }
         area(processing)
@@ -571,6 +575,7 @@ page 50071 "Approved requisitions Admin"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+                /*
                 action(CalculatePlan)
                 {
                     ApplicationArea = Planning;
@@ -676,9 +681,11 @@ page 50071 "Approved requisitions Admin"
                         end;
                     }
                 }
+                */
                 separator(Action81)
                 {
                 }
+                /*
                 action(Reserve)
                 {
                     ApplicationArea = Reservation;
@@ -696,56 +703,10 @@ page 50071 "Approved requisitions Admin"
                         ShowReservation();
                     end;
                 }
-                action(CarryOutActionMessagePurchase)
-                {
-                    ApplicationArea = Planning;
-                    Caption = 'Create Purchase Documents';
-                    Ellipsis = true;
-                    Image = CarryOutActionMessage;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Process;
-                    PromotedIsBig = true;
-                    ToolTip = 'Use a batch job to help you create actual supply orders from the order proposals.';
+                */
 
-                    trigger OnAction()
-                    var
-                        Carryoutactionreport: Report "Carry Out Action Process";
-                    begin
-                        Rec.SetRange("Replenishment System", "Replenishment System"::Purchase);
-                        CurrPage.SetSelectionFilter(Rec);
-                        Carryoutactionreport.SetReqWkshLine(Rec);
-                        Carryoutactionreport.RunModal();
-                        Carryoutactionreport.GetReqWkshLine(Rec);
-                        CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
-                        CurrPage.Update(false);
-                    end;
-                }
-                action(CarryOutActionMessageTransfer)
-                {
-                    ApplicationArea = Planning;
-                    Caption = 'Create Transfer Documents';
-                    Ellipsis = true;
-                    Image = CarryOutActionMessage;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Process;
-                    PromotedIsBig = true;
-                    ToolTip = 'Use a batch job to help you create actual supply orders from the order proposals.';
-
-                    trigger OnAction()
-                    var
-                        Carryoutactionreport: Report "Carry Out Action Process";
-                    begin
-                        Rec.SetRange("Replenishment System", "Replenishment System"::Transfer);
-                        Carryoutactionreport.SetReqWkshLine(Rec);
-                        Carryoutactionreport.RunModal();
-                        Carryoutactionreport.GetReqWkshLine(Rec);
-                        CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
-                        CurrPage.Update(false);
-                    end;
-                }
             }
+            /*
             group("Order Tracking")
             {
                 Caption = 'Order Tracking';
@@ -770,63 +731,57 @@ page 50071 "Approved requisitions Admin"
                     end;
                 }
             }
-        }
-        area(reporting)
-        {
-            action("Inventory Availability")
+            */
+            action(CarryOutActionMessagePurchase)
             {
                 ApplicationArea = Planning;
-                Caption = 'Inventory Availability';
-                Image = "Report";
+                Caption = 'Create Purchase Documents';
+                Ellipsis = true;
+                Image = NewPurchaseInvoice;
+                //Image = CarryOutActionMessage;
                 Promoted = true;
                 PromotedOnly = true;
-                PromotedCategory = "Report";
-                RunObject = Report "Inventory Availability";
-                ToolTip = 'View, print, or save a summary of historical inventory transactions with selected items, for example, to decide when to purchase the items. The report specifies quantity on sales order, quantity on purchase order, back orders from vendors, minimum inventory, and whether there are reorders.';
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                ToolTip = 'Use a batch job to help you create actual supply orders from the order proposals.';
+
+                trigger OnAction()
+                var
+                    Carryoutactionreport: Report "Carry Out Action Process";
+                begin
+                    Rec.SetRange("Replenishment System", "Replenishment System"::Purchase);
+                    CurrPage.SetSelectionFilter(Rec);
+                    Carryoutactionreport.SetReqWkshLine(Rec);
+                    Carryoutactionreport.RunModal();
+                    Carryoutactionreport.GetReqWkshLine(Rec);
+                    CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
+                    CurrPage.Update(false);
+                end;
             }
-            action(Status)
+            action(CarryOutActionMessageTransfer)
             {
                 ApplicationArea = Planning;
-                Caption = 'Status';
-                Image = "Report";
+                Caption = 'Create Transfer Documents';
+                Ellipsis = true;
+                //Image = CarryOutActionMessage;
+                Image = NewTransferOrder;
                 Promoted = true;
                 PromotedOnly = true;
-                PromotedCategory = "Report";
-                RunObject = Report Status;
-                ToolTip = 'View the status of the worksheet.';
-            }
-            action("Inventory - Availability Plan")
-            {
-                ApplicationArea = Planning;
-                Caption = 'Inventory - Availability Plan';
-                Image = ItemAvailability;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = "Report";
-                RunObject = Report "Inventory - Availability Plan";
-                ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
-            }
-            action("Inventory Order Details")
-            {
-                ApplicationArea = Planning;
-                Caption = 'Inventory Order Details';
-                Image = "Report";
-                Promoted = false;
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Inventory Order Details";
-                ToolTip = 'View a list of the orders that have not yet been shipped or received and the items in the orders. It shows the order number, customer''s name, shipment date, order quantity, quantity on back order, outstanding quantity and unit price, as well as possible discount percentage and amount. The quantity on back order and outstanding quantity and amount are totaled for each item. The list can be used to find out whether there are currently shipment problems or any can be expected.';
-            }
-            action("Inventory Purchase Orders")
-            {
-                ApplicationArea = Planning;
-                Caption = 'Inventory Purchase Orders';
-                Image = "Report";
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = "Report";
-                RunObject = Report "Inventory Purchase Orders";
-                ToolTip = 'View a list of items on order from vendors. It also shows the expected receipt date and the quantity and amount on back orders. The report can be used, for example, to see when items should be received and whether a reminder of a back order should be issued.';
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                ToolTip = 'Use a batch job to help you create actual supply orders from the order proposals.';
+
+                trigger OnAction()
+                var
+                    Carryoutactionreport: Report "Carry Out Action Process";
+                begin
+                    Rec.SetRange("Replenishment System", "Replenishment System"::Transfer);
+                    Carryoutactionreport.SetReqWkshLine(Rec);
+                    Carryoutactionreport.RunModal();
+                    Carryoutactionreport.GetReqWkshLine(Rec);
+                    CurrentJnlBatchName := GetRangeMax("Journal Batch Name");
+                    CurrPage.Update(false);
+                end;
             }
         }
     }
@@ -872,7 +827,7 @@ page 50071 "Approved requisitions Admin"
             exit;
         end;
         OnBeforeTemplateSelection(Rec, CurrentJnlBatchName);
-        ReqJnlManagement.TemplateSelection(PAGE::"Req. Worksheet", false, 0, Rec, JnlSelected);
+        ReqJnlManagement.TemplateSelection(PAGE::"Approved requisitions", false, 0, Rec, JnlSelected);
         if not JnlSelected then
             Error('');
 

@@ -28,6 +28,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         PurchasingCode: Record Purchasing;
         TempDocumentEntry: Record "Document Entry" temporary;
         PurchOrderHeader2G: Record "Purchase Header";
+        TransLineG: Record "Transfer Line";
+        VendorG: Record Vendor;
         ReqWkshMakeOrders: Codeunit "Req. Wksh.-Make Order";
         TransferExtendedText: Codeunit "Transfer Extended Text";
         ReserveReqLine: Codeunit "Req. Line-Reserve";
@@ -238,7 +240,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                     if "Replenishment System" = "Replenishment System"::Purchase then begin
                         if "Planning Line Origin" = "Planning Line Origin"::"Order Planning" then
                             TestField("Supply From");
-                        TestField("Vendor No.")
+                        if ReqLine2."Order/Quote" <> "Order/Quote"::"Purchase Quote" then
+                            TestField("Vendor No.")
                     end else
                         if "Replenishment System" = "Replenishment System"::Transfer then begin
                             TestField("Location Code");
@@ -312,7 +315,9 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
 
         if IsHandled then
             exit;
+        //Aplica.1.0-Purchase quote for multiple vendors -->>
 
+        //Aplica.1.0 <<--
         with ReqLine do
             case "Replenishment System" of
                 "Replenishment System"::Transfer:
@@ -337,7 +342,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                         "Action Message"::New, "Action Message"::" ":
                             begin
                                 CarryOutAction.SetPrintOrder(PrintPurchOrders);
-                                CarryOutAction.InsertTransLine(ReqLine, TransHeader);
+                                InsertTransLine(ReqLine, TransHeader);
                                 OrderCounter := OrderCounter + 1;
                             end;
                     end;
@@ -377,7 +382,12 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                                         until PurchOrderLine.Next() = 0;
                                 end;
                                 MakeRecurringTexts(ReqLine);
-                                InsertPurchOrderLine(ReqLine, PurchOrderHeader, PurchOrderLine);
+                                if ReqLine."Order/Quote" = ReqLine."Order/Quote"::"Purchase Order" then
+                                    InsertPurchOrderLine(ReqLine, PurchOrderHeader, PurchOrderLine)
+                                else
+                                    if ReqLine."Order/Quote" = ReqLine."Order/Quote"::"Purchase Quote" then
+                                        InsertPurchQuoteLine(ReqLine, PurchOrderHeader, PurchOrderLine);
+
                             end;
                     end;
             end;
@@ -462,6 +472,46 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
 
     end;
 
+    procedure InitPurchQuoteLine(var PurchOrderLine: Record "Purchase Line"; PurchOrderHeader: Record "Purchase Header"; RequisitionLine: Record "Requisition Line"; VendorP: Record Vendor)
+    begin
+        with RequisitionLine do begin
+            PurchOrderLine.Init();
+            PurchOrderLine.BlockDynamicTracking(true);
+            PurchOrderLine."Document Type" := PurchOrderLine."Document Type"::Quote;
+            PurchOrderLine."Buy-from Vendor No." := VendorP."No.";
+            PurchOrderLine."Document No." := PurchOrderHeader."No.";
+            NextLineNo := NextLineNo + 10000;
+            PurchOrderLine."Line No." := NextLineNo;
+            PurchOrderLine.Validate(Type, Type);
+            PurchOrderLine.Validate("No.", "No.");
+            PurchOrderLine."Variant Code" := "Variant Code";
+            PurchOrderLine.Validate("Location Code", "Location Code");
+            PurchOrderLine.Validate("Unit of Measure Code", "Unit of Measure Code");
+            PurchOrderLine."Qty. per Unit of Measure" := "Qty. per Unit of Measure";
+            PurchOrderLine."Prod. Order No." := "Prod. Order No.";
+            PurchOrderLine."Prod. Order Line No." := "Prod. Order Line No.";
+            PurchOrderLine.Validate("Qty. to Accept", Quantity);
+            PurchOrderLine.Validate("Direct Unit Cost", 0);
+            PurchOrderLine.Validate("Line Discount %", "Line Discount %");
+            PurchOrderLine."Vendor Item No." := "Vendor Item No.";
+            PurchOrderLine.Description := Description;
+            PurchOrderLine."Description 2" := "Description 2";
+            PurchOrderLine."Sales Order No." := "Sales Order No.";
+            PurchOrderLine."Sales Order Line No." := "Sales Order Line No.";
+            PurchOrderLine."Prod. Order No." := "Prod. Order No.";
+            PurchOrderLine."Bin Code" := "Bin Code";
+            PurchOrderLine."Item Category Code" := "Item Category Code";
+            PurchOrderLine.Nonstock := Nonstock;
+            PurchOrderLine.Validate("Planning Flexibility", "Planning Flexibility");
+            PurchOrderLine.Validate("Purchasing Code", "Purchasing Code");
+            if "Due Date" <> 0D then begin
+                PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
+                PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+            end;
+        end;
+
+    end;
+
     procedure InsertPurchOrderLine(var ReqLine2: Record "Requisition Line"; var PurchOrderHeader: Record "Purchase Header"; var PurchOrderLine: Record "Purchase Line")
     var
         PurchOrderLine2: Record "Purchase Line";
@@ -485,48 +535,26 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             //Aplica.1.0 -->>
             PurchSetup.Get();
             if ItemGrouping then
-                if DeliveryDateGrouping then begin
-                    if not CheckInsertFinalizePurchaseOrderLineDeliveryDate(ReqLine2, PurchOrderLine, true) then begin
-
-                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
-                        PurchOrderLine.Validate("Qty. to Accept");
-                        /*                        
-                            PurchOrderLine.Quantity += ReqLine2.Quantity;
-                            PurchOrderLine.Validate(Quantity);
-                        */
-                        if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
-                            PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
-                            PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
-                        end;
-                        PurchOrderLine.Modify(true);
-                        PurchRequisitionLineG.reset();
-                        if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
-                            PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
-                            PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
-                            PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
-                            PurchRequisitionLineG.Modify();
-                        end;
-                        exit;
+                if not CheckInsertFinalizePurchaseOrderLine(ReqLine2, PurchOrderLine, true) then begin
+                    PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
+                    PurchOrderLine.Validate("Qty. to Accept");
+                    if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
+                        PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
+                        PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
                     end;
-                end else
-                    if not CheckInsertFinalizePurchaseOrderLine(ReqLine2, PurchOrderLine, true) then begin
-                        PurchOrderLine."Qty. to Accept" += ReqLine2.Quantity;
-                        PurchOrderLine.Validate("Qty. to Accept");
-                        if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
-                            PurchOrderLine.Validate("Expected Receipt Date", "Due Date");
-                            PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
-                        end;
-                        PurchOrderLine.Modify(true);
-                        PurchRequisitionLineG.reset();
-                        if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
-                            PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
-                            PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
-                            PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
-                            PurchRequisitionLineG.Modify();
-                        end;
-                        UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
-                        exit;
+                    PurchOrderLine.Modify(true);
+                    UpdateRequisitionStatus(ReqLine2);
+                    PurchRequisitionLineG.reset();
+                    if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
+                        PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
+                        PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
+                        PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
+                        PurchRequisitionLineG.Modify();
                     end;
+                    PurchOrderHeader2G.get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
+                    UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expected date on header
+                    exit;
+                end;
             //Aplica.1.0 <<--
 
             LineCount := LineCount + 1;
@@ -622,6 +650,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         end;
         PurchOrderHeader2G.Get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
         UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
+        UpdateRequisitionStatus(ReqLine2);
         //Aplica.1.0 <<--
     end;
 
@@ -704,6 +733,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         ReqLine2: Record "Requisition Line";
         CarryOutAction: Codeunit "Carry Out Action";
     begin
+        if ReqLine."Order/Quote" = ReqLine."Order/Quote"::"Purchase Quote" then
+            exit;
         if ReqTemplate.Recurring then begin
             // Recurring journal
             ReqLine2.Copy(ReqLine);
@@ -930,8 +961,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         CarryOutAction: Codeunit "Carry Out Action";
     begin
         if TransferHeader."No." <> '' then begin
-            CarryOutAction.SetPrintOrder(PrintPurchOrders);
-            CarryOutAction.PrintTransferOrder(TransferHeader);
+            SetPrintOrder(PrintPurchOrders);
+            PrintTransferOrder(TransferHeader);
         end;
     end;
 
@@ -1002,7 +1033,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         with RequisitionLine do
             //Aplica.1.0 -->>
             if ("Replenishment System" = "Replenishment System"::Transfer) AND (RequisitionDocGrouping = true) then
-                SetCurrentKey("Req. Document No.")
+                SetCurrentKey("Req. Document No.", "No.", "Due Date")
             else
                 //Aplica.1.0 <<--            
         with RequisitionLine do
@@ -1052,6 +1083,17 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
               (PurchOrderHeader."Currency Code" <> "Currency Code") or
               (PrevPurchCode <> "Purchasing Code") or
               CheckAddressDetails("Sales Order No.", "Sales Order Line No.", UpdateAddressDetails);
+
+        exit(CheckInsert);
+    end;
+
+    local procedure CheckInsertFinalizePurchaseQuoteLine(RequisitionLine: Record "Requisition Line"; var PurchOrderLine: Record "Purchase Line"; UpdateAddressDetails: Boolean): Boolean
+    var
+        CheckInsert: Boolean;
+    begin
+        with RequisitionLine do
+            CheckInsert :=
+            (PurchOrderLine."No." <> "No.");
 
         exit(CheckInsert);
     end;
@@ -1192,6 +1234,18 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         exit(CheckInsert);
     end;
 
+    local procedure CheckInsertFinalizeTransferOrderLineReceiptDate(RequisitionLine: Record "Requisition Line"; var TransferLineP: Record "Transfer Line"; UpdateAddressDetails: Boolean): Boolean
+    var
+        CheckInsert: Boolean;
+    begin
+        with RequisitionLine do
+            CheckInsert :=
+            (TransferLineP."Item No." <> "No.") or
+            (TransferLineP."Unit of Measure Code" <> "Unit of Measure Code") or
+            (TransferLineP."Receipt Date" <> "Due Date");
+        exit(CheckInsert);
+    end;
+
     procedure SetItemGrouping(itemGroupingp: Boolean; deliveryDateGroupingP: Boolean)
     begin
         ItemGrouping := itemGroupingp;
@@ -1212,28 +1266,54 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         NextLineNoL: Integer;
     begin
         if RequisitionDocGrouping then begin
-            if ReqLine."Req. Document No." <> TransHeader."Req. Document No." then
+            if ReqLine."Req. Document No." <> TransHeader."Req. Document No." then begin
+                Clear(TransHeader);
                 InsertTransHeader(ReqLine, TransHeader);
+                TransLineG.Reset();
+            end;
         end else
             if (ReqLine."Transfer-from Code" <> TransHeader."Transfer-from Code") or
                (ReqLine."Location Code" <> TransHeader."Transfer-to Code")
-            then
+            then begin
                 InsertTransHeader(ReqLine, TransHeader);
+                TransLineG.Reset();
+            end;
 
         //Aplica.1.0 -->>
-        if (ItemGrouping = true) and (not CheckInsertFinalizeTransferOrderLine(ReqLine, TransLine, true)) then begin
-            TransLine.Quantity += ReqLine.Quantity;
-            TransLine.Validate(Quantity);
-            TransLine.Modify(true);
-            PurchRequisitionLineG.reset();
-            if PurchRequisitionLineG.GET(ReqLine."Req. Document No.", ReqLine."Req. Line No.") then begin
-                PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Transfer Order";
-                PurchRequisitionLineG."Ref. Document No." := TransLine."Document No.";
-                PurchRequisitionLineG."Ref. Document Line No." := TransLine."Line No.";
-                PurchRequisitionLineG.Modify();
+        if (ItemGrouping = true) then
+            if not DeliveryDateGrouping then begin
+                if not CheckInsertFinalizeTransferOrderLine(ReqLine, TransLineG, true) then begin
+                    TransLine := TransLineG;
+                    TransLine.Quantity += ReqLine.Quantity;
+                    TransLine.Validate(Quantity);
+                    TransLine.Modify(true);
+                    TransLineG := TransLine;
+                    PurchRequisitionLineG.reset();
+                    if PurchRequisitionLineG.GET(ReqLine."Req. Document No.", ReqLine."Req. Line No.") then begin
+                        PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Transfer Order";
+                        PurchRequisitionLineG."Ref. Document No." := TransLine."Document No.";
+                        PurchRequisitionLineG."Ref. Document Line No." := TransLine."Line No.";
+                        PurchRequisitionLineG.Modify();
+                    end;
+                    exit;
+                end;
+            end else begin
+                if not CheckInsertFinalizeTransferOrderLineReceiptDate(ReqLine, TransLineG, true) then begin
+                    TransLine := TransLineG;
+                    TransLine.Quantity += ReqLine.Quantity;
+                    TransLine.Validate(Quantity);
+                    TransLine.Modify(true);
+                    TransLineG := TransLine;
+                    PurchRequisitionLineG.reset();
+                    if PurchRequisitionLineG.GET(ReqLine."Req. Document No.", ReqLine."Req. Line No.") then begin
+                        PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Transfer Order";
+                        PurchRequisitionLineG."Ref. Document No." := TransLine."Document No.";
+                        PurchRequisitionLineG."Ref. Document Line No." := TransLine."Line No.";
+                        PurchRequisitionLineG.Modify();
+                    end;
+                    exit;
+                end;
             end;
-            exit;
-        end;
         //Aplica.1.0 <<--
         TransLine.SetRange("Document No.", TransHeader."No.");
         if TransLine.FindLast() then
@@ -1260,6 +1340,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         TransLine."Shipment Date" := ReqLine."Transfer Shipment Date";
         TransLine.Validate("Planning Flexibility", ReqLine."Planning Flexibility");
         TransLine.Insert();
+        TransLineG := TransLine;
         //Aplica.1.0 -->>
         if PurchRequisitionLineG.GET(ReqLine."Req. Document No.", ReqLine."Req. Line No.") then begin
             PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Transfer Order";
@@ -1289,6 +1370,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             TransHeader."Shortcut Dimension 1 Code" := "Shortcut Dimension 1 Code";
             TransHeader."Shortcut Dimension 2 Code" := "Shortcut Dimension 2 Code";
             TransHeader."Dimension Set ID" := "Dimension Set ID";
+            TransHeader."Req. Document No." := "Req. Document No.";
             TransHeader.Modify();
             TempDocumentEntry.Init();
             TempDocumentEntry."Table ID" := DATABASE::"Transfer Header";
@@ -1345,5 +1427,255 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
     procedure SetDocumentGrouping(RequisitionDocFilterp: Boolean)
     begin
         RequisitionDocGrouping := RequisitionDocFilterp;
+    end;
+
+    procedure UpdateRequisitionStatus(ReqLineP: Record "Requisition Line")
+    var
+        IndentHeaderL: Record "Purchase Indent Header";
+        IndentLineL: Record "Purchase Indent Line";
+    begin
+        IndentLineL.Get(ReqLineP."Req. Document No.", ReqLineP."Req. Line No.");
+        //IndentLineL.Reset();
+        //IndentLineL.SetCurrentKey("Ref. Document No.");
+        //IndentLineL.SetRange("Ref. Document No.", PurchOrderLine."Document No.");
+        //IndentLineL.SetRange("Ref. Document Line No.", PurchOrderLine."Line No.");
+        //IndentLineL.CalcSums(Quantity);
+        //if IndentLineL.FindSet() then
+        if IndentLineL.Quantity <= ReqLineP.Quantity then begin
+            IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Approved-Ordered";
+            //IndentLineL.Validate("Transaction Status", IndentLineL."Transaction Status"::"Approved-Ordered");
+            IndentLineL.Modify();
+            UpdateHeaderStatus(IndentLineL);
+        end
+        else begin
+            IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Approved-Partially Ordered";
+            //IndentLineL.Validate("Transaction Status", IndentLineL."Transaction Status"::"Approved-Partially Ordered");
+            IndentLineL.Modify();
+            UpdateHeaderStatus(IndentLineL);
+        end;
+    end;
+
+    procedure UpdateHeaderStatus(IndentLineP: Record "Purchase Indent Line")
+    var
+        IndentLineL: Record "Purchase Indent Line";
+        IndentLine2L: Record "Purchase Indent Line";
+        IndentHdrL: Record "Purchase Indent Header";
+    begin
+        with IndentLineP do begin
+            IndentHdrL.get("Document No.");
+            IndentLineL.Reset();
+            IndentLineL.SetCurrentKey("Document No.");
+            IndentLineL.SetRange("Document No.", "Document No.");
+            IndentLine2L.Copy(IndentLineL);
+            IndentLineL.SetFilter("Transaction Status", '%1|%2', "Transaction Status"::"Approved-Partially Received", "Transaction Status"::"Approved-Received");
+            if IndentLineL.Find('-') then begin
+                IndentLine2L.SetFilter("Transaction Status", '<>%1', "Transaction Status"::"Approved-Received");
+                if IndentLine2L.Find('-') then begin
+                    IndentHdrL."Transaction Status" := IndentHdrL."Transaction Status"::"Approved-Partially Received";
+                    IndentHdrL.Modify();
+                end else begin
+                    IndentHdrL."Transaction Status" := IndentHdrL."Transaction Status"::"Approved-Received";
+                    IndentHdrL.Modify();
+                end;
+                exit;
+            end;
+
+            IndentLineL.SetFilter("Transaction Status", '%1|%2', "Transaction Status"::"Approved-Partially Ordered", "Transaction Status"::"Approved-Ordered");
+            if IndentLineL.Find('-') then begin
+                IndentLine2L.SetFilter("Transaction Status", '<>%1', "Transaction Status"::"Approved-Ordered");
+                if IndentLine2L.Find('-') then begin
+                    IndentHdrL."Transaction Status" := IndentHdrL."Transaction Status"::"Approved-Partially Ordered";
+                    IndentHdrL.Modify();
+                end else begin
+                    IndentHdrL."Transaction Status" := IndentHdrL."Transaction Status"::"Approved-Ordered";
+                    IndentHdrL.Modify();
+                end;
+                exit;
+            end;
+        end;
+    end;
+    //Purchase Quote
+    procedure FindAllVendorsForQuotes(var ReqLineP: Record "Requisition Line")
+    var
+        ReqLineL: Record "Requisition Line";
+        QuoteVendors: Record "Vendors For Quotations";
+    begin
+        ReqLineL.Copy(ReqLineP);
+        VendorG.Reset();
+        ReqLineL.SetRange("No.", ReqLineL."No.");
+        if ReqLineL.FindSet() then
+            repeat
+                QuoteVendors.Reset();
+                QuoteVendors.SetRange("Document No.", ReqLineL."Req. Document No.");
+                QuoteVendors.SetRange("Line No.", ReqLineL."Req. Line No.");
+                if QuoteVendors.FindSet() then
+                    repeat
+                        if VendorG.Get(QuoteVendors."Vendor No.") then
+                            VendorG.Mark(true);
+                    until QuoteVendors.Next() = 0;
+            until ReqLineL.Next() = 0;
+    end;
+
+    procedure InsertPurchQuoteLine(var ReqLine2: Record "Requisition Line"; var PurchOrderHeader: Record "Purchase Header"; var PurchOrderLine: Record "Purchase Line")
+    var
+        PurchOrderLine2: Record "Purchase Line";
+        AddOnIntegrMgt: Codeunit AddOnIntegrManagement;
+        DimensionSetIDArr: array[10] of Integer;
+        PurchaseHeaderL: Record "Purchase Header";
+        PurchOrderLineL: Record "Purchase Line";
+    begin
+        with ReqLine2 do begin
+            if ("No." = '') or (Quantity = 0) then
+                exit;
+
+            //TestField("Currency Code", PurchOrderHeader."Currency Code");
+            //Aplica.1.0 -->>
+            PurchSetup.Get();
+            if ItemGrouping then
+                if not CheckInsertFinalizePurchaseQuoteLine(ReqLine2, PurchOrderLine, true) then begin
+                    FindAllVendorsForQuotes(ReqLine2);
+                    VendorG.MarkedOnly(true);
+                    PurchaseHeaderL.Reset();
+                    PurchaseHeaderL.SetRange("Document Type", PurchaseHeaderL."Document Type"::Quote);
+                    PurchaseHeaderL.SetFilter("No.", '<=%1', PurchOrderLine."Document No.");
+                    PurchaseHeaderL.Find('+');
+                    if VendorG.FindSet() then
+                        repeat
+                            PurchOrderLineL.SetRange("Document Type", PurchaseHeaderL."Document Type");
+                            PurchOrderLineL.SetRange("Document No.", PurchaseHeaderL."No.");
+                            PurchOrderLineL.SetRange("No.", PurchOrderLine."No.");
+                            if PurchOrderLineL.FindSet() then
+                                repeat
+                                    PurchOrderLineL."Qty. to Accept" += ReqLine2.Quantity;
+                                    PurchOrderLineL.Validate("Qty. to Accept");
+                                    if ReqLine2."Due Date" < PurchOrderLine."Requested Receipt Date" then begin
+                                        PurchOrderLineL.Validate("Expected Receipt Date", "Due Date");
+                                        PurchOrderLineL."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+                                    end;
+                                    PurchOrderLineL.Modify(true);
+                                    PurchOrderHeader2G.get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
+                                    UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expected date on header
+                                until PurchOrderLineL.Next() = 0;
+                            PurchaseHeaderL.Next(-1);
+                        until VendorG.Next() = 0;
+                    exit;
+                end;
+            //Aplica.1.0 <<--
+
+            LineCount := LineCount + 1;
+            if not PlanningResiliency then
+                Window.Update(4, LineCount);
+            FindAllVendorsForQuotes(ReqLine2);
+            VendorG.MarkedOnly(true);
+            if VendorG.FindSet() then
+                repeat
+                    InsertQuoteHeader(ReqLine2, VendorG);
+                    LineCount := 0;
+                    NextLineNo := 0;
+                    PrevPurchCode := "Purchasing Code";
+                    PrevShipToCode := "Ship-to Code";
+                    PrevLocationCode := "Location Code";
+                    InitPurchQuoteLine(PurchOrderLine, PurchOrderHeader, ReqLine2, VendorG);
+
+                    //AddOnIntegrMgt.TransferFromReqLineToPurchLine(PurchOrderLine, ReqLine2);
+
+                    //PurchOrderLine."Drop Shipment" := "Sales Order Line No." <> 0;
+
+                    ReserveReqLine.TransferReqLineToPurchLine(ReqLine2, PurchOrderLine, "Quantity (Base)", false);
+
+                    DimensionSetIDArr[1] := PurchOrderLine."Dimension Set ID";
+                    DimensionSetIDArr[2] := "Dimension Set ID";
+                    PurchOrderLine."Dimension Set ID" :=
+                      DimMgt.GetCombinedDimensionSetID(
+                        DimensionSetIDArr, PurchOrderLine."Shortcut Dimension 1 Code", PurchOrderLine."Shortcut Dimension 2 Code");
+
+                    PurchOrderLine.Insert();
+
+
+                /*
+                //Aplica.1.0 -->>
+                PurchRequisitionLineG.reset();
+                if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
+                    PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Order";
+                    PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
+                    PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
+                    PurchRequisitionLineG.Modify();
+                end;
+                PurchOrderHeader2G.Get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
+                UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expectes date on header
+                //UpdateRequisitionStatus(ReqLine2);
+                */
+                //Aplica.1.0 <<--                        
+                until VendorG.Next() = 0;
+
+        end;
+    end;
+
+    local procedure InsertQuoteHeader(var ReqLine2: Record "Requisition Line"; VendorL: Record Vendor)
+    var
+        SalesHeader: Record "Sales Header";
+        Vendor: Record Vendor;
+        SpecialOrder: Boolean;
+    begin
+
+        with ReqLine2 do begin
+            OrderCounter := OrderCounter + 1;
+            if not PlanningResiliency then
+                Window.Update(3, OrderCounter);
+
+            PurchSetup.Get();
+            PurchSetup.TestField("Order Nos.");
+            Clear(PurchOrderHeader);
+            PurchOrderHeader.Init();
+            PurchOrderHeader."Document Type" := PurchOrderHeader."Document Type"::Quote;
+            PurchOrderHeader."No." := '';
+            PurchOrderHeader."Posting Date" := PostingDateReq;
+            PurchOrderHeader.Insert(true);
+            PurchOrderHeader."Your Reference" := ReferenceReq;
+            PurchOrderHeader."Order Date" := OrderDateReq;
+            PurchOrderHeader."Expected Receipt Date" := ReceiveDateReq;
+            PurchOrderHeader.Validate("Buy-from Vendor No.", VendorL."No.");
+            if "Order Address Code" <> '' then
+                PurchOrderHeader.Validate("Order Address Code", "Order Address Code");
+
+            if "Sell-to Customer No." <> '' then
+                PurchOrderHeader.Validate("Sell-to Customer No.", "Sell-to Customer No.");
+
+            //PurchOrderHeader.Validate("Currency Code", "Currency Code");
+
+            if PurchasingCode.Get("Purchasing Code") then
+                if PurchasingCode."Special Order" then
+                    SpecialOrder := true;
+
+            if not SpecialOrder then begin
+                if "Ship-to Code" <> '' then
+                    PurchOrderHeader.Validate("Ship-to Code", "Ship-to Code")
+                else
+                    PurchOrderHeader.Validate("Location Code", "Location Code");
+            end else begin
+                PurchOrderHeader.Validate("Location Code", "Location Code");
+                PurchOrderHeader.SetShipToForSpecOrder();
+                if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
+                    PurchOrderHeader.Validate("Shipment Method Code", Vendor."Shipment Method Code");
+            end;
+            if not SpecialOrder then
+                if SalesHeader.Get(SalesHeader."Document Type"::Order, "Sales Order No.") then begin
+                    PurchOrderHeader."Ship-to Name" := SalesHeader."Ship-to Name";
+                    PurchOrderHeader."Ship-to Name 2" := SalesHeader."Ship-to Name 2";
+                    PurchOrderHeader."Ship-to Address" := SalesHeader."Ship-to Address";
+                    PurchOrderHeader."Ship-to Address 2" := SalesHeader."Ship-to Address 2";
+                    PurchOrderHeader."Ship-to Post Code" := SalesHeader."Ship-to Post Code";
+                    PurchOrderHeader."Ship-to City" := SalesHeader."Ship-to City";
+                    PurchOrderHeader."Ship-to Contact" := SalesHeader."Ship-to Contact";
+                    PurchOrderHeader."Ship-to County" := SalesHeader."Ship-to County";
+                    PurchOrderHeader."Ship-to Country/Region Code" := SalesHeader."Ship-to Country/Region Code";
+                end;
+            if SpecialOrder then
+                if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
+                    PurchOrderHeader."Shipment Method Code" := Vendor."Shipment Method Code";
+            PurchOrderHeader."Assigned User ID" := "Purchaser Code";
+            PurchOrderHeader.Modify();
+            PurchOrderHeader.Mark(true);
+        end;
     end;
 }

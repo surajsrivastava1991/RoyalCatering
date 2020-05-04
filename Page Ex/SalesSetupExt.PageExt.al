@@ -14,6 +14,11 @@ pageextension 50053 "Sales Setup Ext." extends "Sales & Receivables Setup" //MyT
                 ApplicationArea = all;
                 ToolTip = 'Table field';
             }
+            field("Maintenance Service No."; "Maintenance Service No.")
+            {
+                ApplicationArea = ALL;
+                ToolTip = 'Maintenance Service No.';
+            }
         }
     }
 

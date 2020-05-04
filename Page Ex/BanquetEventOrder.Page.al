@@ -2205,7 +2205,7 @@ page 50058 "Banquet Event Order"
                         SalesHeaderL.Reset();
                         SalesHeaderL.SetRange("No.", "No.");
                         if SalesHeaderL.FindFirst() then
-                            Report.RunModal(50051, true, false, SalesHeaderL);
+                            Report.Run(report::"Banquet Event Report", true, false, SalesHeaderL);
                     end;
                 }
                 action("Remove From Job Queue")
@@ -2459,6 +2459,10 @@ page 50058 "Banquet Event Order"
     trigger OnAfterGetRecord()
     begin
         ShowQuoteNo := "Quote No." <> '';
+        //Suraj
+        if "Type of Sale" in ["Type of Sale"::Contract, "Type of Sale"::"Contract-Event"] then
+            "Status of event" := "Status of event"::Definite;
+
 
         SetControlVisibility();
         UpdateShipToBillToGroupVisibility();
@@ -2477,6 +2481,11 @@ page 50058 "Banquet Event Order"
     begin
         JobQueuesUsed := SalesReceivablesSetup.JobQueueActive();
         SetExtDocNoMandatoryCondition();
+
+        //Suraj
+        if "Type of Sale" in ["Type of Sale"::Contract, "Type of Sale"::"Contract-Event"] then
+            "Status of event" := "Status of event"::Definite;
+
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
@@ -2486,6 +2495,11 @@ page 50058 "Banquet Event Order"
 
         if ("Sell-to Customer No." = '') and (GetFilter("Sell-to Customer No.") <> '') then
                 CurrPage.Update(false);
+
+        //Suraj
+        if "Type of Sale" in ["Type of Sale"::Contract, "Type of Sale"::"Contract-Event"] then
+            "Status of event" := "Status of event"::Definite;
+
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)

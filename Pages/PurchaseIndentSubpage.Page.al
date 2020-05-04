@@ -47,6 +47,11 @@ page 50037 "Purchase Indent Subpage"
                     ApplicationArea = All;
                     ToolTip = 'Table fields';
                 }
+                field("From Location"; "From Location")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table fields';
+                }
                 field("Unit of Measure Code"; "Unit of Measure Code")
                 {
                     ApplicationArea = All;
@@ -62,7 +67,7 @@ page 50037 "Purchase Indent Subpage"
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
                 }
-                field("Order Date"; "Order Date")
+                field("Transaction Status"; "Transaction Status")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';

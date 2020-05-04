@@ -23,6 +23,11 @@ page 50068 "Transfer Indent"
                             CurrPage.Update();
                     end;
                 }
+                field(Name; Name)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table field';
+                }
                 field("Approval Status"; "Approval Status")
                 {
                     ApplicationArea = All;
@@ -38,18 +43,15 @@ page 50068 "Transfer Indent"
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
-                field(Name; Name)
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Table field';
-                }
                 field("Receiving Location"; "Receiving Location")
                 {
+                    ShowMandatory = true;
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
                 field("From Location"; "From Location")
                 {
+                    ShowMandatory = true;
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
@@ -60,6 +62,7 @@ page 50068 "Transfer Indent"
                 }
                 field("Requested Date"; "Requested Date")
                 {
+                    ShowMandatory = true;
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }

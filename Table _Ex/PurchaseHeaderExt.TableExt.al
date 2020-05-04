@@ -3,31 +3,50 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
     fields
     {
         // Add changes to table fields here
-        field(50000; "Mail Body1"; Text[50])
+        field(50000; "Salutation"; Text[50])
         {
             DataClassification = CustomerContent;
             Caption = 'Salutation';
 
         }
-        field(50001; "Mail Body2"; Text[2000])
+        field(50001; "Body Line1"; Text[2000])
         {
             DataClassification = CustomerContent;
+            Caption = 'Body Line1';
 
         }
-        field(50002; "Mail Body3"; Text[500])
+        field(50002; "Body Line2"; Text[500])
         {
             DataClassification = CustomerContent;
+            Caption = 'Body Line2';
+        }
+        field(50003; "Thanking"; Text[100])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Thanking';
 
         }
-        field(50003; "Mail Body4"; Text[100])
+        field(50004; "Person Singnature"; Text[100])
         {
             DataClassification = CustomerContent;
-
+            Caption = 'Person Singnature';
         }
-        field(50004; "Mail Body5"; Text[100])
+        field(50014; "Signature (Company Name)"; Text[100])
         {
             DataClassification = CustomerContent;
-
+            Caption = 'Signature (Company Name)';
+        }
+        field(50015; "Singnature 1"; Text[100])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50016; "Singnature 2"; Text[100])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50017; "Singnature 3"; Text[100])
+        {
+            DataClassification = CustomerContent;
         }
         field(50005; "Created By"; Text[200])
         {
@@ -45,11 +64,15 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
     trigger OnInsert()
     begin
         PurchasePayableSetupG.GET();
-        "Mail Body1" := PurchasePayableSetupG."Mail Body1";
-        "Mail Body2" := PurchasePayableSetupG."Mail Body2";
-        "Mail Body3" := PurchasePayableSetupG."Mail Body3";
-        "Mail Body4" := PurchasePayableSetupG."Mail Body4";
-        "Mail Body5" := PurchasePayableSetupG."Mail Body5";
+        Salutation := PurchasePayableSetupG.Salutation;
+        "Body Line1" := PurchasePayableSetupG."Body Line1";
+        "Body Line2" := PurchasePayableSetupG."Body Line2";
+        Thanking := PurchasePayableSetupG.Thanking;
+        "Person Singnature" := PurchasePayableSetupG."Person Singnature";
+        "Signature (Company Name)" := PurchasePayableSetupG."Signature (Company Name)";
+        "Singnature 1" := PurchasePayableSetupG."Singnature 1";
+        "Singnature 2" := PurchasePayableSetupG."Singnature 2";
+        "Singnature 3" := PurchasePayableSetupG."Singnature 3";
         "Created By" := USERID();
     end;
 
@@ -75,7 +98,7 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
         //
         CompanyInfoL.Get();
         PurchPaySetupL.Get();
-        // URL := System.GETURL(ClientType::SOAP, CompanyInfoL.Name, ObjectType::Page, 50, Rec);
+        URL := GETURL(ClientType::SOAP, CompanyInfoL.Name, ObjectType::Page, 50, Rec);
         TempBlob.CreateOutStream(OutputStream);
 
         RecRef.GetTable(Rec);
@@ -109,15 +132,27 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
         SMTPMailL.AddFrom(SMTPMailSetup."Send As", SMTPMailSetup."User ID");
         SMTPMailL.AddRecipients(EmailToL);
         SMTPMailL.AddSubject('Company Name :' + CompanyInfoL.Name + ', Purchase Order: ' + "No." + ' PO Date: ' + Format("Order Date"));
-        SMTPMailL.AddBody("Mail Body1");
+        SMTPMailL.AddBody(Salutation + ' ' + "Buy-from Contact" + ',');
         SMTPMailL.AppendBody('<Br>');
-        SMTPMailL.AppendBody("Mail Body2");
+        SMTPMailL.AppendBody('<P>' + "Body Line1" + '</P>');
         SMTPMailL.AppendBody('<Br>');
-        SMTPMailL.AppendBody("Mail Body3");
+        SMTPMailL.AppendBody('<P>' + "Body Line2" + '</P>');
         SMTPMailL.AppendBody('<Br>');
-        SMTPMailL.AppendBody('<img src="C:\Users\Aplica\Desktop\123321.jpg" alt="Smiley face" height="100" width="350">');
+        SMTPMailL.AppendBody(Thanking);
         SMTPMailL.AppendBody('<Br>');
-        // SMTPMailL.AddBody(URL);
+        SMTPMailL.AppendBody('<B>' + "Person Singnature" + '</B>');
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody('<B><P style="font-size:12px">' + "Signature (Company Name)" + '</P></B>');
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody('<i>' + "Singnature 1" + '</1>');
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody('<i>' + "Singnature 2" + '</1>');
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody('<i>' + "Singnature 3" + '</1>');
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AppendBody('<img src="./res/123321.jpg" alt="Royal Catering" height="100" width="350">');
+        SMTPMailL.AppendBody('<Br>');
+        SMTPMailL.AddTextBody(url);
         SMTPMailL.AddAttachmentStream(InputStream, "No." + '.pdf');
         if not SmtpMailL.Send() then
             Error(SmtpMailL.GetLastSendMailErrorText())

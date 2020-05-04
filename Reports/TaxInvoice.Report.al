@@ -21,6 +21,14 @@ report 50002 "Tax Invoice"
             {
 
             }
+            column(Posting_Description; "Posting Description")
+            {
+
+            }
+            column(Work_Description; workDescriptionG)
+            {
+
+            }
             column(VATRegCompInfoG; CompInfoG."VAT Registration No.")
             {
 
@@ -70,6 +78,10 @@ report 50002 "Tax Invoice"
             }
             column(BuyfromPostCode; "Bill-to Post Code")
             {
+            }
+            column(Ship_to_City; "Ship-to City")
+            {
+
             }
             column(CurrencyCode; "Currency Code")
             {
@@ -139,12 +151,19 @@ report 50002 "Tax Invoice"
             { }
             column(PEDate; PEDate)
             { }
+            column(Invoice_Discount_Amount; "Invoice Discount Amount")
+            {
 
-            dataitem("Purchase Line"; "Sales Invoice Line")
+            }
+            column(Email; EmailG)
+            {
+
+            }
+            dataitem("Sales Invoice Line"; "Sales Invoice Line")
             {
                 DataItemLink = "Document No." = field("No.");
                 DataItemTableView = sorting("Document No.", "Line No.");
-                column(No_; "No.")
+                column(No_; SNo)
                 {
 
                 }
@@ -156,7 +175,7 @@ report 50002 "Tax Invoice"
                 {
 
                 }
-                column(Unit_Cost; "Unit Cost")
+                column(Unit_Cost; "Unit Price")
                 {
 
                 }
@@ -195,10 +214,16 @@ report 50002 "Tax Invoice"
                 {
 
                 }
+                column(VatAmountG; VatAmountG)
+                {
+
+                }
 
                 trigger OnAfterGetRecord()
                 begin
-                    DiscountAmt += "Purchase Line"."Line Discount Amount";
+                    DiscountAmt += "Sales Invoice Line"."Line Discount Amount";
+                    VatAmountG := "Sales Invoice Line"."Line Amount" * "Sales Invoice Line"."VAT %" / 100;
+                    SNo += 1;
                 end;
             }
             trigger OnPreDataItem()
@@ -207,6 +232,7 @@ report 50002 "Tax Invoice"
                 CompInfoG.CalcFields(Picture);
                 GLEntryG.Get();
                 DiscountAmt := 0;
+                SNo := 0;
             end;
 
             trigger OnAfterGetRecord()
@@ -214,14 +240,18 @@ report 50002 "Tax Invoice"
                 PEDate := 0D;
                 PSDate := 0D;
                 CheckG.InitTextVariable();
-                CustomerG.Get(SalesInvoiceHeader."Bill-to Customer No.");
-                FAXNo := CustomerG."Fax No.";
-                VATRegNo := CustomerG."VAT Registration No.";
-                ProjectNameG := '';
                 CheckG.FormatNoText(AmountinWordsG, SalesInvoiceHeader."Amount Including VAT", 'AED');
-                if CustomerG."global Dimension 1 Code" <> '' then begin
-                    DimensionValueG.Get(GLEntryG."Global Dimension 1 Code", CustomerG."global Dimension 1 Code");
-                    ProjectNameG := DimensionValueG.Name;
+                Evaluate("Work Description", workDescriptionG);
+                if CustomerG.Get(SalesInvoiceHeader."Bill-to Customer No.") then begin
+                    FAXNo := CustomerG."Fax No.";
+                    VATRegNo := CustomerG."VAT Registration No.";
+                    EmailG := CustomerG."E-Mail";
+                    ProjectNameG := '';
+
+                    if CustomerG."global Dimension 1 Code" <> '' then begin
+                        DimensionValueG.Get(GLEntryG."Global Dimension 1 Code", CustomerG."global Dimension 1 Code");
+                        ProjectNameG := DimensionValueG.Name;
+                    end;
                 end;
 
             end;
@@ -260,7 +290,11 @@ report 50002 "Tax Invoice"
         ProjectNameG: Text[50];
         FAXNo: text[30];
         VATRegNo: code[20];
+        EmailG: Text[200];
+        workDescriptionG: Text[250];
         DiscountAmt: Decimal;
+        VatAmountG: Decimal;
         PSDate: Date;
         PEDate: Date;
+        SNo: Integer;
 }

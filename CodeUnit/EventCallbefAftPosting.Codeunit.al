@@ -79,6 +79,7 @@ codeunit 50002 "Event Call bef/Aft Posting"
     local procedure OnBeforeInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; TransferItem: Boolean)
     begin
         ItemLedgerEntry."Reference Document No." := ItemJournalLine."Reference Document No.";
+        ItemLedgerEntry."Maintenance Line No." := ItemJournalLine."Maintenance Line No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInitGLEntry', '', true, true)]

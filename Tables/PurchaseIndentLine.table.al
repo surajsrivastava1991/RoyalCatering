@@ -21,8 +21,13 @@ table 50036 "Purchase Indent Line"
             OptionMembers = " ","G/L Account",Item,,"Fixed Asset","Charge (Item)";
             trigger OnValidate()
             begin
+                TestStatusOpen();
                 PurchIndentHdrG.Reset();
                 PurchIndentHdrG.get("Document No.");
+                PurchIndentHdrG.TestField("Requested Date");
+                PurchIndentHdrG.TestField("Receiving Location");
+                if PurchIndentHdrG."Replenishment Type" = PurchIndentHdrG."Replenishment Type"::Transfer then
+                    PurchIndentHdrG.TestField("From Location");
                 "Item Category Code" := PurchIndentHdrG."Item Category Code";
                 "Receiving Location" := PurchIndentHdrG."Receiving Location";
                 "Requested Date" := PurchIndentHdrG."Requested Date";
@@ -46,21 +51,23 @@ table 50036 "Purchase Indent Line"
             if (type = const(Item), "Item Category Code" = FILTER(<> '')) Item WHERE("Item Category Code" = field("Item Category Code"));
             trigger OnValidate()
             begin
+                TestStatusOpen();
                 if Type = Type::Item then
                     if ItemG.Get("No.") then begin
                         Description := ItemG.Description;
                         "Description 2" := ItemG."Description 2";
                         if "Item Category Code" <> '' then
                             "Item Category Code" := ItemG."Item Category Code";
-                        "Unit of Measure Code" := ItemG."Purch. Unit of Measure";
                         Validate("Requested Date");
                     end;
                 if "Replenishment Type" = "Replenishment Type"::Purchase then begin
                     LocationwisePurchaser.get("Receiving Location", "Item Category Code", 0);
                     "Purchaser Code" := LocationwisePurchaser."Purchaser Code";
+                    "Unit of Measure Code" := ItemG."Purch. Unit of Measure";
                 end else begin
                     LocationwisePurchaser.get("From Location", "Item Category Code", 1);
                     "Purchaser Code" := LocationwisePurchaser."Purchaser Code";
+                    "Unit of Measure Code" := ItemG."Base Unit of Measure";
                 end;
             end;
         }
@@ -68,16 +75,23 @@ table 50036 "Purchase Indent Line"
         {
             Caption = 'Description';
             DataClassification = CustomerContent;
-
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(7; "Description 2"; Text[100])
         {
             Caption = 'Description 2';
             DataClassification = CustomerContent;
-
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(8; "Receiving Location"; Code[10])
         {
+            Editable = false;
             Caption = 'Receiving Location';
             DataClassification = CustomerContent;
             TableRelation = Location;
@@ -87,6 +101,10 @@ table 50036 "Purchase Indent Line"
             Caption = 'Variant Code';
             DataClassification = CustomerContent;
             TableRelation = "Item Variant";
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(11; "Unit of Measure Code"; Code[20])
         {
@@ -95,6 +113,10 @@ table 50036 "Purchase Indent Line"
             TableRelation = IF (Type = CONST(Item)) "Item Unit of Measure".Code WHERE("Item No." = FIELD("No."))
             ELSE
             "Unit of Measure";
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(13; "Creation Date"; Date)
         {
@@ -106,14 +128,23 @@ table 50036 "Purchase Indent Line"
         {
             Caption = 'Quantity';
             DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(15; "Item Category Code"; Code[20])
         {
             Caption = 'Item Category Code';
             TableRelation = "Item Category";
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(17; "Flag"; Boolean)
         {
+            Editable = false;
             Caption = 'Flag';
             DataClassification = ToBeClassified;
         }
@@ -142,6 +173,7 @@ table 50036 "Purchase Indent Line"
             DataClassification = ToBeClassified;
             trigger OnValidate()
             begin
+                TestStatusOpen();
                 if "Requested Date" = 0D then
                     exit;
                 if PurIndHdrG."Replenishment Type" = PurIndHdrG."Replenishment Type"::Purchase then
@@ -155,23 +187,33 @@ table 50036 "Purchase Indent Line"
         field(22; "Order Date"; Date)
         {
             DataClassification = ToBeClassified;
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(23; "Purchaser Code"; Code[50])
         {
             DataClassification = ToBeClassified;
             TableRelation = "User Setup";
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(24; "From Location"; Code[10])
         {
+            Editable = false;
             Caption = 'From Location';
             DataClassification = CustomerContent;
             TableRelation = Location;
         }
         field(25; "Transaction Status"; Option)
         {
-            OptionMembers = " ","Partially Received",Received;
             Caption = 'Transaction Status';
-            DataClassification = CustomerContent;
+            Editable = false;
+            //OptionCaption = 'Open,Approved,Pending Approval';
+            OptionMembers = Open,Approved,"Pending Approval","Approved-Ordered","Approved-Partially Ordered","Approved-Received","Approved-Partially Received","Approved-Cancel";
         }
         field(26; "Replenishment Type"; Option)
         {
@@ -190,7 +232,7 @@ table 50036 "Purchase Indent Line"
             Clustered = true;
         }
     }
-    trigger OnModify()
+    trigger OnDelete()
     begin
         if PurchIndentHdrG.get("Document No.") then
             PurchIndentHdrG.TestField("Approval Status", PurchIndentHdrG."Approval Status"::Open);
@@ -202,5 +244,13 @@ table 50036 "Purchase Indent Line"
         PurIndHdrG: Record "Purchase Indent Header";
         LocationwisePurchaser: Record "Locationwise Purchaser";
         LeadTimeMgt: Codeunit "Lead-Time Management";
+
+    procedure TestStatusOpen()
+    var
+        IndHeaderL: Record "Purchase Indent Header";
+    begin
+        IndHeaderL.get("Document No.");
+        IndHeaderL.TestField("Approval Status", IndHeaderL."Approval Status"::Open);
+    end;
 
 }
