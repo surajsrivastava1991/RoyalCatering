@@ -25,221 +25,124 @@ page 50065 "Banquet Enquiry List"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
-                field("Sell-to Customer No."; "Sell-to Customer No.")
+                field("Type of Sale"; "Type of Sale")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the customer.';
+                    Caption = 'Type of Sales';
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
                 }
-                field("Sell-to Customer Name"; "Sell-to Customer Name")
+                field("Type of Event"; "Type of Event")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer.';
+                    ApplicationArea = all;
+                    ToolTip = 'types of Event';
                 }
-                field("External Document No."; "External Document No.")
+                field("Event"; "Event")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
+                    ApplicationArea = all;
+                    ToolTip = 'Event';
                 }
-                field("Sell-to Post Code"; "Sell-to Post Code")
+                field("Details of the event"; "Details of the event")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the customer''s main address.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Details of the event';
                 }
-                field("Sell-to Country/Region Code"; "Sell-to Country/Region Code")
+                field(Segment; Segment)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the customer''s main address.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Segment';
                 }
-                field("Sell-to Contact"; "Sell-to Contact")
+                field("Location BEO"; "Location BEO")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Location BEO';
                 }
-                field("Bill-to Customer No."; "Bill-to Customer No.")
+                field("Status of event"; "Status of event")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Status of event';
                 }
-                field("Bill-to Name"; "Bill-to Name")
+                field("Doc. No. Occurrence"; "Doc. No. Occurrence")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
-                    Visible = false;
-                }
-                field("Bill-to Post Code"; "Bill-to Post Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the customer''s billing address.';
-                    Visible = false;
-                }
-                field("Bill-to Country/Region Code"; "Bill-to Country/Region Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the customer''s billing address.';
-                    Visible = false;
-                }
-                field("Bill-to Contact"; "Bill-to Contact")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
-                    Visible = false;
-                }
-                field("Ship-to Code"; "Ship-to Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
-                    Visible = false;
-                }
-                field("Ship-to Name"; "Ship-to Name")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
-                    Visible = false;
-                }
-                field("Ship-to Post Code"; "Ship-to Post Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
-                    Visible = false;
-                }
-                field("Ship-to Country/Region Code"; "Ship-to Country/Region Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
-                    Visible = false;
-                }
-                field("Ship-to Contact"; "Ship-to Contact")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
-                    Visible = false;
-                }
-                field("Posting Date"; "Posting Date")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the posting of the sales document will be recorded.';
-                    Visible = false;
-                }
-                field("Shortcut Dimension 1 Code"; "Shortcut Dimension 1 Code")
-                {
-                    ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
-                    Visible = false;
-                }
-                field("Shortcut Dimension 2 Code"; "Shortcut Dimension 2 Code")
-                {
-                    ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
-                    Visible = false;
-                }
-                field("Location Code"; "Location Code")
-                {
-                    ApplicationArea = Location;
-                    ToolTip = 'Specifies the location from where inventory items to the customer on the sales document are to be shipped by default.';
-                }
-                field("Quote No."; "Quote No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the sales quote that the sales order was created from. You can track the number to sales quote documents that you have printed, saved, or emailed.';
-                    Visible = false;
+                    Caption = 'Revision';
+                    ApplicationArea = all;
+                    ToolTip = 'Receive';
                 }
                 field("Salesperson Code"; "Salesperson Code")
                 {
                     ApplicationArea = Suite;
+                    Importance = Additional;
+                    QuickEntry = false;
                     ToolTip = 'Specifies the name of the salesperson who is assigned to the customer.';
-                    Visible = false;
                 }
-                field("Assigned User ID"; "Assigned User ID")
+                field("Prepared By"; "Prepared By")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Method of Receiving Enquiry"; "Method of Receiving Enquiry")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Sell-to Customer No."; "Sell-to Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
+                    Caption = 'Customer No.';
+                    Importance = Additional;
+                    NotBlank = true;
+                    ToolTip = 'Specifies the number of the customer who will receive the products and be billed by default.';
+
+                    trigger OnValidate()
+                    begin
+                        SelltoCustomerNoOnAfterValidate(Rec, xRec);
+                        CurrPage.Update();
+                    end;
                 }
-                field("Currency Code"; "Currency Code")
-                {
-                    ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency of amounts on the sales document.';
-                    Visible = false;
-                }
-                field("Document Date"; "Document Date")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
-                }
-                field("Requested Delivery Date"; "Requested Delivery Date")
+                field("Sell-to Customer Name"; "Sell-to Customer Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
-                    Visible = false;
+                    Caption = 'Customer Name';
+                    ShowMandatory = true;
+                    ToolTip = 'Specifies the name of the customer who will receive the products and be billed by default.';
+
+                    trigger OnValidate()
+                    begin
+                        SelltoCustomerNoOnAfterValidate(Rec, xRec);
+
+                        CurrPage.Update();
+                    end;
                 }
-                field("Campaign No."; "Campaign No.")
+                field("Enquiry Contact No."; "Enquiry Contact No.")
                 {
-                    ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the campaign number the document is linked to.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Company / Person Contact No.';
                 }
-                field(Status; Status)
+                field("Enquiry Contact Name"; "Enquiry Contact Name")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the document is open, waiting to be approved, has been invoiced for prepayment, or has been released to the next stage of processing.';
+                    ApplicationArea = all;
+                    ToolTip = 'Company / Person Contact Name';
                 }
-                field("Payment Terms Code"; "Payment Terms Code")
+                field("No. of PAX"; "No. of PAX")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
                 }
-                field("Due Date"; "Due Date")
+                field("Average Price Per PAX/F&B"; "Average Price Per PAX/F&B")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the sales invoice must be paid.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
                 }
-                field("Payment Discount %"; "Payment Discount %")
+                field("Transport (Amount)"; "Transport (Amount)")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment discount percentage that is granted if the customer pays on or before the date entered in the Pmt. Discount Date field. The discount percentage is specified in the Payment Terms Code field.';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
                 }
-                field("Shipment Method Code"; "Shipment Method Code")
+                field("Staff (Amount)"; "Staff (Amount)")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
-                    Visible = false;
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
                 }
-                field("Shipping Agent Code"; "Shipping Agent Code")
-                {
-                    ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
-                    Visible = false;
-                }
-                field("Shipping Agent Service Code"; "Shipping Agent Service Code")
-                {
-                    ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
-                    Visible = false;
-                }
-                field("Package Tracking No."; "Package Tracking No.")
-                {
-                    ApplicationArea = Suite;
-                    ToolTip = 'Specifies the shipping agent''s package number.';
-                    Visible = false;
-                }
-                field("Shipment Date"; "Shipment Date")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
-                    Visible = false;
-                }
-                field("Shipping Advice"; "Shipping Advice")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the customer accepts partial shipment of orders.';
-                    Visible = false;
-                }
+
                 field("Completely Shipped"; "Completely Shipped")
                 {
                     ApplicationArea = Basic, Suite;

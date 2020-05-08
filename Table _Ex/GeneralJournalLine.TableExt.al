@@ -121,6 +121,10 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
                 end;
             end;
         }
+        field(50009; "Batch Description"; Text[80])
+        {
+            DataClassification = CustomerContent;
+        }
         modify("Document No.")
         {
             trigger OnAfterValidate()

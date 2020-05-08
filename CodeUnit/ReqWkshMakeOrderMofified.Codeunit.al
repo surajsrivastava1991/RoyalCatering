@@ -34,6 +34,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         TransferExtendedText: Codeunit "Transfer Extended Text";
         ReserveReqLine: Codeunit "Req. Line-Reserve";
         DimMgt: Codeunit DimensionManagement;
+        IndentLineG: Record "Purchase Indent Line";
+        IndentHdrG: Record "Purchase Indent Header";
         Window: Dialog;
         OrderDateReq: Date;
         PostingDateReq: Date;
@@ -240,8 +242,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                     if "Replenishment System" = "Replenishment System"::Purchase then begin
                         if "Planning Line Origin" = "Planning Line Origin"::"Order Planning" then
                             TestField("Supply From");
-                        if ReqLine2."Order/Quote" <> "Order/Quote"::"Purchase Quote" then
-                            TestField("Vendor No.")
+                        TestField("Vendor No.")
                     end else
                         if "Replenishment System" = "Replenishment System"::Transfer then begin
                             TestField("Location Code");
@@ -1435,21 +1436,31 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         IndentLineL: Record "Purchase Indent Line";
     begin
         IndentLineL.Get(ReqLineP."Req. Document No.", ReqLineP."Req. Line No.");
-        //IndentLineL.Reset();
-        //IndentLineL.SetCurrentKey("Ref. Document No.");
-        //IndentLineL.SetRange("Ref. Document No.", PurchOrderLine."Document No.");
-        //IndentLineL.SetRange("Ref. Document Line No.", PurchOrderLine."Line No.");
-        //IndentLineL.CalcSums(Quantity);
-        //if IndentLineL.FindSet() then
         if IndentLineL.Quantity <= ReqLineP.Quantity then begin
             IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Approved-Ordered";
-            //IndentLineL.Validate("Transaction Status", IndentLineL."Transaction Status"::"Approved-Ordered");
             IndentLineL.Modify();
             UpdateHeaderStatus(IndentLineL);
         end
         else begin
             IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Approved-Partially Ordered";
-            //IndentLineL.Validate("Transaction Status", IndentLineL."Transaction Status"::"Approved-Partially Ordered");
+            IndentLineL.Modify();
+            UpdateHeaderStatus(IndentLineL);
+        end;
+    end;
+
+    procedure UpdateRequisitionStatusQuote(ReqLineP: Record "Requisition Line")
+    var
+        IndentHeaderL: Record "Purchase Indent Header";
+        IndentLineL: Record "Purchase Indent Line";
+    begin
+        IndentLineL.Get(ReqLineP."Req. Document No.", ReqLineP."Req. Line No.");
+        if IndentLineL.Quantity <= ReqLineP.Quantity then begin
+            IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Aproved-Quote Created";
+            IndentLineL.Modify();
+            UpdateHeaderStatus(IndentLineL);
+        end
+        else begin
+            IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Approved-Partially Quote Created";
             IndentLineL.Modify();
             UpdateHeaderStatus(IndentLineL);
         end;
@@ -1492,6 +1503,18 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                 end;
                 exit;
             end;
+            IndentLineL.SetFilter("Transaction Status", '%1|%2', "Transaction Status"::"Approved-Partially Quote Created", "Transaction Status"::"Aproved-Quote Created");
+            if IndentLineL.Find('-') then begin
+                IndentLine2L.SetFilter("Transaction Status", '<>%1', "Transaction Status"::"Aproved-Quote Created");
+                if IndentLine2L.Find('-') then begin
+                    IndentHdrL."Transaction Status" := IndentHdrL."Transaction Status"::"Approved-Partially Quote Created";
+                    IndentHdrL.Modify();
+                end else begin
+                    IndentHdrL."Transaction Status" := IndentHdrL."Transaction Status"::"Aproved-Quote Created";
+                    IndentHdrL.Modify();
+                end;
+                exit;
+            end;
         end;
     end;
     //Purchase Quote
@@ -1525,7 +1548,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         PurchOrderLineL: Record "Purchase Line";
     begin
         with ReqLine2 do begin
-            if ("No." = '') or (Quantity = 0) then
+            if ("No." = '') or ("Vendor No." = '') or (Quantity = 0) then
                 exit;
 
             //TestField("Currency Code", PurchOrderHeader."Currency Code");
@@ -1553,6 +1576,13 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                                         PurchOrderLineL."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
                                     end;
                                     PurchOrderLineL.Modify(true);
+                                    if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
+                                        PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Quote";
+                                        PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
+                                        PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
+                                        PurchRequisitionLineG.Modify();
+                                    end;
+                                    UpdateRequisitionStatusQuote(ReqLine2);
                                     PurchOrderHeader2G.get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
                                     UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expected date on header
                                 until PurchOrderLineL.Next() = 0;
@@ -1577,10 +1607,6 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                     PrevLocationCode := "Location Code";
                     InitPurchQuoteLine(PurchOrderLine, PurchOrderHeader, ReqLine2, VendorG);
 
-                    //AddOnIntegrMgt.TransferFromReqLineToPurchLine(PurchOrderLine, ReqLine2);
-
-                    //PurchOrderLine."Drop Shipment" := "Sales Order Line No." <> 0;
-
                     ReserveReqLine.TransferReqLineToPurchLine(ReqLine2, PurchOrderLine, "Quantity (Base)", false);
 
                     DimensionSetIDArr[1] := PurchOrderLine."Dimension Set ID";
@@ -1590,6 +1616,13 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                         DimensionSetIDArr, PurchOrderLine."Shortcut Dimension 1 Code", PurchOrderLine."Shortcut Dimension 2 Code");
 
                     PurchOrderLine.Insert();
+                    if PurchRequisitionLineG.GET(ReqLine2."Req. Document No.", ReqLine2."Req. Line No.") then begin
+                        PurchRequisitionLineG."Ref. Document Type" := PurchRequisitionLineG."Ref. Document Type"::"Purchase Quote";
+                        PurchRequisitionLineG."Ref. Document No." := PurchOrderLine."Document No.";
+                        PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
+                        PurchRequisitionLineG.Modify();
+                    end;
+                    UpdateRequisitionStatusQuote(ReqLine2);
 
 
                 /*
@@ -1616,6 +1649,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         SalesHeader: Record "Sales Header";
         Vendor: Record Vendor;
         SpecialOrder: Boolean;
+        IndentHdrL: Record "Purchase Indent Header";
+        IndentLineL: Record "Purchase Indent Line";
     begin
 
         with ReqLine2 do begin
@@ -1674,8 +1709,40 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                 if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
                     PurchOrderHeader."Shipment Method Code" := Vendor."Shipment Method Code";
             PurchOrderHeader."Assigned User ID" := "Purchaser Code";
+            if not ItemGrouping then begin
+                IndentLineL.Get("Req. Document No.", "Req. Line No.");
+                PurchOrderHeader."Ref. Requisition ID" := IndentLineL.RecordId;
+            end;
             PurchOrderHeader.Modify();
             PurchOrderHeader.Mark(true);
         end;
+    end;
+    //Service Requisition Process
+    procedure InitCarryOutAction(var IndentHdrP: Record "Purchase Indent Header")
+    begin
+        IndentHdrG.Copy(IndentHdrP);
+        IndentLineG.Reset();
+        IndentLineG.SetRange("Document No.", IndentHdrG."No.");
+        IndentLineG.SetCurrentKey("Vendor No.", "Currency Code", "No.");
+        CheckLinesMandatoryFields(IndentLineG);
+        //Create Orders
+        IndentLineG.SetRange("Order/Quote", IndentLineG."Order/Quote"::"Purchase Order");
+        IndentHdrG.Carryoutaction(IndentHdrG, IndentLineG);
+        //Create Quotes
+        IndentLineG.SetRange("Order/Quote", IndentLineG."Order/Quote"::"Purchase Quote");
+        IndentHdrG.Carryoutaction(IndentHdrG, IndentLineG);
+    end;
+
+    procedure CheckLinesMandatoryFields(var IndentLineP: Record "Purchase Indent Line")
+    var
+        IndentLineL: Record "Purchase Indent Line";
+    begin
+        IndentLineL.Copy(IndentLineP);
+        if IndentLineL.FindSet() then
+            repeat
+                IndentLineL.TestField("No.");
+                IndentLineL.TestField("Vendor No.");
+                IndentLineL.TestField(Quantity);
+            until IndentLineL.next() = 0;
     end;
 }

@@ -127,6 +127,11 @@ page 50085 "Custumised General Journal"
                     ToolTip = 'Specifies a document number for the journal line.';
                     Visible = NOT IsSimplePage;
                 }
+                field("Batch Description"; "Batch Description")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Batch Description for Posted Voucher';
+                }
                 field("Incoming Document Entry No."; "Incoming Document Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1581,11 +1586,11 @@ page 50085 "Custumised General Journal"
                         if Count = 0 then
                             exit;
                         GenJnlBatch.Get("Journal Template Name", CurrentJnlBatchName);
-                        GenJournalLine.Reset;
+                        GenJournalLine.Reset();
                         GenJournalLine.SetCurrentKey("Document No.");
                         GenJournalLine.SetRange("Journal Template Name", "Journal Template Name");
                         GenJournalLine.SetRange("Journal Batch Name", "Journal Batch Name");
-                        if GenJournalLine.FindLast then begin
+                        if GenJournalLine.FindLast() then begin
                             LastDocNo := GenJournalLine."Document No.";
                             IncrementDocumentNo(GenJnlBatch, LastDocNo);
                         end else
@@ -1641,23 +1646,23 @@ page 50085 "Custumised General Journal"
 
     trigger OnModifyRecord(): Boolean
     begin
-        SetUserInteractions;
+        SetUserInteractions();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        UpdateBalance;
-        EnableApplyEntriesAction;
+        UpdateBalance();
+        EnableApplyEntriesAction();
         SetUpNewLine(xRec, Balance, BelowxRec);
         // set values from header for currency code, doc no. and posting date
         // for show less columns or simple page mode
         if IsSimplePage then begin
             PostedFromSimplePage := false;
-            SetDataForSimpleModeOnNewRecord;
+            SetDataForSimpleModeOnNewRecord();
         end;
         Clear(ShortcutDimCode);
         Clear(AccName);
-        SetUserInteractions;
+        SetUserInteractions();
     end;
 
     trigger OnOpenPage()
@@ -1693,6 +1698,8 @@ page 50085 "Custumised General Journal"
 
         //IsSaaS := PermissionManager.SoftwareAsAService;
         SetDataForSimpleModeOnOpen;
+
+
     end;
 
     var
@@ -1804,7 +1811,7 @@ page 50085 "Custumised General Journal"
 
         CanCancelApprovalForJnlLine := ApprovalsMgmt.CanCancelApprovalForRecord(RecordId);
 
-        SetPayrollAppearance;
+        SetPayrollAppearance();
 
         WorkflowWebhookManagement.GetCanRequestAndCanCancel(RecordId, CanRequestFlowApprovalForLine, CanCancelFlowApprovalForLine);
         CanRequestFlowApprovalForBatchAndCurrentLine := CanRequestFlowApprovalForBatch and CanRequestFlowApprovalForLine;
@@ -1818,7 +1825,7 @@ page 50085 "Custumised General Journal"
     begin
         if Count = 0 then
             NoLines := true;
-        GenJournalLine.Reset;
+        GenJournalLine.Reset();
         GenJournalLine.SetCurrentKey("Document No.", "Line No.");
         GenJournalLine.SetRange("Journal Template Name", "Journal Template Name");
         GenJournalLine.SetRange("Journal Batch Name", "Journal Batch Name");
@@ -1830,7 +1837,7 @@ page 50085 "Custumised General Journal"
                     exit;
                 end;
                 // Find the rec for current doc no.
-                if not CurrentDocNoWasFound and (GenJournalLine."Document No." = CurrentDocNo) then
+                if not (CurrentDocNoWasFound) and (GenJournalLine."Document No." = CurrentDocNo) then
                     CurrentDocNoWasFound := true;
                 if CurrentDocNoWasFound and (GenJournalLine."Document No." <> CurrentDocNo) then begin
                     SetDataForSimpleMode(GenJournalLine);
@@ -1879,7 +1886,7 @@ page 50085 "Custumised General Journal"
     var
         GLSetup: Record "General Ledger Setup";
     begin
-        GLSetup.Get;
+        GLSetup.Get();
         if IsSimplePage then begin
             AmountVisible := false;
             DebitCreditVisible := true;
@@ -1926,14 +1933,14 @@ page 50085 "Custumised General Journal"
     begin
         if IsSimplePage then begin
             Clear(TotalDebitAmt);
-            GenJournalLine.Reset;
+            GenJournalLine.Reset();
             GenJournalLine.SetRange("Journal Template Name", "Journal Template Name");
             GenJournalLine.SetRange("Journal Batch Name", "Journal Batch Name");
             GenJournalLine.SetRange("Document No.", CurrentDocNo);
             if GenJournalLine.Find('-') then
                 repeat
                     TotalDebitAmt := TotalDebitAmt + GenJournalLine."Debit Amount";
-                until GenJournalLine.Next = 0;
+                until GenJournalLine.Next() = 0;
             exit(TotalDebitAmt);
         end
     end;
@@ -1945,21 +1952,21 @@ page 50085 "Custumised General Journal"
     begin
         if IsSimplePage then begin
             Clear(TotalCreditAmt);
-            GenJournalLine.Reset;
+            GenJournalLine.Reset();
             GenJournalLine.SetRange("Journal Template Name", "Journal Template Name");
             GenJournalLine.SetRange("Journal Batch Name", "Journal Batch Name");
             GenJournalLine.SetRange("Document No.", CurrentDocNo);
             if GenJournalLine.Find('-') then
                 repeat
                     TotalCreditAmt := TotalCreditAmt + GenJournalLine."Credit Amount";
-                until GenJournalLine.Next = 0;
+                until GenJournalLine.Next() = 0;
             exit(TotalCreditAmt);
         end
     end;
 
     local procedure SetDataForSimpleMode(GenJournalLine1: Record "Gen. Journal Line")
     begin
-        CurrentDocNo := GenJournalLine1."Document No.";
+        CurrentDocNo := GenJournalLine1."Document No."; //Suraj
         CurrentPostingDate := GenJournalLine1."Posting Date";
         CurrentCurrencyCode := GenJournalLine1."Currency Code";
         SetDocumentNumberFilter(CurrentDocNo);
@@ -1970,11 +1977,11 @@ page 50085 "Custumised General Journal"
         if IsSimplePage then begin
             // Filter on the first record
             SetCurrentKey("Document No.", "Line No.");
-            if FindFirst then
+            if FindFirst() then
                 SetDataForSimpleMode(Rec)
             else begin
                 // if no rec is found reset the currentposting date to workdate and currency code to empty
-                CurrentPostingDate := WorkDate;
+                CurrentPostingDate := WorkDate();
                 Clear(CurrentCurrencyCode);
             end;
         end;
@@ -2025,7 +2032,7 @@ page 50085 "Custumised General Journal"
         GenJournalLine: Record "Gen. Journal Line";
     begin
         if IsSimplePage and (Count > 0) then begin
-            GenJournalLine.Reset;
+            GenJournalLine.Reset();
             GenJournalLine.SetRange("Journal Template Name", "Journal Template Name");
             GenJournalLine.SetRange("Journal Batch Name", "Journal Batch Name");
             GenJournalLine.SetRange("Document No.", CurrentDocNo);
@@ -2077,7 +2084,7 @@ page 50085 "Custumised General Journal"
     var
         GenJnlBatch: Record "Gen. Journal Batch";
     begin
-        COMMIT;
+        COMMIT();
         GenJnlBatch."Journal Template Name" := GenJnlLine.GETRANGEMAX("Journal Template Name");
         GenJnlBatch.Name := GenJnlLine.GETRANGEMAX("Journal Batch Name");
         GenJnlBatch.FILTERGROUP(2);

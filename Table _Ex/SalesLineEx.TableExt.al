@@ -37,7 +37,18 @@ tableextension 50030 "Sales Line Ex" extends "Sales Line"
             DataClassification = CustomerContent;
             Editable = false;
         }
-        // Add changes to table fields here
+        field(50002; "Days"; Decimal)
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50003; "Monthly Charges"; Decimal)
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50004; "Manday Unit Price"; Decimal)
+        {
+            DataClassification = CustomerContent;
+        }
     }
 
     var

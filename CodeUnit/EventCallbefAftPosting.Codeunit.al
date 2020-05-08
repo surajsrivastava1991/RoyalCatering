@@ -88,6 +88,7 @@ codeunit 50002 "Event Call bef/Aft Posting"
         GLEntry."CL from Date" := GenJournalLine."CL from Date";
         GLEntry."CL To Date" := GenJournalLine."CL To Date";
         GLEntry."Bulk Kitchen" := GenJournalLine."Bulk Kitchen";
+        GLEntry."Batch Description" := GenJournalLine."Batch Description";
     end;
 
     var

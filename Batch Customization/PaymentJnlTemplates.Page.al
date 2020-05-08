@@ -1,10 +1,10 @@
-page 50009 "Cash Receipt Jnl. Templates"
+page 50008 "Payment Jnl. Templates"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Cash Receipt - Jnl. Batch Templates';
+    Caption = 'Payment - Journal Batch Templates';
     PageType = List;
     SourceTable = "Gen. Journal Template";
-    SourceTableView = sorting(Name) where("Custumised Jnl." = const(true), Type = const("Cash Receipts"));
+    SourceTableView = sorting(Name) where("Custumised Jnl." = const(true), Type = const(Payments));
     UsageCategory = Administration;
     Editable = false;
 
@@ -34,7 +34,6 @@ page 50009 "Cash Receipt Jnl. Templates"
                 field("Batch Decription"; "Batch Description")
                 {
                     ApplicationArea = all;
-                    ToolTip = 'Batch Decription';
                 }
 
             }
@@ -68,12 +67,16 @@ page 50009 "Cash Receipt Jnl. Templates"
                 Caption = 'Batches';
                 Image = Description;
                 RunObject = Page "Custumised Genl Jnl. Batches";
-                RunPageView = WHERE("approval status" = filter(open | Canceled | Rejected));
+                RunPageView = WHERE("approval status" = filter(open | Canceled | Rejected | Approved));
                 RunPageLink = "Journal Template Name" = FIELD(Name);
                 ToolTip = 'View or edit multiple journals for a specific template. You can use batches when you need multiple journals of a certain type.';
             }
 
         }
     }
+
+    var
+        Text001: Label 'Do you want to update the %1 field on all general journal batches?';
+        Text002: Label 'Canceled.';
 }
 

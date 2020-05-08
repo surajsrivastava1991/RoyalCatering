@@ -54,7 +54,7 @@ table 50035 "Purchase Indent Header"
         }
         field(5; "Name"; Text[100])
         {
-            Caption = 'Name';
+            Caption = 'Description';
             DataClassification = CustomerContent;
             trigger OnValidate()
             begin
@@ -130,13 +130,19 @@ table 50035 "Purchase Indent Header"
             Caption = 'Transaction Status';
             Editable = false;
             //OptionCaption = 'Open,Approved,Pending Approval';
-            OptionMembers = Open,Approved,"Pending Approval","Approved-Ordered","Approved-Partially Ordered","Approved-Received","Approved-Partially Received","Approved-Cancel";
+            OptionMembers = Open,Approved,"Pending Approval","Approved-Ordered","Approved-Partially Ordered","Approved-Received","Approved-Partially Received","Approved-Cancel","Aproved-Quote Created","Approved-Partially Quote Created";
         }
         field(107; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
+        }
+        field(14; "Service Requisition"; Boolean)
+        {
+            Caption = 'Service Requisitin';
+            DataClassification = ToBeClassified;
+            Editable = false;
         }
 
     }
@@ -159,9 +165,9 @@ table 50035 "Purchase Indent Header"
                 PurchseSetupG.TestField("Requisition Nos.(Transfer)");
                 NoSeriesMgtG.InitSeries(PurchseSetupG."Requisition Nos.(Transfer)", xRec."No. Series", Today, "No.", "No. Series");
             end;
-            "Created By" := UserId();
-            "Creation Date" := Today();
         end;
+        "Created By" := UserId();
+        "Creation Date" := Today();
     end;
 
     trigger OnModify()
@@ -290,4 +296,346 @@ table 50035 "Purchase Indent Header"
     begin
         TestField("Approval Status", "Approval Status"::Open);
     end;
+
+    //Service Requisition
+    procedure InsertPurchOrderLine(var IndentLine2: Record "Purchase Indent Line"; var PurchOrderHeader: Record "Purchase Header"; var PurchOrderLine: Record "Purchase Line")
+    var
+        PurchOrderLine2: Record "Purchase Line";
+        AddOnIntegrMgt: Codeunit AddOnIntegrManagement;
+        DimensionSetIDArr: array[10] of Integer;
+    begin
+        with IndentLine2 do begin
+            if ("No." = '') or ("Vendor No." = '') or (Quantity = 0) then
+                exit;
+
+            if CheckInsertFinalizePurchaseQuoteHeader(IndentLine2, PurchOrderHeader, true) then begin
+                InsertHeader(IndentLine2);
+                //LineCount := 0;
+                NextLineNo := 0;
+                //PrevPurchCode := "Purchasing Code";
+                //PrevShipToCode := "Ship-to Code";
+                //PrevLocationCode := "Location Code";
+            end;
+            //TestField("Currency Code", PurchOrderHeader."Currency Code");
+
+            InitPurchOrderLine(PurchOrderLine, PurchOrderHeader, IndentLine2);
+
+            //AddOnIntegrMgt.TransferFromReqLineToPurchLine(PurchOrderLine, IndentLine2);
+
+            //PurchOrderLine."Drop Shipment" := "Sales Order Line No." <> 0;
+
+            PurchOrderLine.Insert();
+
+            IndentLine2."Ref. Document Type" := IndentLine2."Ref. Document Type"::"Purchase Quote";
+            IndentLine2."Ref. Document No." := PurchOrderLine."Document No.";
+            IndentLine2."Ref. Document Line No." := PurchOrderLine."Line No.";
+            IndentLine2.Modify();
+
+            UpdateRequisitionStatus(IndentLine2);
+
+            PurchOrderLine2.SetRange("Document Type", PurchOrderHeader."Document Type");
+            PurchOrderLine2.SetRange("Document No.", PurchOrderHeader."No.");
+            if PurchOrderLine2.FindLast() then
+                NextLineNo := PurchOrderLine2."Line No.";
+        end;
+    end;
+
+    local procedure InsertHeader(var IndentLine2: Record "Purchase Indent Line")
+    var
+        SalesHeader: Record "Sales Header";
+        Vendor: Record Vendor;
+        SpecialOrder: Boolean;
+    begin
+
+        with IndentLine2 do begin
+
+            PurchSetup.Get();
+            PurchSetup.TestField("Order Nos.");
+            Clear(PurchOrderHeader);
+            PurchOrderHeader.Init();
+            PurchOrderHeader."Document Type" := PurchOrderHeader."Document Type"::Order;
+            PurchOrderHeader."No." := '';
+            PurchOrderHeader."Posting Date" := WorkDate();
+            PurchOrderHeader.Insert(true);
+            PurchOrderHeader."Your Reference" := ReferenceReq;
+            PurchOrderHeader."Order Date" := WorkDate();
+            PurchOrderHeader."Expected Receipt Date" := WorkDate();
+            PurchOrderHeader.Validate("Buy-from Vendor No.", "Vendor No.");
+
+            PurchOrderHeader.Validate("Currency Code", "Currency Code");
+
+            PurchOrderHeader.Validate("Location Code", "Receiving Location");
+            if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
+                PurchOrderHeader.Validate("Shipment Method Code", Vendor."Shipment Method Code");
+        end;
+        PurchOrderHeader."Ref. Requisition ID" := IndentLine2.RecordId;
+        PurchOrderHeader."Assigned User ID" := UserId;
+        PurchOrderHeader.Modify();
+        PurchOrderHeader.Mark(true);
+    end;
+
+    procedure InitPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; PurchOrderHeader: Record "Purchase Header"; IndentLineP: Record "Purchase Indent Line")
+    begin
+        with IndentLineP do begin
+            PurchOrderLine.Init();
+            PurchOrderLine.BlockDynamicTracking(true);
+            PurchOrderLine."Document Type" := PurchOrderLine."Document Type"::Order;
+            PurchOrderLine."Buy-from Vendor No." := "Vendor No.";
+            PurchOrderLine."Document No." := PurchOrderHeader."No.";
+            NextLineNo := NextLineNo + 10000;
+            PurchOrderLine."Line No." := NextLineNo;
+            if Type = Type::"Item(Service)" then
+                PurchOrderLine.Validate(Type, PurchOrderLine.Type::Item)
+            else
+                PurchOrderLine.Validate(Type, PurchOrderLine.Type::"Fixed Asset");
+            PurchOrderLine.Validate("No.", "No.");
+            PurchOrderLine."Variant Code" := "Variant Code";
+            PurchOrderLine.Validate("Unit of Measure Code", "Unit of Measure Code");
+            PurchOrderLine.Validate("Qty. to Accept", Quantity);
+            //PurchOrderLine.Validate("Location Code", "Receiving Location");
+            if PurchOrderHeader."Prices Including VAT" then
+                PurchOrderLine.Validate("Direct Unit Cost", "Direct Unit Cost" * (1 + PurchOrderLine."VAT %" / 100))
+            else
+                PurchOrderLine.Validate("Direct Unit Cost", "Direct Unit Cost");
+            PurchOrderLine.Description := Description;
+            PurchOrderLine."Description 2" := "Description 2";
+            PurchOrderLine."Item Category Code" := "Item Category Code";
+            if "Requested Date" <> 0D then begin
+                PurchOrderLine.Validate("Expected Receipt Date", "Requested Date");
+                PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+            end;
+        end;
+
+    end;
+    //Service Quotes Order
+    procedure FindAllVendorsForQuotes(var IndentLineP: Record "Purchase Indent Line")
+    var
+        IndentLineL: Record "Purchase Indent Line";
+        QuoteVendors: Record "Vendors For Quotations";
+    begin
+        IndentLineL.Copy(IndentLineP);
+        VendorG.Reset();
+        IndentLineL.SetRange("No.", IndentLineL."No.");
+        if IndentLineL.FindSet() then
+            repeat
+                QuoteVendors.Reset();
+                QuoteVendors.SetRange("Document No.", IndentLineL."Document No.");
+                QuoteVendors.SetRange("Line No.", IndentLineL."Line No.");
+                if QuoteVendors.FindSet() then
+                    repeat
+                        if VendorG.Get(QuoteVendors."Vendor No.") then
+                            VendorG.Mark(true);
+                    until QuoteVendors.Next() = 0;
+            until IndentLineL.Next() = 0;
+    end;
+
+    procedure InsertPurchQuoteLine(var IndentLine2: Record "Purchase Indent Line"; var PurchOrderHeader: Record "Purchase Header"; var PurchOrderLine: Record "Purchase Line")
+    var
+        PurchOrderLine2: Record "Purchase Line";
+        AddOnIntegrMgt: Codeunit AddOnIntegrManagement;
+        DimensionSetIDArr: array[10] of Integer;
+    begin
+        with IndentLine2 do begin
+            if ("No." = '') or ("Vendor No." = '') or (Quantity = 0) then
+                exit;
+
+            FindAllVendorsForQuotes(IndentLine2);
+            VendorG.MarkedOnly(true);
+            if VendorG.FindSet() then
+                repeat
+                    if CheckInsertFinalizePurchaseQuoteHeader(IndentLine2, PurchOrderHeader, true) then begin
+                        InsertQuoteHeader(IndentLine2, VendorG);
+                        NextLineNo := 0;
+                    end;
+
+                    InitPurchQuoteLine(PurchOrderLine, PurchOrderHeader, IndentLine2, VendorG);
+
+                    PurchOrderLine.Insert();
+                    IndentLine2."Ref. Document Type" := IndentLine2."Ref. Document Type"::"Purchase Quote";
+                    IndentLine2."Ref. Document No." := PurchOrderLine."Document No.";
+                    IndentLine2."Ref. Document Line No." := PurchOrderLine."Line No.";
+                    IndentLine2.Modify();
+
+                    UpdateRequisitionStatusQuote(IndentLine2);
+
+                    PurchOrderLine2.SetRange("Document Type", PurchOrderHeader."Document Type");
+                    PurchOrderLine2.SetRange("Document No.", PurchOrderHeader."No.");
+                    if PurchOrderLine2.FindLast() then
+                        NextLineNo := PurchOrderLine2."Line No.";
+                until VendorG.Next() = 0;
+        end;
+    end;
+
+    local procedure InsertQuoteHeader(var IndentLine2: Record "Purchase Indent Line"; VendorP: Record Vendor)
+    var
+        SalesHeader: Record "Sales Header";
+        Vendor: Record Vendor;
+        SpecialOrder: Boolean;
+    begin
+
+        with IndentLine2 do begin
+
+            PurchSetup.Get();
+            PurchSetup.TestField("Order Nos.");
+            Clear(PurchOrderHeader);
+            PurchOrderHeader.Init();
+            PurchOrderHeader."Document Type" := PurchOrderHeader."Document Type"::Quote;
+            PurchOrderHeader."No." := '';
+            PurchOrderHeader."Posting Date" := WorkDate();
+            PurchOrderHeader.Insert(true);
+            PurchOrderHeader."Your Reference" := ReferenceReq;
+            PurchOrderHeader."Order Date" := WorkDate();
+            PurchOrderHeader."Expected Receipt Date" := WorkDate();
+            PurchOrderHeader.Validate("Buy-from Vendor No.", VendorP."No.");
+
+            PurchOrderHeader.Validate("Currency Code", "Currency Code");
+
+            PurchOrderHeader.Validate("Location Code", "Receiving Location");
+            if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
+                PurchOrderHeader.Validate("Shipment Method Code", Vendor."Shipment Method Code");
+        end;
+        PurchOrderHeader."Assigned User ID" := '';
+        PurchOrderHeader.Modify();
+        PurchOrderHeader.Mark(true);
+    end;
+
+    procedure InitPurchQuoteLine(var PurchOrderLine: Record "Purchase Line"; PurchOrderHeader: Record "Purchase Header"; IndentLineP: Record "Purchase Indent Line"; VendorP: Record Vendor)
+    begin
+        with IndentLineP do begin
+            PurchOrderLine.Init();
+            PurchOrderLine.BlockDynamicTracking(true);
+            PurchOrderLine."Document Type" := PurchOrderLine."Document Type"::Quote;
+            PurchOrderLine."Buy-from Vendor No." := VendorP."No.";
+            PurchOrderLine."Document No." := PurchOrderHeader."No.";
+            NextLineNo := NextLineNo + 10000;
+            PurchOrderLine."Line No." := NextLineNo;
+            if Type = Type::"Item(Service)" then
+                PurchOrderLine.Validate(Type, PurchOrderLine.Type::Item)
+            else
+                PurchOrderLine.Validate(Type, PurchOrderLine.Type::"Fixed Asset");
+            PurchOrderLine.Validate("No.", "No.");
+            PurchOrderLine."Variant Code" := "Variant Code";
+            PurchOrderLine.Validate("Unit of Measure Code", "Unit of Measure Code");
+            PurchOrderLine.Validate("Qty. to Accept", Quantity);
+            PurchOrderLine.Validate("Direct Unit Cost", 0);
+            PurchOrderLine.Description := Description;
+            PurchOrderLine."Description 2" := "Description 2";
+            PurchOrderLine."Item Category Code" := "Item Category Code";
+            if "Requested Date" <> 0D then begin
+                PurchOrderLine.Validate("Expected Receipt Date", "Requested Date");
+                PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+            end;
+        end;
+
+    end;
+
+    procedure Carryoutaction(var IndentHdr: Record "Purchase Indent Header"; var IndentLine: Record "Purchase Indent Line")
+    begin
+        Set(PurchOrderHeader);
+        //For Service Item
+        IndentLine.SetRange(Type, IndentLine.Type::"Item(Service)");
+        with IndentLine do begin
+            if Find('-') then
+                repeat
+                    if IndentLine."Order/Quote" = IndentLine."Order/Quote"::"Purchase Order" then
+                        InsertPurchOrderLine(IndentLine, PurchOrderHeader, PurchOrderLine)
+                    else
+                        if IndentLine."Order/Quote" = IndentLine."Order/Quote"::"Purchase Quote" then
+                            InsertPurchQuoteLine(IndentLine, PurchOrderHeader, PurchOrderLine)
+                until Next() = 0;
+        end;
+        //For Fixed Asset
+        IndentLine.SetRange(Type, IndentLine.Type::"Fixed Asset");
+        with IndentLine do begin
+            if Find('-') then
+                repeat
+                    if IndentLine."Order/Quote" = IndentLine."Order/Quote"::"Purchase Order" then
+                        InsertPurchOrderLine(IndentLine, PurchOrderHeader, PurchOrderLine)
+                    else
+                        if IndentLine."Order/Quote" = IndentLine."Order/Quote"::"Purchase Quote" then
+                            InsertPurchQuoteLine(IndentLine, PurchOrderHeader, PurchOrderLine)
+                until Next() = 0;
+        end;
+    end;
+
+    local procedure CheckInsertFinalizePurchaseQuoteHeader(IndentLineP: Record "Purchase Indent Line"; var PurchOrderHeader: Record "Purchase Header"; UpdateAddressDetails: Boolean): Boolean
+    var
+        CheckInsert: Boolean;
+    begin
+        with IndentLineP do
+            CheckInsert :=
+              (PurchOrderHeader."Buy-from Vendor No." <> "Vendor No.") or
+              (PurchOrderHeader."Currency Code" <> "Currency Code");
+
+        exit(CheckInsert);
+    end;
+
+    procedure Set(NewPurchOrderHeader: Record "Purchase Header")
+    begin
+        PurchOrderHeader := NewPurchOrderHeader;
+        //EndOrderDate := NewEndingOrderDate;
+        //PrintPurchOrders := NewPrintPurchOrder;
+        OrderDateReq := PurchOrderHeader."Order Date";
+        PostingDateReq := PurchOrderHeader."Posting Date";
+        ReceiveDateReq := PurchOrderHeader."Expected Receipt Date";
+        ReferenceReq := PurchOrderHeader."Your Reference";
+        // OnAfterSet(PurchOrderHeader, SuppressCommit, EndOrderDate, PrintPurchOrders);
+    end;
+
+    procedure UpdateRequisitionStatus(var IndentLineL: Record "Purchase Indent Line")
+    var
+    //IndentHeaderL: Record "Purchase Indent Header";
+    begin
+        IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Approved-Ordered";
+        IndentLineL.Modify();
+        ReqWkshMakeOrder.UpdateHeaderStatus(IndentLineL);
+    end;
+
+    procedure UpdateRequisitionStatusQuote(var IndentLineL: Record "Purchase Indent Line")
+    var
+    //IndentHeaderL: Record "Purchase Indent Header";
+    begin
+        IndentLineL."Transaction Status" := IndentLineL."Transaction Status"::"Aproved-Quote Created";
+        IndentLineL.Modify();
+        ReqWkshMakeOrder.UpdateHeaderStatus(IndentLineL);
+    end;
+    /*
+        local procedure OnConditionalCardPageIDNotFound(RecRef: RecordRef; var CardPageID: Integer)
+        var
+            PurIndentHdrL: Record "Purchase Indent Header";
+        begin
+            case RecRef.Number of
+                DATABASE::"Purchase Indent Header":
+                    begin
+                        if RecRef.Number = Database::"Purchase Indent Header" then begin
+                            RecRef.SetTable(PurIndentHdrL);
+                            if PurIndentHdrL."Replenishment Type" = PurIndentHdrL."Replenishment Type"::Transfer then
+                                CardPageID := Page::"Transfer Indent"
+                            else
+                                if PurIndentHdrL."Replenishment Type" = PurIndentHdrL."Replenishment Type"::Purchase then
+                                    if PurIndentHdrL."Service Requisition" = true then
+                                        CardPageID := Page::"Service Indent Card"
+                                    else
+                                        CardPageID := Page::"Purchase Indent Card";
+                        end;
+                    end;
+            //exit(PAGE::"General Journal Templates");        
+            end;
+        end;
+    */
+    var
+        PurchOrderHeader: Record "Purchase Header";
+        PurchOrderLine: Record "Purchase Line";
+        PurchSetup: Record "Purchases & Payables Setup";
+        VendorG: Record Vendor;
+        ReqWkshMakeOrder: Codeunit "Req. Wksh.-Make Order-Mofified";
+        PageMangmntG: Codeunit "Page Management";
+        OrderDateReq: Date;
+        PostingDateReq: Date;
+        ReceiveDateReq: Date;
+        EndOrderDate: Date;
+        PlanningResiliency: Boolean;
+        PrintPurchOrders: Boolean;
+        ReferenceReq: Text[35];
+        NextLineNo: Integer;
 }

@@ -1,9 +1,9 @@
-report 50002 "Tax Invoice"
+report 50015 "Facility Management"
 {
     UsageCategory = Administration;
     ApplicationArea = All;
-    RDLCLayout = './res/TaxInvoice.rdl';
-    Caption = 'Tax Invoice';
+    RDLCLayout = './res/FacilityManagement.rdl';
+    Caption = 'Facility Management';
 
     dataset
     {
@@ -184,6 +184,18 @@ report 50002 "Tax Invoice"
 
                 }
                 column(Quantity; Quantity)
+                {
+
+                }
+                column(Days; Days)
+                {
+
+                }
+                column(Monthly_Charges; "Monthly Charges")
+                {
+
+                }
+                column(Manday_Unit_Price; "Manday Unit Price")
                 {
 
                 }

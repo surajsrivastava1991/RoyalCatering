@@ -2,6 +2,9 @@ pageextension 50042 "Gen journal line" extends "General Journal"
 {
     layout
     {
+
+
+
         addafter("Shortcut Dimension 1 Code")
         {
             field("CL from Date"; "CL from Date")
@@ -19,6 +22,12 @@ pageextension 50042 "Gen journal line" extends "General Journal"
                 ApplicationArea = all;
                 ToolTip = 'Cost Allocation Bulk Allocation';
             }
+            field("Batch Description"; "Batch Description")
+            {
+                ApplicationArea = all;
+                ToolTip = 'Batch Decription for posted Voucher Report';
+            }
+
         }
         // Add changes to page layout here
     }

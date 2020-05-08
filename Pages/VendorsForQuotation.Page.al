@@ -5,6 +5,7 @@ page 50004 "Vendors for quotation"
     UsageCategory = Lists;
     SourceTable = "Vendors For Quotations";
     CardPageId = "Vendors for quotation";
+    Editable = true;
 
     layout
     {
@@ -25,4 +26,8 @@ page 50004 "Vendors for quotation"
             }
         }
     }
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        "Select from vendor-item" := true;
+    end;
 }

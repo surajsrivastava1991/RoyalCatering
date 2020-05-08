@@ -9,6 +9,11 @@ pageextension 50070 "Fixed Asset Card" extends "Fixed Asset Card"
                 ApplicationArea = all;
                 ToolTip = 'Inventory Item for FA';
             }
+            field("Quote Mandatory"; "Quote Mandatory")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Table Fields';
+            }
         }
     }
 

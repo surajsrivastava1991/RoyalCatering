@@ -289,12 +289,19 @@ codeunit 50051 "Purchase Indent Workflow"
     local procedure OnReleaseDocument(RecRef: RecordRef; var Handled: Boolean)
     var
         PurchaseIndentL: Record "Purchase Indent Header";
+        ReqWksheetMakeOrderG: Codeunit "Req. Wksh.-Make Order-Mofified";
     begin
         RecRef.SetTable(PurchaseIndentL);
         PurchaseIndentL."Approval Status" := PurchaseIndentL."Approval Status"::Released;
         PurchaseIndentL.Modify();
         //if PurchaseIndentL."Replenishment Type" = PurchaseIndentL."Replenishment Type"::Purchase then
-        PurchaseIndentL.CreateRequisitionLines();//Create Requisition Lines        
+        if PurchaseIndentL."Service Requisition" = false then
+            PurchaseIndentL.CreateRequisitionLines();//Create Requisition Lines
+        if PurchaseIndentL."Service Requisition" = true then
+            if Confirm('Purchase Documents will be created. Do you want to continue?', true) then
+                ReqWksheetMakeOrderG.InitCarryOutAction(PurchaseIndentL)
+            else
+                Error('');
         Handled := true;
     end;
 
@@ -311,11 +318,32 @@ codeunit 50051 "Purchase Indent Workflow"
     //Workflow Response Handling -End
     //Page Management -Begin
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnConditionalCardPageIDNotFound', '', true, true)]
+    /*    local procedure OnConditionalCardPageIDNotFound(RecordRef: RecordRef; var CardPageID: Integer)
+        begin
+            case RecordRef.Number of
+                DATABASE::"Purchase Indent Header":
+                    CardPageID := PAGE::"Purchase Indent Card";
+            end;
+        end;
+        */
     local procedure OnConditionalCardPageIDNotFound(RecordRef: RecordRef; var CardPageID: Integer)
+    var
+        PurIndentHdrL: Record "Purchase Indent Header";
     begin
         case RecordRef.Number of
             DATABASE::"Purchase Indent Header":
-                CardPageID := PAGE::"Purchase Indent Card";
+                if RecordRef.Number = Database::"Purchase Indent Header" then begin
+                    RecordRef.SetTable(PurIndentHdrL);
+                    if PurIndentHdrL."Replenishment Type" = PurIndentHdrL."Replenishment Type"::Transfer then
+                        CardPageID := Page::"Transfer Indent"
+                    else
+                        if PurIndentHdrL."Replenishment Type" = PurIndentHdrL."Replenishment Type"::Purchase then
+                            if PurIndentHdrL."Service Requisition" = true then
+                                CardPageID := Page::"Service Indent Card"
+                            else
+                                CardPageID := Page::"Purchase Indent Card";
+                end;
+        //exit(PAGE::"General Journal Templates");        
         end;
     end;
     //Page Management -End

@@ -339,6 +339,10 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(50060; "Invoice Description"; text[250])
+        {
+            DataClassification = CustomerContent;
+        }
 
     }
     var
@@ -367,5 +371,4 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
 
     var
         JobsG: Record Job;
-
 }

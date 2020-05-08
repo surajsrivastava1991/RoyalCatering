@@ -25,10 +25,10 @@
                   <Width>1.98559in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.58438in</Width>
+                  <Width>0.38478in</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.51046in</Width>
+                  <Width>0.71006in</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.60412in</Width>
@@ -135,14 +135,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox54">
+                        <Textbox Name="Textbox2">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Quantity</Value>
+                                  <Value>Days</Value>
                                   <Style>
                                     <FontSize>9pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -154,7 +154,7 @@
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox16</rd:DefaultName>
+                          <rd:DefaultName>Textbox2</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -175,14 +175,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox30">
+                        <Textbox Name="Textbox7">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>UOM</Value>
+                                  <Value>Montly Chr</Value>
                                   <Style>
                                     <FontSize>9pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -194,7 +194,7 @@
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox18</rd:DefaultName>
+                          <rd:DefaultName>Textbox7</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -538,14 +538,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Quantity">
+                        <Textbox Name="Days">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Quantity.Value</Value>
+                                  <Value>=Fields!Days.Value</Value>
                                   <Style>
                                     <FontSize>8pt</FontSize>
                                   </Style>
@@ -556,7 +556,7 @@
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Quantity</rd:DefaultName>
+                          <rd:DefaultName>Days</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -577,14 +577,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Unit_of_Measure">
+                        <Textbox Name="Monthly_Charges">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Unit_of_Measure.Value</Value>
+                                  <Value>=Fields!Monthly_Charges.Value</Value>
                                   <Style>
                                     <FontSize>8pt</FontSize>
                                   </Style>
@@ -595,7 +595,7 @@
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Unit_of_Measure</rd:DefaultName>
+                          <rd:DefaultName>Monthly_Charges</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -616,14 +616,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Unit_Cost">
+                        <Textbox Name="Manday_Unit_Price">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Unit_Cost.Value</Value>
+                                  <Value>=Fields!Manday_Unit_Price.Value</Value>
                                   <Style>
                                     <FontSize>8pt</FontSize>
                                   </Style>
@@ -634,7 +634,7 @@
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Unit_Cost</rd:DefaultName>
+                          <rd:DefaultName>Manday_Unit_Price</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -651,6 +651,7 @@
                             <PaddingBottom>2pt</PaddingBottom>
                           </Style>
                         </Textbox>
+                        <rd:Selected>true</rd:Selected>
                       </CellContents>
                     </TablixCell>
                     <TablixCell>
@@ -4434,6 +4435,24 @@ End Function
         </Field>
         <Field Name="QuantityFormat">
           <DataField>QuantityFormat</DataField>
+        </Field>
+        <Field Name="Days">
+          <DataField>Days</DataField>
+        </Field>
+        <Field Name="DaysFormat">
+          <DataField>DaysFormat</DataField>
+        </Field>
+        <Field Name="Monthly_Charges">
+          <DataField>Monthly_Charges</DataField>
+        </Field>
+        <Field Name="Monthly_ChargesFormat">
+          <DataField>Monthly_ChargesFormat</DataField>
+        </Field>
+        <Field Name="Manday_Unit_Price">
+          <DataField>Manday_Unit_Price</DataField>
+        </Field>
+        <Field Name="Manday_Unit_PriceFormat">
+          <DataField>Manday_Unit_PriceFormat</DataField>
         </Field>
         <Field Name="Unit_Cost">
           <DataField>Unit_Cost</DataField>

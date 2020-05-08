@@ -68,7 +68,7 @@ page 50084 "Custumised Gen Jnl. Templates"
                 Caption = 'Batches';
                 Image = Description;
                 RunObject = Page "Custumised Genl Jnl. Batches";
-                RunPageView = WHERE("approval status" = filter(open | Canceled | Rejected));
+                RunPageView = WHERE("approval status" = filter(open | Canceled | Rejected | Approved));
                 RunPageLink = "Journal Template Name" = FIELD(Name);
                 ToolTip = 'View or edit multiple journals for a specific template. You can use batches when you need multiple journals of a certain type.';
             }

@@ -6,7 +6,7 @@ report 50080 "Posted Voucher"
     {
         dataitem("G/L Entry"; "G/L Entry")
         {
-            column(VoucherDescG; VoucherDescG)
+            column(VoucherDescG; "Batch Description")
             { }
             column(Entry_No_; "Entry No.")
             { }
@@ -94,8 +94,6 @@ report 50080 "Posted Voucher"
                 end;
 
                 trigger OnAfterGetRecord()
-                var
-                    myInt: Integer;
                 begin
                     VendLedgerEntryG.Get("Vendor Ledger Entry No.");
                 end;
@@ -110,12 +108,13 @@ report 50080 "Posted Voucher"
             begin
                 CompInfoG.Get();
                 CompInfoG.CalcFields(Picture);
-                If "Journal Batch Name" <> '' then begin
-                    GenJourBatchL.SetRange(Name, "Journal Batch Name");
-                    if GenJourBatchL.FindFirst() then
-                        VoucherDescG := GenJourBatchL.Description;
-                end else
-                    VoucherDescG := Format("Document Type");
+                //Suraj
+                // If "Journal Batch Name" <> '' then begin
+                //     GenJourBatchL.SetRange(Name, "Journal Batch Name");
+                //     if GenJourBatchL.FindFirst() then
+                //         VoucherDescG := GenJourBatchL.Description;
+                // end else
+
 
                 TotalDebitG += "Debit Amount";
                 TotalCreditG += "Credit Amount";
@@ -134,12 +133,9 @@ report 50080 "Posted Voucher"
                             CustLedgerEntryG.SetRange("Transaction No.", "Transaction No.");
                             CustLedgerEntryG.SetRange("Posting Date", "Posting Date");
                             CustLedgerEntryG.SetRange("Customer No.", "Source No.");
-                            if CustLedgerEntryG.FindFirst() then begin
+                            if CustLedgerEntryG.FindFirst() then
                                 LedgerEntryNoG := CustLedgerEntryG."Entry No.";
-                                /* DetailCustLedgEntryG.Reset();
-                                DetailCustLedgEntryG.SetRange("Document No.", "Document No.");
-                                DetailCustLedgEntryG */
-                            end;
+
 
                         END;
                     "Source Type"::Vendor:
@@ -151,33 +147,27 @@ report 50080 "Posted Voucher"
                             VendLedgerEntryG.SetRange("Transaction No.", "Transaction No.");
                             VendLedgerEntryG.SetRange("Posting Date", "Posting Date");
                             VendLedgerEntryG.SetRange("Vendor No.", "Source No.");
-                            if VendLedgerEntryG.FindFirst() then begin
+                            if VendLedgerEntryG.FindFirst() then
                                 LedgerEntryNoG := VendLedgerEntryG."Entry No.";
-                            end;
+
                         end;
                     "Source Type"::"Bank Account":
-                        begin
-                            if BankAccL.get("Source No.") then
-                                SourceDescG := BankAccL.Name;
-                        end;
+                        if BankAccL.get("Source No.") then
+                            SourceDescG := BankAccL.Name;
+
                 end;
             end;
 
         }
     }
 
-
     var
         CompInfoG: Record "Company Information";
-        VoucherDescG: Text;
-        ProjectDescG: Text;
-        DimenSetEntryG: Record "Dimension Set Entry";
         CustLedgerEntryG: Record "Cust. Ledger Entry";
-        DetailCustLedgEntryG: Record "Detailed Cust. Ledg. Entry";
         VendLedgerEntryG: Record "Vendor Ledger Entry";
-        DetailVendLedgEntryG: Record "Detailed Vendor Ledg. Entry";
         LedgerEntryNoG: Integer;
         TotalDebitG: Decimal;
         TotalCreditG: Decimal;
         SourceDescG: Text;
+
 }
