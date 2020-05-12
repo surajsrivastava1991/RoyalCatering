@@ -1,9 +1,9 @@
-page 50037 "Purchase Indent Subpage"
+page 50045 "FA Indent Subpage"
 {
 
     PageType = ListPart;
     SourceTable = "Purchase Indent Line";
-    Caption = 'Purchase Indent Subpage';
+    Caption = 'FA Indent Subpage';
     AutoSplitKey = true;
     DelayedInsert = true;
 
@@ -16,7 +16,7 @@ page 50037 "Purchase Indent Subpage"
                 field(Type; Type)
                 {
                     Editable = false;
-                    OptionCaption = ' ,,Item,,,,';
+                    OptionCaption = ' ,,,,,Fixed Asset,Item(Service)';
                     ApplicationArea = All;
                     ToolTip = 'Table fields';
                 }
@@ -25,8 +25,13 @@ page 50037 "Purchase Indent Subpage"
                     ApplicationArea = All;
                     ToolTip = 'Table fields';
                     trigger OnValidate()
+                    var
+                        ItemL: Record Item;
                     begin
-                        CurrPage.Update(true);
+                        "Order/Quote" := "Order/Quote"::"Purchase Order";
+                        //ItemL.Get("No.");
+                        //"Vendor No." := ItemL."Vendor No.";
+                        //CurrPage.Update(true);
                     end;
                 }
                 field(Description; Description)
@@ -39,10 +44,35 @@ page 50037 "Purchase Indent Subpage"
                     ApplicationArea = All;
                     ToolTip = 'Table fields';
                 }
+                field("Vendor No."; "Vendor No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
+                field("Replenishment Type"; "Replenishment Type")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
+                field("Order/Quote"; "Order/Quote")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
+                field("Vendors For Quotation"; "Vendors For Quotation")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
                 field(Quantity; Quantity)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table fields';
+                }
+                field("Direct Unit Cost"; "Direct Unit Cost")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'table fields';
                 }
                 field("Receiving Location"; "Receiving Location")
                 {
@@ -65,6 +95,17 @@ page 50037 "Purchase Indent Subpage"
                     ToolTip = 'Table fields';
                 }
                 field("Requested Date"; "Requested Date")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
+                field("Trade agreement exist"; "Trade agreement exist")
+                {
+                    Caption = 'Vendor Trade Agreement';
+                    ApplicationArea = All;
+                    ToolTip = 'Table Fields';
+                }
+                field("Purchase quote mandatory"; "Purchase quote mandatory")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
@@ -93,8 +134,6 @@ page 50037 "Purchase Indent Subpage"
         }
     }
     trigger OnNewRecord(BelowxRec: Boolean)
-    var
-        PurchIndentHdrG: Record "Purchase Indent Header";
     begin
         PurchIndentHdrG.get("Document No.");
         "Item Category Code" := PurchIndentHdrG."Item Category Code";
@@ -103,6 +142,10 @@ page 50037 "Purchase Indent Subpage"
         "Replenishment Type" := PurchIndentHdrG."Replenishment Type";
         "From Location" := PurchIndentHdrG."From Location";
         "Creation Date" := PurchIndentHdrG."Creation Date";
-        Type := Type::Item;
+        Type := Type::"Fixed Asset";
     end;
+
+    var
+        PurchIndentHdrG: Record "Purchase Indent Header";
+
 }

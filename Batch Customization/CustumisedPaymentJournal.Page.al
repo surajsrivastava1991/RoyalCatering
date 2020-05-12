@@ -404,6 +404,8 @@ page 50096 "Custumised Payment - Journal"
                 field(ShortcutDimCode3; ShortcutDimCode[3])
                 {
                     ApplicationArea = Dimensions;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+
                     CaptionClass = '1,2,3';
                     TableRelation = "Dimension Value".Code WHERE("Global Dimension No." = CONST(3),
                                                                   "Dimension Value Type" = CONST(Standard),
@@ -418,6 +420,8 @@ page 50096 "Custumised Payment - Journal"
                 field(ShortcutDimCode4; ShortcutDimCode[4])
                 {
                     ApplicationArea = Dimensions;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+
                     CaptionClass = '1,2,4';
                     TableRelation = "Dimension Value".Code WHERE("Global Dimension No." = CONST(4),
                                                                   "Dimension Value Type" = CONST(Standard),
@@ -432,6 +436,8 @@ page 50096 "Custumised Payment - Journal"
                 field(ShortcutDimCode5; ShortcutDimCode[5])
                 {
                     ApplicationArea = Dimensions;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+
                     CaptionClass = '1,2,5';
                     TableRelation = "Dimension Value".Code WHERE("Global Dimension No." = CONST(5),
                                                                   "Dimension Value Type" = CONST(Standard),
@@ -446,6 +452,8 @@ page 50096 "Custumised Payment - Journal"
                 field(ShortcutDimCode6; ShortcutDimCode[6])
                 {
                     ApplicationArea = Dimensions;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+
                     CaptionClass = '1,2,6';
                     TableRelation = "Dimension Value".Code WHERE("Global Dimension No." = CONST(6),
                                                                   "Dimension Value Type" = CONST(Standard),
@@ -460,6 +468,8 @@ page 50096 "Custumised Payment - Journal"
                 field(ShortcutDimCode7; ShortcutDimCode[7])
                 {
                     ApplicationArea = Dimensions;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+
                     CaptionClass = '1,2,7';
                     TableRelation = "Dimension Value".Code WHERE("Global Dimension No." = CONST(7),
                                                                   "Dimension Value Type" = CONST(Standard),
@@ -474,6 +484,8 @@ page 50096 "Custumised Payment - Journal"
                 field(ShortcutDimCode8; ShortcutDimCode[8])
                 {
                     ApplicationArea = Dimensions;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+
                     CaptionClass = '1,2,8';
                     TableRelation = "Dimension Value".Code WHERE("Global Dimension No." = CONST(8),
                                                                   "Dimension Value Type" = CONST(Standard),
@@ -498,6 +510,7 @@ page 50096 "Custumised Payment - Journal"
                         field(OverdueWarningText; OverdueWarningText)
                         {
                             ApplicationArea = Basic, Suite;
+                            Caption = 'Over Due Warning';
                             ShowCaption = false;
                             Style = Unfavorable;
                             StyleExpr = TRUE;
@@ -514,6 +527,7 @@ page 50096 "Custumised Payment - Journal"
                         field(AccName; AccName)
                         {
                             ApplicationArea = Basic, Suite;
+                            Caption = 'Account Name';
                             Editable = false;
                             ShowCaption = false;
                             ToolTip = 'Specifies the name of the account.';
@@ -632,8 +646,8 @@ page 50096 "Custumised Payment - Journal"
 
                     trigger OnAction()
                     begin
-                        ShowDimensions;
-                        CurrPage.SaveRecord;
+                        ShowDimensions();
+                        CurrPage.SaveRecord();
                     end;
                 }
                 action(IncomingDoc)
@@ -682,6 +696,62 @@ page 50096 "Custumised Payment - Journal"
                     ToolTip = 'View the history of transactions that have been posted for the selected record.';
                 }
             }
+            group("PDC")
+            {
+                Caption = 'Post Dated Check';
+                Image = CheckJournal;
+                action("Generate PDC")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Generate PDC';
+                    Image = InsertFromCheckJournal;
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Generate the PDC Process';
+                    trigger OnAction()
+                    var
+                        GenJouTempL: Record "Gen. Journal Template";
+                    begin
+                        GenJouTempL.Get("Journal Template Name");
+                        if not (GenJouTempL."PDC Required") then
+                            error('Selected Template is not PDC Specific');
+                        if ("Account Type" = "Account Type"::Vendor) or ("Bal. Account Type" = "Bal. Account Type"::Vendor) then
+                            CreatePDCPayable()
+                        else
+                            if ("Account Type" = "Account Type"::Customer) or ("Bal. Account Type" = "Bal. Account Type"::Customer) then
+                                CreatePDCReceivable();
+                    end;
+                }
+                action("Reverse PDC")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reverse PDC';
+                    Image = ReverseLines;
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Reverse the PDC Process';
+                    trigger OnAction()
+                    var
+                        GenJouTempL: Record "Gen. Journal Template";
+                    begin
+                        GenJouTempL.Get("Journal Template Name");
+                        if not (GenJouTempL."PDC Required") then
+                            error('Selected Template is not PDC Specific');
+
+                        if "PDC Reverse Voucher" then
+                            Error('PDC Already reversed');
+
+                        if not ("PDC Voucher Generated") then
+                            Error('PDC is not yet generated');
+
+                        if ("Account Type" = "Account Type"::Vendor) or ("Bal. Account Type" = "Bal. Account Type"::Vendor) then
+                            ReservePDCPayable()
+                        else
+                            if ("Account Type" = "Account Type"::Customer) or ("Bal. Account Type" = "Bal. Account Type"::Customer) then
+                                ReservePDCReceivable();
+                    end;
+                }
+            }
             group("&Payments")
             {
                 Caption = '&Payments';
@@ -703,7 +773,7 @@ page 50096 "Custumised Payment - Journal"
                     begin
                         Clear(SuggestVendorPayments);
                         SuggestVendorPayments.SetGenJnlLine(Rec);
-                        SuggestVendorPayments.RunModal;
+                        SuggestVendorPayments.RunModal();
                     end;
                 }
                 action(SuggestEmployeePayments)
@@ -723,7 +793,7 @@ page 50096 "Custumised Payment - Journal"
                     begin
                         Clear(SuggestEmployeePayments);
                         SuggestEmployeePayments.SetGenJnlLine(Rec);
-                        SuggestEmployeePayments.RunModal;
+                        SuggestEmployeePayments.RunModal();
                     end;
                 }
                 action(PreviewCheck)
@@ -752,7 +822,7 @@ page 50096 "Custumised Payment - Journal"
 
                     trigger OnAction()
                     begin
-                        GenJnlLine.Reset;
+                        GenJnlLine.Reset();
                         GenJnlLine.Copy(Rec);
                         GenJnlLine.SetRange("Journal Template Name", "Journal Template Name");
                         GenJnlLine.SetRange("Journal Batch Name", "Journal Batch Name");
@@ -780,13 +850,13 @@ page 50096 "Custumised Payment - Journal"
                             GenJnlLine: Record "Gen. Journal Line";
                             Window: Dialog;
                         begin
-                            CheckIfPrivacyBlocked;
+                            CheckIfPrivacyBlocked();
 
                             Window.Open(GeneratingPaymentsMsg);
                             GenJnlLine.CopyFilters(Rec);
-                            if GenJnlLine.FindFirst then
-                                GenJnlLine.ExportPaymentFile;
-                            Window.Close;
+                            if GenJnlLine.FindFirst() then
+                                GenJnlLine.ExportPaymentFile();
+                            Window.Close();
                         end;
                     }
                     action(VoidPayments)
@@ -803,8 +873,8 @@ page 50096 "Custumised Payment - Journal"
                         trigger OnAction()
                         begin
                             GenJnlLine.CopyFilters(Rec);
-                            if GenJnlLine.FindFirst then
-                                GenJnlLine.VoidPaymentFile;
+                            if GenJnlLine.FindFirst() then
+                                GenJnlLine.VoidPaymentFile();
                         end;
                     }
                     action(TransmitPayments)
@@ -821,8 +891,8 @@ page 50096 "Custumised Payment - Journal"
                         trigger OnAction()
                         begin
                             GenJnlLine.CopyFilters(Rec);
-                            if GenJnlLine.FindFirst then
-                                GenJnlLine.TransmitPaymentFile;
+                            if GenJnlLine.FindFirst() then
+                                GenJnlLine.TransmitPaymentFile();
                         end;
                     }
                 }
@@ -859,7 +929,7 @@ page 50096 "Custumised Payment - Journal"
                         ConfirmManagement: Codeunit "Confirm Management";
                     begin
                         if confirm(Text001, true) then begin
-                            GenJnlLine.Reset;
+                            GenJnlLine.Reset();
                             GenJnlLine.Copy(Rec);
                             GenJnlLine.SetRange("Bank Payment Type", "Bank Payment Type"::"Computer Check");
                             GenJnlLine.SetRange("Check Printed", true);
@@ -867,7 +937,7 @@ page 50096 "Custumised Payment - Journal"
                                 repeat
                                     GenJnlLine2 := GenJnlLine;
                                     CheckManagement.VoidCheck(GenJnlLine2);
-                                until GenJnlLine.Next = 0;
+                                until GenJnlLine.Next() = 0;
                         end;
                     end;
                 }
@@ -891,7 +961,9 @@ page 50096 "Custumised Payment - Journal"
                     RunObject = Page "Credit Transfer Registers";
                     ToolTip = 'View or edit the payment files that have been exported in connection with credit transfers.';
                 }
+
             }
+
             action(Approvals)
             {
                 AccessByPermission = TableData "Approval Entry" = R;
@@ -1006,6 +1078,19 @@ page 50096 "Custumised Payment - Journal"
                         GLReconcile.Run();
                     end;
                 }
+                // action("Voucher Preview")
+                // {
+                //     ApplicationArea = Basic, Suite;
+                //     Caption = 'Voucher Preview';
+                //     Ellipsis = true;
+                //     Image = TestReport;
+                //     ToolTip = 'View a Preview Voucher report so that you can find and correct any errors before you perform the actual posting of the journal or document.';
+                //     trigger OnAction()
+                //     begin
+                //         Report.RunModal(Report::"Preview Voucher", true, true, Rec);
+                //     end;
+
+                // }
                 action(PreCheck)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1090,6 +1175,7 @@ page 50096 "Custumised Payment - Journal"
                         CurrPage.close();
                     end;
                 }
+
             }
             group("Request Approval")
             {

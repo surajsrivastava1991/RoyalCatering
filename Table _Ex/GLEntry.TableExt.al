@@ -14,9 +14,10 @@ tableextension 50043 "GL Entry" extends "G/L Entry"
         {
             DataClassification = CustomerContent;
         }
-        field(50003; "Batch Description"; Text[80])
+        field(50003; "Voucher Name"; Text[80])
         {
             DataClassification = CustomerContent;
+            Caption = 'Voucher Name';
         }
         // Add changes to table fields here
     }

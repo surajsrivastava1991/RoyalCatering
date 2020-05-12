@@ -335,6 +335,8 @@ table 50036 "Purchase Indent Line"
         IsHandled: Boolean;
         IsVendorSelected: Boolean;
     begin
+        if Type = Type::"Fixed Asset" then
+            exit(PAGE.RunModal(0, Vend) = ACTION::LookupOK);
         if (Type IN [Type::Item, Type::"Item(Service)"]) and ItemVend.ReadPermission then begin
             ItemVend.Init;
             ItemVend.SetRange("Item No.", "No.");

@@ -11,12 +11,15 @@ page 50068 "Transfer Indent"
         {
             group(General)
             {
-
+                field("Replishment Type"; "Replenishment Type")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table field';
+                }
                 field("No."; "No.")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Table field';
-
                     trigger OnAssistEdit()
                     begin
                         if AssistEdit(xRec) then
@@ -28,17 +31,12 @@ page 50068 "Transfer Indent"
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
-                field("Approval Status"; "Approval Status")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Table field';
-                }
-                field("Created By"; "Created By")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Table field';
-                }
                 field(Details; Details)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table field';
+                }
+                field(Requester; Requester)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
@@ -48,15 +46,14 @@ page 50068 "Transfer Indent"
                     ShowMandatory = true;
                     ApplicationArea = All;
                     ToolTip = 'Table field';
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
                 }
                 field("From Location"; "From Location")
                 {
                     ShowMandatory = true;
-                    ApplicationArea = All;
-                    ToolTip = 'Table field';
-                }
-                field(Requester; Requester)
-                {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
@@ -65,13 +62,35 @@ page 50068 "Transfer Indent"
                     ShowMandatory = true;
                     ApplicationArea = All;
                     ToolTip = 'Table field';
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
                 }
                 field("Item Category Code"; "Item Category Code")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Field';
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
                 }
-
+                field("Created By"; "Created By")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table field';
+                }
+                field("Approval Status"; "Approval Status")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table field';
+                }
+                field("Transaction Status"; "Transaction Status")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Field';
+                }
             }
 
 
@@ -230,7 +249,7 @@ page 50068 "Transfer Indent"
                     Enabled = NOT OpenApprovalEntriesExist AND CanRequestApprovalForFlow;
                     Image = SendApprovalRequest;
                     Promoted = true;
-                    PromotedCategory = Category7;
+                    PromotedCategory = Category9;
                     PromotedIsBig = true;
                     PromotedOnly = true;
                     ToolTip = 'Request approval of the document.';
@@ -250,7 +269,7 @@ page 50068 "Transfer Indent"
                     Enabled = CanCancelApprovalForRecord OR CanCancelApprovalForFlow;
                     Image = CancelApprovalRequest;
                     Promoted = true;
-                    PromotedCategory = Category7;
+                    PromotedCategory = Category9;
                     PromotedIsBig = true;
                     PromotedOnly = true;
                     ToolTip = 'Cancel the approval request.';
@@ -262,6 +281,23 @@ page 50068 "Transfer Indent"
                     begin
                         PurIndentApprovalCUL.OnCancelPurchaseIndentDocumentApprovalRequest(Rec);
                         WorkflowWebhookMgt.FindAndCancel(RecordId);
+                    end;
+                }
+                action(Approvals)
+                {
+                    AccessByPermission = TableData "Approval Entry" = R;
+                    ApplicationArea = Suite;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    Promoted = true;
+                    PromotedCategory = Category9;
+                    ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                    trigger OnAction()
+                    var
+                        WorkflowsEntriesBuffer: Record "Workflows Entries Buffer";
+                    begin
+                        WorkflowsEntriesBuffer.RunWorkflowEntriesPage(RecordId, DATABASE::"Purchase Indent Header", 6, "No.");
                     end;
                 }
             }

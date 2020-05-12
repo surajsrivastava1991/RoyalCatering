@@ -10,6 +10,7 @@ codeunit 50055 "After Release Purch Quote"
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         IndentLineG: Record "Purchase Indent Line";
+        VendorQuoteG: Record "Vendors For Quotations";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterManualReleasePurchaseDoc', '', true, true)]
     local procedure OnAfterManualReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean)
@@ -34,6 +35,7 @@ codeunit 50055 "After Release Purch Quote"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Quote to Order", 'OnAfterInsertPurchOrderLine', '', true, true)]
     local procedure OnAfterInsertPurchOrderLine(var PurchaseQuoteLine: Record "Purchase Line"; var PurchaseOrderLine: Record "Purchase Line")
     begin
+        /*
         IndentLineG.Reset();
         IndentLineG.SetRange("Ref. Document Type", IndentLineG."Ref. Document Type"::"Purchase Quote");
         IndentLineG.SetRange("Ref. Document No.", PurchaseQuoteLine."No.");
@@ -47,6 +49,22 @@ codeunit 50055 "After Release Purch Quote"
                 IndentLineG.Modify();
                 UpdateRequisitionStatus(PurchaseOrderLine)
             until IndentLineG.next() = 0;
+        */
+
+        VendorQuoteG.Reset();
+        VendorQuoteG.SetCurrentKey("Quote Doc. No.");
+        VendorQuoteG.SetRange("Quote Doc. No.", PurchaseQuoteLine."Document No.");
+        VendorQuoteG.SetRange("Quote Line No.", PurchaseQuoteLine."Line No.");
+        if VendorQuoteG.FindSet() then
+            repeat
+                IndentLineG.Reset();
+                IndentLineG.Get(VendorQuoteG."Document No.", VendorQuoteG."Line No.");
+                IndentLineG."Ref. Document Type" := IndentLineG."Ref. Document Type"::"Purchase Order";
+                IndentLineG."Ref. Document No." := PurchaseOrderLine."Document No.";
+                IndentLineG."Ref. Document Line No." := PurchaseOrderLine."Line No.";
+                IndentLineG.Modify();
+                UpdateRequisitionStatus(PurchaseOrderLine);
+            until VendorQuoteG.Next() = 0;
     end;
 
     procedure UpdateRequisitionStatus(var PurchaseQuoteLineP: Record "Purchase Line")

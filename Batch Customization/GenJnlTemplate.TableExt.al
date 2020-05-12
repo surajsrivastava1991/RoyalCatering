@@ -62,5 +62,15 @@ tableextension 50083 GenJnlTemplate extends "Gen. Journal Template"
             DataClassification = CustomerContent;
             caption = 'Allow Multiple Voucher';
         }
+        field(60004; "Voucher Name"; Text[80])
+        {
+            DataClassification = CustomerContent;
+            caption = 'Voucher Name';
+        }
+        field(60005; "PDC Required"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'PDC Receivable';
+        }
     }
 }

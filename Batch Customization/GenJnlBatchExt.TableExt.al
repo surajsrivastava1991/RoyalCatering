@@ -20,6 +20,11 @@ tableextension 50082 GenJnlBatchExt extends "Gen. Journal Batch"
             DataClassification = CustomerContent;
             caption = 'Allow Multiple Voucher';
         }
+        field(60004; "Voucher Name"; Text[80])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Voucher Name';
+        }
 
     }
 }

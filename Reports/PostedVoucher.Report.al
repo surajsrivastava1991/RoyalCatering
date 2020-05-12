@@ -6,7 +6,7 @@ report 50080 "Posted Voucher"
     {
         dataitem("G/L Entry"; "G/L Entry")
         {
-            column(VoucherDescG; "Batch Description")
+            column(VoucherDescG; "Voucher Name")
             { }
             column(Entry_No_; "Entry No.")
             { }
@@ -114,6 +114,7 @@ report 50080 "Posted Voucher"
                 //     if GenJourBatchL.FindFirst() then
                 //         VoucherDescG := GenJourBatchL.Description;
                 // end else
+                //VoucherDescG := "Document Type";
 
 
                 TotalDebitG += "Debit Amount";

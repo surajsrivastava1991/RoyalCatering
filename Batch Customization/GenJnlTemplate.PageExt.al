@@ -24,6 +24,11 @@ pageextension 50021 GenJnlTemplate extends "General Journal Templates"
                 ApplicationArea = all;
                 ToolTip = 'Custom Fields';
             }
+            field("Voucher Name"; "Voucher Name")
+            {
+                ApplicationArea = all;
+                ToolTip = 'Voucher Name';
+            }
         }
 
     }

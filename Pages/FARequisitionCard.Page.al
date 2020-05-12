@@ -1,9 +1,9 @@
-page 50041 "Service Indent Card"
+page 50044 "FA Indent Card"
 {
     PageType = Document;
     PromotedActionCategories = 'New,Process,Report,Approve,Release,Posting,Prepare,Order,Request Approval,History,Print/Send,Navigate';
     SourceTable = "Purchase Indent Header";
-    Caption = 'Service Requisition Order';
+    Caption = 'FA Requisition Order';
 
     layout
     {
@@ -86,9 +86,9 @@ page 50041 "Service Indent Card"
             }
 
 
-            part(Lines; "Service Indent Subpage")
+            part(Lines; "FA Indent Subpage")
             {
-                Caption = 'Purchase Indent Lines';
+                Caption = 'FA Indent Lines';
                 ApplicationArea = all;
                 ToolTip = 'Table field';
                 SubPageLink = "Document No." = field("No.");
@@ -291,7 +291,7 @@ page 50041 "Service Indent Card"
                     var
                         WorkflowsEntriesBuffer: Record "Workflows Entries Buffer";
                     begin
-                        WorkflowsEntriesBuffer.RunWorkflowEntriesPage(RecordId, DATABASE::"Purchase Indent Header", 6, "No.");
+                        WorkflowsEntriesBuffer.RunWorkflowEntriesPage(RecordId, DATABASE::"Purchase Indent Header", 0, "No.");
                     end;
                 }
             }
@@ -351,7 +351,7 @@ page 50041 "Service Indent Card"
     begin
         "Replenishment Type" := "Replenishment Type"::Purchase;
         //"Service Requisition" := true;
-        "Requisition Type" := "Requisition Type"::"Service Item";
+        "Requisition Type" := "Requisition Type"::"Fixed Asset";
     end;
 
     trigger OnAfterGetRecord()

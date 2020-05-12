@@ -121,9 +121,20 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
                 end;
             end;
         }
-        field(50009; "Batch Description"; Text[80])
+        field(50009; "Voucher Name"; Text[80])
         {
             DataClassification = CustomerContent;
+            Caption = 'Voucher Name';
+        }
+        field(50010; "PDC Voucher Generated"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(50011; "PDC Reverse Voucher"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            Editable = false;
         }
         modify("Document No.")
         {
@@ -194,4 +205,204 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         NarrationL.Narration := NarrationTextP;
         NarrationL.Insert();
     End;
+
+    procedure CreatePDCPayable()
+    var
+        GenJournalLineL: Record "Gen. Journal Line";
+        GLSetupL: Record "General Ledger Setup";
+        GenjournalbatchL: Record "Gen. Journal Batch";
+        NoSeriesManagementG: Codeunit NoSeriesManagement;
+        DocumentNoL: Code[20];
+        LineNoG: Integer;
+
+    begin
+        if "PDC Voucher Generated" then
+            Error('PDC Voucher generated alrady');
+        LineNoG := 0;
+        GLSetupL.Get();
+        GLSetupL.TestField("PDC Template Name");
+        GLSetupL.TestField("PDC Batch Name");
+        GLSetupL.TestField("PDC Payable");
+        GenJournalLineL.Reset();
+        GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL.DeleteAll();
+
+        GenjournalbatchL.Get(GLSetupL."PDC Template Name", GLSetupL."PDC Batch Name");
+        DocumentNoL := NoSeriesManagementG.GetNextNo(GenjournalbatchL."No. Series", "Posting Date", true);
+
+        //Header Creation
+        GenJournalLineL.Init();
+        GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL."Line No." := LineNoG + 10000;
+        GenJournalLineL."Document No." := DocumentNoL;
+        GenJournalLineL."Posting Date" := "Posting Date";
+        GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::Vendor;
+        GenJournalLineL.VALIDATE("Account No.", "Account No.");
+        GenJournalLineL.VALIDATE("Amount", "Amount");
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"G/L Account";
+        GenJournalLineL.validate("Bal. Account No.", GLSetupL."PDC Payable");
+        GenJournalLineL."CL from Date" := 0D;
+        GenJournalLineL."CL To Date" := 0D;
+        GenJournalLineL."Bulk Kitchen" := '';
+        GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
+        if GenJournalLineL.Insert(true) then begin
+            "PDC Voucher Generated" := true;
+            Modify(true);
+        end;
+        LineNoG += 10000;
+
+    end;
+
+    procedure ReservePDCPayable()
+    var
+        GenJournalLineL: Record "Gen. Journal Line";
+        GLSetupL: Record "General Ledger Setup";
+        GenjournalbatchL: Record "Gen. Journal Batch";
+        NoSeriesManagementG: Codeunit NoSeriesManagement;
+        DocumentNoL: Code[20];
+        LineNoG: Integer;
+    begin
+        if "PDC Reverse Voucher" then
+            Error('PDC Voucher reversed alrady');
+        LineNoG := 0;
+        GLSetupL.Get();
+        GLSetupL.TestField("PDC Template Name");
+        GLSetupL.TestField("PDC Batch Name");
+        GLSetupL.TestField("PDC Payable");
+        GenJournalLineL.Reset();
+        GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL.DeleteAll();
+
+        GenjournalbatchL.Get(GLSetupL."PDC Template Name", GLSetupL."PDC Batch Name");
+        DocumentNoL := NoSeriesManagementG.GetNextNo(GenjournalbatchL."No. Series", "Posting Date", true);
+
+        //Header Creation
+        GenJournalLineL.Init();
+        GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL."Line No." := LineNoG + 10000;
+        GenJournalLineL."Document No." := DocumentNoL;
+        GenJournalLineL."Posting Date" := "Posting Date";
+        GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::"G/L Account";
+        GenJournalLineL.VALIDATE("Account No.", GLSetupL."PDC Payable");
+        GenJournalLineL.VALIDATE(Amount, Amount);
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"Bank Account";
+        GenJournalLineL.validate("Bal. Account No.", "Bal. Account No.");
+
+        GenJournalLineL."CL from Date" := 0D;
+        GenJournalLineL."CL To Date" := 0D;
+        GenJournalLineL."Bulk Kitchen" := '';
+        GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
+
+        if GenJournalLineL.Insert(true) then begin
+            "PDC Reverse Voucher" := true;
+            Modify(true);
+        end;
+        LineNoG += 10000;
+    end;
+
+    procedure CreatePDCReceivable()
+    var
+        GenJournalLineL: Record "Gen. Journal Line";
+        GLSetupL: Record "General Ledger Setup";
+        GenjournalbatchL: Record "Gen. Journal Batch";
+        NoSeriesManagementG: Codeunit NoSeriesManagement;
+        DocumentNoL: Code[20];
+        LineNoG: Integer;
+
+    begin
+        if "PDC Voucher Generated" then
+            Error('PDC Voucher generated alrady');
+        LineNoG := 0;
+        GLSetupL.Get();
+        GLSetupL.TestField("PDC Template Name");
+        GLSetupL.TestField("PDC Batch Name");
+        GLSetupL.TestField("PDC Payable");
+        GenJournalLineL.Reset();
+        GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL.DeleteAll();
+
+        GenjournalbatchL.Get(GLSetupL."PDC Template Name", GLSetupL."PDC Batch Name");
+        DocumentNoL := NoSeriesManagementG.GetNextNo(GenjournalbatchL."No. Series", "Posting Date", true);
+
+        //Header Creation
+        GenJournalLineL.Init();
+        GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL."Line No." := LineNoG + 10000;
+        GenJournalLineL."Document No." := DocumentNoL;
+        GenJournalLineL."Posting Date" := "Posting Date";
+        GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::Customer;
+        GenJournalLineL.VALIDATE("Account No.", "Account No.");
+        GenJournalLineL.VALIDATE(Amount, -Amount);
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"G/L Account";
+        GenJournalLineL.validate("Bal. Account No.", GLSetupL."PDC Payable");
+        GenJournalLineL."CL from Date" := 0D;
+        GenJournalLineL."CL To Date" := 0D;
+        GenJournalLineL."Bulk Kitchen" := '';
+        GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
+
+        if GenJournalLineL.Insert(true) then begin
+            "PDC Voucher Generated" := true;
+            Modify(true);
+        end;
+        LineNoG += 10000;
+
+    end;
+
+    procedure ReservePDCReceivable()
+    var
+        GenJournalLineL: Record "Gen. Journal Line";
+        GLSetupL: Record "General Ledger Setup";
+        GenjournalbatchL: Record "Gen. Journal Batch";
+        NoSeriesManagementG: Codeunit NoSeriesManagement;
+        DocumentNoL: Code[20];
+        LineNoG: Integer;
+    begin
+        if "PDC Reverse Voucher" then
+            Error('PDC Voucher reversed alrady');
+        LineNoG := 0;
+        GLSetupL.Get();
+        GLSetupL.TestField("PDC Template Name");
+        GLSetupL.TestField("PDC Batch Name");
+        GLSetupL.TestField("PDC Payable");
+        GenJournalLineL.Reset();
+        GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL.DeleteAll();
+
+        GenjournalbatchL.Get(GLSetupL."PDC Template Name", GLSetupL."PDC Batch Name");
+        DocumentNoL := NoSeriesManagementG.GetNextNo(GenjournalbatchL."No. Series", "Posting Date", true);
+
+        //Header Creation
+        GenJournalLineL.Init();
+        GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
+        GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
+        GenJournalLineL."Line No." := LineNoG + 10000;
+        GenJournalLineL."Document No." := DocumentNoL;
+        GenJournalLineL."Posting Date" := "Posting Date";
+        GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::"G/L Account";
+        GenJournalLineL.VALIDATE("Account No.", GLSetupL."PDC Payable");
+        GenJournalLineL.VALIDATE(Amount, -Amount);
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"Bank Account";
+        GenJournalLineL.validate("Bal. Account No.", "Bal. Account No.");
+        GenJournalLineL."CL from Date" := 0D;
+        GenJournalLineL."CL To Date" := 0D;
+        GenJournalLineL."Bulk Kitchen" := '';
+        GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
+
+        if GenJournalLineL.Insert(true) then begin
+            "PDC Reverse Voucher" := true;
+            Modify();
+        end;
+        LineNoG += 10000;
+    end;
 }

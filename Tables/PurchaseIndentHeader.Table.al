@@ -138,9 +138,11 @@ table 50035 "Purchase Indent Header"
             Editable = false;
             TableRelation = "No. Series";
         }
-        field(14; "Service Requisition"; Boolean)
+        field(14; "Requisition Type"; Option)
         {
-            Caption = 'Service Requisitin';
+            Caption = 'Requisition Type';
+            OptionMembers = Item,"Service Item","Fixed Asset";
+            OptionCaption = 'Item,Service Item,Fixed Asset';
             DataClassification = ToBeClassified;
             Editable = false;
         }
@@ -326,7 +328,7 @@ table 50035 "Purchase Indent Header"
 
             PurchOrderLine.Insert();
 
-            IndentLine2."Ref. Document Type" := IndentLine2."Ref. Document Type"::"Purchase Quote";
+            IndentLine2."Ref. Document Type" := IndentLine2."Ref. Document Type"::"Purchase Order";
             IndentLine2."Ref. Document No." := PurchOrderLine."Document No.";
             IndentLine2."Ref. Document Line No." := PurchOrderLine."Line No.";
             IndentLine2.Modify();
@@ -434,16 +436,21 @@ table 50035 "Purchase Indent Header"
         PurchOrderLine2: Record "Purchase Line";
         AddOnIntegrMgt: Codeunit AddOnIntegrManagement;
         DimensionSetIDArr: array[10] of Integer;
+        QuoteVendorsL: Record "Vendors For Quotations";
     begin
         with IndentLine2 do begin
-            if ("No." = '') or ("Vendor No." = '') or (Quantity = 0) then
-                exit;
+            if IndentLine2."Order/Quote" = IndentLine2."Order/Quote"::"Purchase Order" then
+                if ("No." = '') or ("Vendor No." = '') or (Quantity = 0) then
+                    exit;
+            if IndentLine2."Order/Quote" = IndentLine2."Order/Quote"::"Purchase Quote" then
+                if ("No." = '') or (Quantity = 0) then
+                    exit;
 
             FindAllVendorsForQuotes(IndentLine2);
             VendorG.MarkedOnly(true);
             if VendorG.FindSet() then
                 repeat
-                    if CheckInsertFinalizePurchaseQuoteHeader(IndentLine2, PurchOrderHeader, true) then begin
+                    if CheckInsertFinalizePurchaseQuoteHeader2(IndentLine2, PurchOrderHeader, true, VendorG) then begin
                         InsertQuoteHeader(IndentLine2, VendorG);
                         NextLineNo := 0;
                     end;
@@ -455,6 +462,17 @@ table 50035 "Purchase Indent Header"
                     IndentLine2."Ref. Document No." := PurchOrderLine."Document No.";
                     IndentLine2."Ref. Document Line No." := PurchOrderLine."Line No.";
                     IndentLine2.Modify();
+                    //To update quote reference in Vendors for Quotation table
+                    QuoteVendorsL.Reset();
+                    QuoteVendorsL.SetRange("Document No.", IndentLine2."Document No.");
+                    QuoteVendorsL.SetRange("Line No.", IndentLine2."Line No.");
+                    QuoteVendorsL.SetRange("Vendor No.", VendorG."No.");
+                    if QuoteVendorsL.FindSet(true) then
+                        repeat
+                            QuoteVendorsL."Quote Doc. No." := PurchOrderLine."Document No.";
+                            QuoteVendorsL."Quote Line No." := PurchOrderLine."Line No.";
+                            QuoteVendorsL.Modify();
+                        until QuoteVendorsL.Next() = 0;
 
                     UpdateRequisitionStatusQuote(IndentLine2);
 
@@ -565,6 +583,18 @@ table 50035 "Purchase Indent Header"
         with IndentLineP do
             CheckInsert :=
               (PurchOrderHeader."Buy-from Vendor No." <> "Vendor No.") or
+              (PurchOrderHeader."Currency Code" <> "Currency Code");
+
+        exit(CheckInsert);
+    end;
+
+    local procedure CheckInsertFinalizePurchaseQuoteHeader2(IndentLineP: Record "Purchase Indent Line"; var PurchOrderHeader: Record "Purchase Header"; UpdateAddressDetails: Boolean; var VendorP: Record Vendor): Boolean
+    var
+        CheckInsert: Boolean;
+    begin
+        with IndentLineP do
+            CheckInsert :=
+              (PurchOrderHeader."Buy-from Vendor No." <> VendorP."No.") or
               (PurchOrderHeader."Currency Code" <> "Currency Code");
 
         exit(CheckInsert);

@@ -219,7 +219,12 @@ codeunit 50051 "Purchase Indent Workflow"
     begin
         case RecRef.Number of
             DATABASE::"Purchase Indent Header":
-                RecRef.SetTable(IndentHeaderL);
+                begin
+                    RecRef.SetTable(IndentHeaderL);
+                    ApprovalEntryArgument."Document Type" := ApprovalEntryArgument."Document Type"::" ";
+                    ApprovalEntryArgument."Document No." := IndentHeaderL."No.";
+                    ApprovalEntryArgument."Document Type 2" := ApprovalEntryArgument."Document Type 2"::Indent;
+                end;
             DATABASE::"Purchase Indent Line":
                 begin
                     RecRef.SetTable(IndentLineL);
@@ -292,12 +297,13 @@ codeunit 50051 "Purchase Indent Workflow"
         ReqWksheetMakeOrderG: Codeunit "Req. Wksh.-Make Order-Mofified";
     begin
         RecRef.SetTable(PurchaseIndentL);
-        PurchaseIndentL."Approval Status" := PurchaseIndentL."Approval Status"::Released;
+        PurchaseIndentL.Validate("Approval Status", PurchaseIndentL."Approval Status"::Released);
+        //PurchaseIndentL."Approval Status" := PurchaseIndentL."Approval Status"::Released;
         PurchaseIndentL.Modify();
         //if PurchaseIndentL."Replenishment Type" = PurchaseIndentL."Replenishment Type"::Purchase then
-        if PurchaseIndentL."Service Requisition" = false then
+        if PurchaseIndentL."Requisition Type" = PurchaseIndentL."Requisition Type"::Item then
             PurchaseIndentL.CreateRequisitionLines();//Create Requisition Lines
-        if PurchaseIndentL."Service Requisition" = true then
+        if PurchaseIndentL."Requisition Type" IN [PurchaseIndentL."Requisition Type"::"Service Item", PurchaseIndentL."Requisition Type"::"Fixed Asset"] then
             if Confirm('Purchase Documents will be created. Do you want to continue?', true) then
                 ReqWksheetMakeOrderG.InitCarryOutAction(PurchaseIndentL)
             else
@@ -311,21 +317,14 @@ codeunit 50051 "Purchase Indent Workflow"
         PurchaseIndentL: Record "Purchase Indent Header";
     begin
         RecRef.SetTable(PurchaseIndentL);
-        PurchaseIndentL."Approval Status" := PurchaseIndentL."Approval Status"::Open;
+        PurchaseIndentL.Validate("Approval Status", PurchaseIndentL."Approval Status"::Open);
+        //PurchaseIndentL."Approval Status" := PurchaseIndentL."Approval Status"::Open;
         PurchaseIndentL.Modify();
         Handled := true;
     end;
     //Workflow Response Handling -End
     //Page Management -Begin
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnConditionalCardPageIDNotFound', '', true, true)]
-    /*    local procedure OnConditionalCardPageIDNotFound(RecordRef: RecordRef; var CardPageID: Integer)
-        begin
-            case RecordRef.Number of
-                DATABASE::"Purchase Indent Header":
-                    CardPageID := PAGE::"Purchase Indent Card";
-            end;
-        end;
-        */
     local procedure OnConditionalCardPageIDNotFound(RecordRef: RecordRef; var CardPageID: Integer)
     var
         PurIndentHdrL: Record "Purchase Indent Header";
@@ -338,10 +337,13 @@ codeunit 50051 "Purchase Indent Workflow"
                         CardPageID := Page::"Transfer Indent"
                     else
                         if PurIndentHdrL."Replenishment Type" = PurIndentHdrL."Replenishment Type"::Purchase then
-                            if PurIndentHdrL."Service Requisition" = true then
+                            if PurIndentHdrL."Requisition Type" = PurIndentHdrL."Requisition Type"::"Service Item" then
                                 CardPageID := Page::"Service Indent Card"
                             else
-                                CardPageID := Page::"Purchase Indent Card";
+                                if PurIndentHdrL."Requisition Type" = PurIndentHdrL."Requisition Type"::"Fixed Asset" then
+                                    CardPageID := Page::"FA Indent Card"
+                                else
+                                    CardPageID := Page::"Purchase Indent Card";
                 end;
         //exit(PAGE::"General Journal Templates");        
         end;

@@ -142,7 +142,7 @@ Report 50081 "Preview Voucher"
             }
             trigger OnAfterGetRecord();
             begin
-                GLAccName := FindGLAccName("Source Type", "Line No.", "Source No.", "Account No.");
+                //  GLAccName := FindGLAccName("Source Type", "Line No.", "Source No.", "Account No.");
                 if Amount < 0 then begin
                     CrText := 'To';
                     DrText := '';

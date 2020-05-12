@@ -34,8 +34,13 @@ page 50008 "Payment Jnl. Templates"
                 field("Batch Decription"; "Batch Description")
                 {
                     ApplicationArea = all;
+                    ToolTip = 'Batch Description from posted Voucher Report Heading';
                 }
-
+                field("PDC Required"; "PDC Required")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'PDC Template for Vendor/Customer Payment';
+                }
             }
         }
         area(factboxes)

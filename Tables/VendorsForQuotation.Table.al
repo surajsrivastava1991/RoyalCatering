@@ -63,6 +63,19 @@ table 50004 "Vendors For Quotations"
         {
             DataClassification = ToBeClassified;
         }
+        field(6; "Quote Doc. No."; Code[20])
+        {
+            Caption = 'Quote Doc. No.';
+            DataClassification = ToBeClassified;
+            Editable = false;
+        }
+        field(7; "Quote Line No."; Integer)
+        {
+            Caption = 'Quote Line No.';
+            DataClassification = ToBeClassified;
+            Editable = false;
+        }
+
     }
 
     keys

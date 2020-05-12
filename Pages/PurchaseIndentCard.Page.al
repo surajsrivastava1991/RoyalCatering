@@ -31,12 +31,12 @@ page 50038 "Purchase Indent Card"
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
-                field(Requester; Requester)
+                field(Details; Details)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
-                field("Approval Status"; "Approval Status")
+                field(Requester; Requester)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
@@ -45,26 +45,38 @@ page 50038 "Purchase Indent Card"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
                 }
                 field("Requested Date"; "Requested Date")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
+                }
+                field("Item Category Code"; "Item Category Code")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Table Field';
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
                 }
                 field("Created By"; "Created By")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
                 }
-                field(Details; Details)
+                field("Approval Status"; "Approval Status")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table field';
-                }
-                field("Item Category Code"; "Item Category Code")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Table Field';
                 }
                 field("Transaction Status"; "Transaction Status")
                 {
@@ -263,6 +275,23 @@ page 50038 "Purchase Indent Card"
                     begin
                         PurIndentApprovalCUL.OnCancelPurchaseIndentDocumentApprovalRequest(Rec);
                         WorkflowWebhookMgt.FindAndCancel(RecordId);
+                    end;
+                }
+                action(Approvals)
+                {
+                    AccessByPermission = TableData "Approval Entry" = R;
+                    ApplicationArea = Suite;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    Promoted = true;
+                    PromotedCategory = Category9;
+                    ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                    trigger OnAction()
+                    var
+                        WorkflowsEntriesBuffer: Record "Workflows Entries Buffer";
+                    begin
+                        WorkflowsEntriesBuffer.RunWorkflowEntriesPage(RecordId, DATABASE::"Purchase Indent Header", 6, "No.");
                     end;
                 }
             }

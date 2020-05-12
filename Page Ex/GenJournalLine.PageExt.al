@@ -22,12 +22,21 @@ pageextension 50042 "Gen journal line" extends "General Journal"
                 ApplicationArea = all;
                 ToolTip = 'Cost Allocation Bulk Allocation';
             }
-            field("Batch Description"; "Batch Description")
+            field("Voucher Name"; "Voucher Name")
             {
                 ApplicationArea = all;
-                ToolTip = 'Batch Decription for posted Voucher Report';
+                ToolTip = 'Voucher Name for posted Voucher Report';
             }
-
+            field("PDC Voucher Generated"; "PDC Voucher Generated")
+            {
+                ApplicationArea = all;
+                ToolTip = 'PDC Voucher Generated';
+            }
+            field("PDC Reverse Voucher"; "PDC Reverse Voucher")
+            {
+                ApplicationArea = all;
+                ToolTip = 'PDC Reverse Voucher';
+            }
         }
         // Add changes to page layout here
     }

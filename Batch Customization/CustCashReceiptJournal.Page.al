@@ -408,6 +408,16 @@ page 50095 "Cust. Cash Receipt - Journal"
                         ValidateShortcutDimCode(8, ShortcutDimCode[8]);
                     end;
                 }
+                field("Bank Payment Type"; "Bank Payment Type")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Bank Payment Type';
+                }
+                field("Check Printed"; "Check Printed")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Check Printed';
+                }
             }
             group(Control24)
             {
@@ -464,6 +474,7 @@ page 50095 "Cust. Cash Receipt - Journal"
                             Visible = TotalBalanceVisible;
                         }
                     }
+
                 }
             }
         }
@@ -834,138 +845,219 @@ page 50095 "Cust. Cash Receipt - Journal"
                         end;
                     }
                 }
-                action(CreateFlow)
+                group("&Payments")
                 {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Create a Flow';
-                    Image = Flow;
-                    ToolTip = 'Create a new Flow from a list of relevant Flow templates.';
-                    Visible = IsSaaS;
+                    Caption = '&Payments';
+                    Image = Payment;
+                    action(SuggestVendorPayments)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Suggest Vendor Payments';
+                        Ellipsis = true;
+                        Image = SuggestVendorPayments;
+                        Promoted = true;
+                        PromotedCategory = Category5;
+                        PromotedIsBig = true;
+                        ToolTip = 'Create payment suggestions as lines in the payment journal.';
 
-                    trigger OnAction()
-                    var
-                        FlowServiceManagement: Codeunit "Flow Service Management";
-                        FlowTemplateSelector: Page "Flow Template Selector";
-                    begin
-                        // Opens page 6400 where the user can use filtered templates to create new flows.
-                        FlowTemplateSelector.SetSearchText(FlowServiceManagement.GetJournalTemplateFilter());
-                        FlowTemplateSelector.Run();
-                    end;
-                }
-                action(SeeFlows)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'See my Flows';
-                    Image = Flow;
-                    RunObject = Page "Flow Selector";
-                    ToolTip = 'View and configure Flows that you created.';
-                }
-            }
-            group(Approval)
-            {
-                Caption = 'Approval';
-                action(Approve)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Approve';
-                    Image = Approve;
-                    Promoted = true;
-                    PromotedCategory = Category4;
-                    PromotedIsBig = true;
-                    PromotedOnly = true;
-                    ToolTip = 'Approve the requested changes.';
-                    Visible = OpenApprovalEntriesExistForCurrUser;
+                        trigger OnAction()
+                        var
+                            SuggestVendorPayments: Report "Suggest Vendor Payments";
+                        begin
+                            Clear(SuggestVendorPayments);
+                            SuggestVendorPayments.SetGenJnlLine(Rec);
+                            SuggestVendorPayments.RunModal();
+                        end;
+                    }
+                    action(SuggestEmployeePayments)
+                    {
+                        ApplicationArea = BasicHR;
+                        Caption = 'Suggest Employee Payments';
+                        Ellipsis = true;
+                        Image = SuggestVendorPayments;
+                        Promoted = true;
+                        PromotedCategory = Category5;
+                        PromotedIsBig = true;
+                        ToolTip = 'Create payment suggestions as lines in the payment journal.';
 
-                    trigger OnAction()
-                    var
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        ApprovalsMgmt.ApproveGenJournalLineRequest(Rec);
-                    end;
-                }
-                action(Reject)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Reject';
-                    Image = Reject;
-                    Promoted = true;
-                    PromotedCategory = Category4;
-                    PromotedIsBig = true;
-                    PromotedOnly = true;
-                    ToolTip = 'Reject the approval request.';
-                    Visible = OpenApprovalEntriesExistForCurrUser;
+                        trigger OnAction()
+                        var
+                            SuggestEmployeePayments: Report "Suggest Employee Payments";
+                        begin
+                            Clear(SuggestEmployeePayments);
+                            SuggestEmployeePayments.SetGenJnlLine(Rec);
+                            SuggestEmployeePayments.RunModal();
+                        end;
+                    }
+                    action(PreviewCheck)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'P&review Check';
+                        Image = ViewCheck;
+                        Promoted = true;
+                        PromotedCategory = Category11;
+                        RunObject = Page "Check Preview";
+                        RunPageLink = "Journal Template Name" = FIELD("Journal Template Name"),
+                                  "Journal Batch Name" = FIELD("Journal Batch Name"),
+                                  "Line No." = FIELD("Line No.");
+                        ToolTip = 'Preview the check before printing it.';
+                    }
+                    action(PrintCheck)
+                    {
+                        AccessByPermission = TableData "Check Ledger Entry" = R;
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Print Check';
+                        Ellipsis = true;
+                        Image = PrintCheck;
+                        Promoted = true;
+                        PromotedCategory = Category11;
+                        ToolTip = 'Prepare to print the check.';
 
-                    trigger OnAction()
-                    var
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        ApprovalsMgmt.RejectGenJournalLineRequest(Rec);
-                    end;
-                }
-                action(Delegate)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Delegate';
-                    Image = Delegate;
-                    Promoted = true;
-                    PromotedCategory = Category4;
-                    PromotedOnly = true;
-                    ToolTip = 'Delegate the approval to a substitute approver.';
-                    Visible = OpenApprovalEntriesExistForCurrUser;
+                        trigger OnAction()
+                        var
+                            docPrint: Codeunit "Document-Print";
+                        begin
+                            GenJnlLine.Reset();
+                            GenJnlLine.Copy(Rec);
+                            GenJnlLine.SetRange("Journal Template Name", "Journal Template Name");
+                            GenJnlLine.SetRange("Journal Batch Name", "Journal Batch Name");
+                            DocPrint.PrintCheck(GenJnlLine);
+                            CODEUNIT.Run(CODEUNIT::"Adjust Gen. Journal Balance", Rec);
+                        end;
+                    }
+                    action(CreateFlow)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Create a Flow';
+                        Image = Flow;
+                        ToolTip = 'Create a new Flow from a list of relevant Flow templates.';
+                        Visible = IsSaaS;
 
-                    trigger OnAction()
-                    var
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        ApprovalsMgmt.DelegateGenJournalLineRequest(Rec);
-                    end;
+                        trigger OnAction()
+                        var
+                            FlowServiceManagement: Codeunit "Flow Service Management";
+                            FlowTemplateSelector: Page "Flow Template Selector";
+                        begin
+                            // Opens page 6400 where the user can use filtered templates to create new flows.
+                            FlowTemplateSelector.SetSearchText(FlowServiceManagement.GetJournalTemplateFilter());
+                            FlowTemplateSelector.Run();
+                        end;
+                    }
+                    action(SeeFlows)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'See my Flows';
+                        Image = Flow;
+                        RunObject = Page "Flow Selector";
+                        ToolTip = 'View and configure Flows that you created.';
+                    }
                 }
-                action(Comment)
+                group(Approval)
                 {
-                    ApplicationArea = All;
-                    Caption = 'Comments';
-                    Image = ViewComments;
-                    Promoted = true;
-                    PromotedCategory = Category4;
-                    PromotedOnly = true;
-                    ToolTip = 'View or add comments for the record.';
-                    Visible = OpenApprovalEntriesExistForCurrUser;
+                    Caption = 'Approval';
+                    action(Approve)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Approve';
+                        Image = Approve;
+                        Promoted = true;
+                        PromotedCategory = Category4;
+                        PromotedIsBig = true;
+                        PromotedOnly = true;
+                        ToolTip = 'Approve the requested changes.';
+                        Visible = OpenApprovalEntriesExistForCurrUser;
 
-                    trigger OnAction()
-                    var
-                        GenJournalBatch: Record "Gen. Journal Batch";
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        if OpenApprovalEntriesOnJnlLineExist then
-                            ApprovalsMgmt.GetApprovalComment(Rec)
-                        else
-                            if OpenApprovalEntriesOnJnlBatchExist then
-                                if GenJournalBatch.Get("Journal Template Name", "Journal Batch Name") then
-                                    ApprovalsMgmt.GetApprovalComment(GenJournalBatch);
-                    end;
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.ApproveGenJournalLineRequest(Rec);
+                        end;
+                    }
+                    action(Reject)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Reject';
+                        Image = Reject;
+                        Promoted = true;
+                        PromotedCategory = Category4;
+                        PromotedIsBig = true;
+                        PromotedOnly = true;
+                        ToolTip = 'Reject the approval request.';
+                        Visible = OpenApprovalEntriesExistForCurrUser;
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.RejectGenJournalLineRequest(Rec);
+                        end;
+                    }
+                    action(Delegate)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Delegate';
+                        Image = Delegate;
+                        Promoted = true;
+                        PromotedCategory = Category4;
+                        PromotedOnly = true;
+                        ToolTip = 'Delegate the approval to a substitute approver.';
+                        Visible = OpenApprovalEntriesExistForCurrUser;
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.DelegateGenJournalLineRequest(Rec);
+                        end;
+                    }
+                    action(Comment)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Comments';
+                        Image = ViewComments;
+                        Promoted = true;
+                        PromotedCategory = Category4;
+                        PromotedOnly = true;
+                        ToolTip = 'View or add comments for the record.';
+                        Visible = OpenApprovalEntriesExistForCurrUser;
+
+                        trigger OnAction()
+                        var
+                            GenJournalBatch: Record "Gen. Journal Batch";
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            if OpenApprovalEntriesOnJnlLineExist then
+                                ApprovalsMgmt.GetApprovalComment(Rec)
+                            else
+                                if OpenApprovalEntriesOnJnlBatchExist then
+                                    if GenJournalBatch.Get("Journal Template Name", "Journal Batch Name") then
+                                        ApprovalsMgmt.GetApprovalComment(GenJournalBatch);
+                        end;
+                    }
                 }
-            }
-            group("Page")
-            {
-                Caption = 'Page';
-                action(EditInExcel)
+                group("Page")
                 {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Edit in Excel';
-                    Image = Excel;
-                    Promoted = true;
-                    PromotedCategory = Category5;
-                    PromotedIsBig = true;
-                    PromotedOnly = true;
-                    ToolTip = 'Send the data in the journal to an Excel file for analysis or editing.';
-                    Visible = IsSaasExcelAddinEnabled;
+                    Caption = 'Page';
+                    action(EditInExcel)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Edit in Excel';
+                        Image = Excel;
+                        Promoted = true;
+                        PromotedCategory = Category5;
+                        PromotedIsBig = true;
+                        PromotedOnly = true;
+                        ToolTip = 'Send the data in the journal to an Excel file for analysis or editing.';
+                        Visible = IsSaasExcelAddinEnabled;
 
-                    trigger OnAction()
-                    var
-                        ODataUtility: Codeunit ODataUtility;
-                    begin
-                        ODataUtility.EditJournalWorksheetInExcel(CurrPage.Caption(), CurrPage.ObjectId(false), "Journal Batch Name", "Journal Template Name");
-                    end;
+                        trigger OnAction()
+                        var
+                            ODataUtility: Codeunit ODataUtility;
+                        begin
+                            ODataUtility.EditJournalWorksheetInExcel(CurrPage.Caption(), CurrPage.ObjectId(false), "Journal Batch Name", "Journal Template Name");
+                        end;
+                    }
                 }
             }
         }
@@ -1033,6 +1125,7 @@ page 50095 "Cust. Cash Receipt - Journal"
     end;
 
     var
+        GenJnlLine: Record "Gen. Journal Line";
         GenJnlManagement: Codeunit GenJnlManagement;
         ReportPrint: Codeunit "Test Report-Print";
         // ClientTypeManagement: Codeunit "Client Type Management";

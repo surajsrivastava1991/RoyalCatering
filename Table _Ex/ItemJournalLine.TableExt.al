@@ -11,5 +11,6 @@ tableextension 50028 "Item Journal Line" extends "Item Journal Line"
             DataClassification = CustomerContent;
             TableRelation = "Maintenance Service Line"."Line No." where("MRO No." = field("Reference Document No."), Posted = const(false));
         }
+
     }
 }

@@ -127,10 +127,10 @@ page 50085 "Custumised General Journal"
                     ToolTip = 'Specifies a document number for the journal line.';
                     Visible = NOT IsSimplePage;
                 }
-                field("Batch Description"; "Batch Description")
+                field("Voucher Name"; "Voucher Name")
                 {
                     ApplicationArea = all;
-                    ToolTip = 'Batch Description for Posted Voucher';
+                    ToolTip = 'Voucher Name for Posted Voucher';
                 }
                 field("Incoming Document Entry No."; "Incoming Document Entry No.")
                 {

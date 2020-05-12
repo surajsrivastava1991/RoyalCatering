@@ -25,14 +25,14 @@ codeunit 50020 JnlSelectionApprovalEvents
                 GenJrlBatchL.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
                 GenJrlBatchL.SetRange(Name, GenJournalLine."Journal Batch Name");
                 if GenJrlBatchL.FindFirst() then
-                    GenJournalLine."Batch Description" := GenJrlBatchL."Description 2";
+                    GenJournalLine."Voucher Name" := GenJrlBatchL."Voucher Name";
             end;
         end else begin
             GenJrlBatchL.Reset();
             GenJrlBatchL.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
             GenJrlBatchL.SetRange(Name, GenJournalLine."Journal Batch Name");
             if GenJrlBatchL.FindFirst() then
-                GenJournalLine."Batch Description" := GenJrlBatchL."Description 2";
+                GenJournalLine."Voucher Name" := GenJrlBatchL."Voucher Name";
         end;
     end;
 

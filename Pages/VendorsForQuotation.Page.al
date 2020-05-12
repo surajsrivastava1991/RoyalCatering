@@ -17,8 +17,24 @@ page 50004 "Vendors for quotation"
                 {
                     ToolTip = 'Table Fields';
                     ApplicationArea = All;
+                    trigger OnValidate()
+                    begin
+                        if PurIndLineG.Get("Document No.", "Line No.") then
+                            if PurIndLineG.Type = PurIndLineG.Type::"Fixed Asset" then
+                                Error('You cannot select vendor from vendor-item list');
+                    end;
                 }
                 field("Vendor No."; "Vendor No.")
+                {
+                    ToolTip = 'Table Fields';
+                    ApplicationArea = All;
+                }
+                field("Quote Doc. No."; "Quote Doc. No.")
+                {
+                    ToolTip = 'Table Fields';
+                    ApplicationArea = All;
+                }
+                field("Quote Line No."; "Quote Line No.")
                 {
                     ToolTip = 'Table Fields';
                     ApplicationArea = All;
@@ -28,6 +44,13 @@ page 50004 "Vendors for quotation"
     }
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        "Select from vendor-item" := true;
+        if PurIndLineG.Get("Document No.", "Line No.") then begin
+            if PurIndLineG.Type = PurIndLineG.Type::"Fixed Asset" then
+                "Select from vendor-item" := false;
+        end else
+            "Select from vendor-item" := true;
     end;
+
+    var
+        PurIndLineG: Record "Purchase Indent Line";
 }

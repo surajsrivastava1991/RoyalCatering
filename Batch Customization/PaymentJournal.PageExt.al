@@ -5,9 +5,15 @@ pageextension 50090 "Payment Journal" extends "Payment Journal"
         addbefore(Amount)
         {
             field(Narration; Narration)
-            { ApplicationArea = All; }
+            {
+                ApplicationArea = All;
+                ToolTip = 'Narration';
+            }
             field(VoucherNarration; "Voucher Narration")
-            { ApplicationArea = All; }
+            {
+                ApplicationArea = All;
+                ToolTip = 'Voucher Narration';
+            }
 
 
         }
@@ -20,6 +26,7 @@ pageextension 50090 "Payment Journal" extends "Payment Journal"
             action("Voucher Narration")
             {
                 ApplicationArea = All;
+                ToolTip = 'Voucher Narration';
                 Image = VoucherDescription;
                 RunObject = page Narration;
                 RunPageLink = "Journal Template Name" = FIELD("Journal Template Name"),
@@ -33,6 +40,7 @@ pageextension 50090 "Payment Journal" extends "Payment Journal"
             action("Line Narration")
             {
                 ApplicationArea = All;
+                ToolTip = 'Line Narration';
                 Image = LineDescription;
                 RunObject = page "Line Narration";
                 RunPageLink = "Journal Template Name" = FIELD("Journal Template Name"),
@@ -47,6 +55,7 @@ pageextension 50090 "Payment Journal" extends "Payment Journal"
             {
                 ApplicationArea = All;
                 Image = PreviewChecks;
+                ToolTip = 'Preview Voucher';
                 trigger OnAction()
                 var
                     GenJournalL: Record "Gen. Journal Line";
@@ -61,7 +70,4 @@ pageextension 50090 "Payment Journal" extends "Payment Journal"
             }
         }
     }
-
-    var
-        myInt: Integer;
 }

@@ -1546,6 +1546,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         DimensionSetIDArr: array[10] of Integer;
         PurchaseHeaderL: Record "Purchase Header";
         PurchOrderLineL: Record "Purchase Line";
+        QuoteVendorsL: Record "Vendors For Quotations";
     begin
         with ReqLine2 do begin
             if ("No." = '') or ("Vendor No." = '') or (Quantity = 0) then
@@ -1582,6 +1583,18 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                                         PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
                                         PurchRequisitionLineG.Modify();
                                     end;
+                                    //To update quote reference in Vendors for Quotation table
+                                    QuoteVendorsL.Reset();
+                                    QuoteVendorsL.SetRange("Document No.", ReqLine2."Req. Document No.");
+                                    QuoteVendorsL.SetRange("Line No.", ReqLine2."Req. Line No.");
+                                    QuoteVendorsL.SetRange("Vendor No.", VendorG."No.");
+                                    if QuoteVendorsL.FindSet(true) then
+                                        repeat
+                                            QuoteVendorsL."Quote Doc. No." := PurchOrderLine."Document No.";
+                                            QuoteVendorsL."Quote Line No." := PurchOrderLine."Line No.";
+                                            QuoteVendorsL.Modify();
+                                        until QuoteVendorsL.Next() = 0;
+
                                     UpdateRequisitionStatusQuote(ReqLine2);
                                     PurchOrderHeader2G.get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
                                     UpdateHeaderReceiptDate(PurchOrderHeader2G, PurchOrderLine."Expected Receipt Date");//Modify Expected date on header
@@ -1622,6 +1635,18 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                         PurchRequisitionLineG."Ref. Document Line No." := PurchOrderLine."Line No.";
                         PurchRequisitionLineG.Modify();
                     end;
+                    //To update quote reference in Vendors for Quotation table
+                    QuoteVendorsL.Reset();
+                    QuoteVendorsL.SetRange("Document No.", ReqLine2."Req. Document No.");
+                    QuoteVendorsL.SetRange("Line No.", ReqLine2."Req. Line No.");
+                    QuoteVendorsL.SetRange("Vendor No.", VendorG."No.");
+                    if QuoteVendorsL.FindSet(true) then
+                        repeat
+                            QuoteVendorsL."Quote Doc. No." := PurchOrderLine."Document No.";
+                            QuoteVendorsL."Quote Line No." := PurchOrderLine."Line No.";
+                            QuoteVendorsL.Modify();
+                        until QuoteVendorsL.Next() = 0;
+
                     UpdateRequisitionStatusQuote(ReqLine2);
 
 
@@ -1741,7 +1766,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         if IndentLineL.FindSet() then
             repeat
                 IndentLineL.TestField("No.");
-                IndentLineL.TestField("Vendor No.");
+                if IndentLineL."Order/Quote" = IndentLineL."Order/Quote"::"Purchase Order" then
+                    IndentLineL.TestField("Vendor No.");
                 IndentLineL.TestField(Quantity);
             until IndentLineL.next() = 0;
     end;

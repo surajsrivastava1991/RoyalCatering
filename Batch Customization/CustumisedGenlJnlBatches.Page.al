@@ -34,6 +34,13 @@ page 50003 "Custumised Genl Jnl. Batches"
                 field("Approval Status"; "Approval Status")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Approval Status';
+                }
+                field("Voucher Name"; "Voucher Name")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Voucher Name for Posted Voucher Report';
+                    Editable = false;
                 }
 
             }
@@ -101,6 +108,7 @@ page 50003 "Custumised Genl Jnl. Batches"
                         workdate(), lGenJnlBatch.Name, NoseriesCode);
                         lGenJnlBatch.Description := lGenJnlTemp."Batch Description";
                         lGenJnlBatch."Allow Multiple Voucher" := lGenJnlTemp."Allow Multiple Voucher";
+                        lGenJnlBatch."Voucher Name" := lGenJnlTemp."Voucher Name";
                         lGenJnlBatch.SetupNewBatch();
                         lGenJnlBatch.insert();
                         rec := lgenjnlbatch;

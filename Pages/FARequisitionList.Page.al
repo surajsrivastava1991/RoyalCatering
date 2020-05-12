@@ -1,12 +1,12 @@
-page 50040 "Service Indent List"
+page 50043 "FA Indent List"
 {
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Lists;
     SourceTable = "Purchase Indent Header";
-    CardPageId = "Service Indent Card";
-    Caption = 'Service Requisitions';
-    SourceTableView = where("Replenishment Type" = CONST(1), "Requisition Type" = const("Service Item"));
+    CardPageId = "FA Indent Card";
+    Caption = 'Fixed Asset Requisitions';
+    SourceTableView = where("Replenishment Type" = CONST(1), "Requisition Type" = const("Fixed Asset"));
     layout
     {
         area(Content)
