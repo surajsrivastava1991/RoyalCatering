@@ -418,6 +418,11 @@ page 50095 "Cust. Cash Receipt - Journal"
                     ApplicationArea = all;
                     ToolTip = 'Check Printed';
                 }
+                field("Payment Reference"; "Payment Reference")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Payment Reference';
+                }
             }
             group(Control24)
             {
@@ -706,7 +711,23 @@ page 50095 "Cust. Cash Receipt - Journal"
                     ToolTip = 'Finalize the document or journal by posting the amounts and quantities to the related accounts in your company books.';
 
                     trigger OnAction()
+                    var
+                        GenjouTemL: Record "Gen. Journal Template";
+                        PDCEntryL: Record "PDC Entry";
                     begin
+                        //PDC Entry Control
+                        if GenjouTemL.Get("Journal Template Name") then
+                            if GenjouTemL."PDC Required" then begin
+                                PDCEntryL.Reset();
+                                PDCEntryL.SetRange("Document No.", "Payment Reference");
+                                if PDCEntryL.FindFirst() then begin
+                                    if (PDCEntryL."PDC Status" = PDCEntryL."PDC Status"::Created) then
+                                        Error('Post the reversal of PDC first');
+                                end else
+                                    Error('Generate PDC First');
+
+                            end;
+
                         CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", Rec);
                         CurrentJnlBatchName := '';
                         DeleteBatch();
@@ -750,6 +771,132 @@ page 50095 "Cust. Cash Receipt - Journal"
                         DeleteBatch();
                         CurrPage.close();
                     end;
+                }
+            }
+            group("PDC")
+            {
+                Caption = 'Post Dated Check';
+                Image = CheckJournal;
+                action("Generate PDC")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Generate PDC';
+                    Image = InsertFromCheckJournal;
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Generate the PDC Process';
+                    trigger OnAction()
+                    var
+                        GenJouTempL: Record "Gen. Journal Template";
+                    begin
+                        GenJouTempL.Get("Journal Template Name");
+                        if not (GenJouTempL."PDC Required") then
+                            error('Selected Template is not PDC Specific');
+
+                        if "Payment Reference" = '' then
+                            Error('Please insert Check No. in Payment Reference');
+
+
+                        if ("Account Type" = "Account Type"::Vendor) or ("Bal. Account Type" = "Bal. Account Type"::Vendor) then
+                            CreatePDCPayable()
+                        else
+                            if ("Account Type" = "Account Type"::Customer) or ("Bal. Account Type" = "Bal. Account Type"::Customer) then
+                                CreatePDCReceivable();
+                    end;
+                }
+                action("Clear PDC")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Clear PDC';
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Cancel PDC';
+                    Ellipsis = true;
+                    Image = ReverseRegister;
+                    Scope = Repeater;
+
+                    trigger OnAction()
+                    var
+                        GenJournalLineL: Record "Gen. Journal Line";
+                        GLSetupL: Record "General Ledger Setup";
+                        ReversalEntry: Record "Reversal Entry";
+                        GlEntryL: Record "G/L Entry";
+
+                    begin
+                        if PDCEntry.Get("Payment Reference") then begin
+                            if (PDCEntry."PDC Status" = PDCEntry."PDC Status"::Reversed) then
+                                Error('PDC Entry is already reversed');
+                        end else
+                            Error('PDC is not yet generated');
+
+                        GLSetupL.Get();
+                        GLSetupL.TestField("PDC Template Name");
+                        GLSetupL.TestField("PDC Batch Name");
+                        GLSetupL.TestField("PDC Payable");
+                        GenJournalLineL.Reset();
+                        GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
+                        GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
+                        GenJournalLineL.DeleteAll();
+
+                        GlEntryL.Reset();
+                        GlEntryL.SetRange("Ext Document No.", "Ext Document No.");
+                        if GlEntryL.FindFirst() then begin
+                            Clear(ReversalEntry);
+                            if GlEntryL.Reversed then
+                                ReversalEntry.AlreadyReversedEntry(TableCaption(), GlEntryL."Entry No.");
+                            if GlEntryL."Journal Batch Name" = '' then
+                                ReversalEntry.TestFieldError();
+                            GlEntryL.TestField("Transaction No.");
+                            ReversalEntry.ReverseTransaction(GlEntryL."Transaction No.");
+                        end;
+
+
+                        PDCEntry.Get("Payment Reference");
+                        PDCEntry.Delete(true);
+                    end;
+
+                }
+                action("Reverse PDC")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reverse PDC';
+                    Image = ReverseLines;
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Reverse the PDC Process';
+                    trigger OnAction()
+                    var
+                        GenJouTempL: Record "Gen. Journal Template";
+                    begin
+                        GenJouTempL.Get("Journal Template Name");
+                        if not (GenJouTempL."PDC Required") then
+                            error('Selected Template is not PDC Specific');
+
+                        if PDCEntry.Get("Payment Reference") then begin
+                            if (PDCEntry."PDC Status" = PDCEntry."PDC Status"::Reversed) then
+                                Error('PDC Entry is already reversed');
+                        end else
+                            Error('PDC is not yet generated');
+
+
+                        if ("Account Type" = "Account Type"::Vendor) or ("Bal. Account Type" = "Bal. Account Type"::Vendor) then
+                            ReservePDCPayable()
+                        else
+                            if ("Account Type" = "Account Type"::Customer) or ("Bal. Account Type" = "Bal. Account Type"::Customer) then
+                                ReservePDCReceivable();
+                    end;
+                }
+                action("PDC Entry")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'PDc Entry';
+                    Image = EntriesList;
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Generated PDC Entry';
+                    RunObject = Page "PDC Entry";
+                    RunPageLink = "Document No." = FIELD("Payment Reference");
+
                 }
             }
             group("Request Approval")
@@ -845,6 +992,7 @@ page 50095 "Cust. Cash Receipt - Journal"
                         end;
                     }
                 }
+
                 group("&Payments")
                 {
                     Caption = '&Payments';
@@ -1126,6 +1274,7 @@ page 50095 "Cust. Cash Receipt - Journal"
 
     var
         GenJnlLine: Record "Gen. Journal Line";
+        PDCEntry: Record "PDC Entry";
         GenJnlManagement: Codeunit GenJnlManagement;
         ReportPrint: Codeunit "Test Report-Print";
         // ClientTypeManagement: Codeunit "Client Type Management";

@@ -62,38 +62,7 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         }
         field(50007; "Ext Amount"; Decimal)
         { DataClassification = CustomerContent; }
-        // field(50005; "Invoice Date"; Date)
-        // {
-        //     DataClassification = CustomerContent;
-        //     Caption='Invoice Date';
-        //     trigger OnValidate()
-        //     var
-        //         PaymentTerms: Record "Payment Terms";
-        //     begin
-        //         "Due Date" := 0D;
-        //         IF ("Account Type" <> "Account Type"::"G/L Account") OR
-        //            ("Bal. Account Type" <> "Bal. Account Type"::"G/L Account")
-        //         THEN
-        //             CASE "Document Type" OF
-        //                 "Document Type"::Invoice:
-        //                     IF ("Payment Terms Code" <> '') AND ("Invoice Date" <> 0D) THEN BEGIN
-        //                         PaymentTerms.GET("Payment Terms Code");
-        //                         "Due Date" := CALCDATE(PaymentTerms."Due Date Calculation", "Invoice Date");
-        //                     END;
-        //                 "Document Type"::"Credit Memo":
-        //                     IF ("Payment Terms Code" <> '') AND ("Invoice Date" <> 0D) THEN BEGIN
-        //                         PaymentTerms.GET("Payment Terms Code");
-        //                         IF PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" THEN BEGIN
-        //                             "Due Date" := CALCDATE(PaymentTerms."Due Date Calculation", "Invoice Date");
-        //                         END ELSE
-        //                             "Due Date" := "Invoice Date";
-        //                     END;
-        //                 ELSE
-        //                     "Due Date" := "Invoice Date";
-        //             END;
 
-        //     end;
-        // }
         field(50008; "Voucher Narration"; Text[250])
         {
             DataClassification = CustomerContent;
@@ -125,16 +94,6 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         {
             DataClassification = CustomerContent;
             Caption = 'Voucher Name';
-        }
-        field(50010; "PDC Voucher Generated"; Boolean)
-        {
-            DataClassification = CustomerContent;
-            Editable = false;
-        }
-        field(50011; "PDC Reverse Voucher"; Boolean)
-        {
-            DataClassification = CustomerContent;
-            Editable = false;
         }
         modify("Document No.")
         {
@@ -211,18 +170,25 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL: Record "Gen. Journal Line";
         GLSetupL: Record "General Ledger Setup";
         GenjournalbatchL: Record "Gen. Journal Batch";
+        PDCEntry: record "PDC Entry";
         NoSeriesManagementG: Codeunit NoSeriesManagement;
         DocumentNoL: Code[20];
         LineNoG: Integer;
 
     begin
-        if "PDC Voucher Generated" then
-            Error('PDC Voucher generated alrady');
+        if PDCEntry.Get("Document No.") then
+            Error('PDC Voucher generated already');
+
         LineNoG := 0;
         GLSetupL.Get();
         GLSetupL.TestField("PDC Template Name");
         GLSetupL.TestField("PDC Batch Name");
         GLSetupL.TestField("PDC Payable");
+        TestField("Debit Amount");
+
+        if "Document Date" > WorkDate() then
+            Error('Document date should not be greater than Workdate');
+
         GenJournalLineL.Reset();
         GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
         GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
@@ -236,22 +202,29 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
         GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
         GenJournalLineL."Line No." := LineNoG + 10000;
-        GenJournalLineL."Document No." := DocumentNoL;
-        GenJournalLineL."Posting Date" := "Posting Date";
+        GenJournalLineL.Validate("Document No.", DocumentNoL);
+        GenJournalLineL."Posting Date" := "Document Date";
         GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::Vendor;
         GenJournalLineL.VALIDATE("Account No.", "Account No.");
-        GenJournalLineL.VALIDATE("Amount", "Amount");
-        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        GenJournalLineL.VALIDATE("Debit Amount", "Debit Amount");
         GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"G/L Account";
         GenJournalLineL.validate("Bal. Account No.", GLSetupL."PDC Payable");
         GenJournalLineL."CL from Date" := 0D;
         GenJournalLineL."CL To Date" := 0D;
         GenJournalLineL."Bulk Kitchen" := '';
         GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
-        if GenJournalLineL.Insert(true) then begin
-            "PDC Voucher Generated" := true;
-            Modify(true);
-        end;
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        if GenJournalLineL.Insert(true) then
+            CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", GenJournalLineL);
+
+        PDCEntry.Init();
+        PDCEntry."Document No." := "Document No.";
+        PDCEntry."Created Date" := "Document Date";
+        PDCEntry."Check Maturity Date" := "Posting Date";
+        PDCEntry."PDC Status" := PDCEntry."PDC Status"::Created;
+        PDCEntry.Insert();
+
+
         LineNoG += 10000;
 
     end;
@@ -261,12 +234,20 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL: Record "Gen. Journal Line";
         GLSetupL: Record "General Ledger Setup";
         GenjournalbatchL: Record "Gen. Journal Batch";
+        PDCEntry: record "PDC Entry";
         NoSeriesManagementG: Codeunit NoSeriesManagement;
         DocumentNoL: Code[20];
         LineNoG: Integer;
     begin
-        if "PDC Reverse Voucher" then
-            Error('PDC Voucher reversed alrady');
+        if PDCEntry.Get("Document No.") then begin
+            if PDCEntry."PDC Status" = PDCEntry."PDC Status"::Reversed then
+                Error('PDC Voucher reversed already');
+        end else
+            Error('PDC is not yet Generated');
+
+        if "Posting Date" < WorkDate() then
+            error('Posting date should not be less than the workdate');
+
         LineNoG := 0;
         GLSetupL.Get();
         GLSetupL.TestField("PDC Template Name");
@@ -285,24 +266,25 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
         GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
         GenJournalLineL."Line No." := LineNoG + 10000;
-        GenJournalLineL."Document No." := DocumentNoL;
+        GenJournalLineL.Validate("Document No.", DocumentNoL);
         GenJournalLineL."Posting Date" := "Posting Date";
         GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::"G/L Account";
         GenJournalLineL.VALIDATE("Account No.", GLSetupL."PDC Payable");
-        GenJournalLineL.VALIDATE(Amount, Amount);
-        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
-        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"Bank Account";
-        GenJournalLineL.validate("Bal. Account No.", "Bal. Account No.");
-
+        GenJournalLineL.VALIDATE("Debit Amount", "Debit Amount");
+        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::Vendor;
+        GenJournalLineL.validate("Bal. Account No.", "Account No.");
         GenJournalLineL."CL from Date" := 0D;
         GenJournalLineL."CL To Date" := 0D;
         GenJournalLineL."Bulk Kitchen" := '';
         GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
 
-        if GenJournalLineL.Insert(true) then begin
-            "PDC Reverse Voucher" := true;
-            Modify(true);
-        end;
+        if GenJournalLineL.Insert(true) then
+            CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", GenJournalLineL);
+        PDCEntry.get("Document No.");
+        PDCEntry."PDC Status" := PDCEntry."PDC Status"::Reversed;
+        PDCEntry.Modify(true);
+
         LineNoG += 10000;
     end;
 
@@ -311,18 +293,26 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL: Record "Gen. Journal Line";
         GLSetupL: Record "General Ledger Setup";
         GenjournalbatchL: Record "Gen. Journal Batch";
+        PDCEntry: Record "PDC Entry";
         NoSeriesManagementG: Codeunit NoSeriesManagement;
         DocumentNoL: Code[20];
         LineNoG: Integer;
 
     begin
-        if "PDC Voucher Generated" then
-            Error('PDC Voucher generated alrady');
+        if PDCEntry.Get("Document No.") then
+            Error('PDC Voucher generated already');
+
+        if "Document Date" > WorkDate() then
+            Error('Document date should not be greater than Workdate');
+
         LineNoG := 0;
         GLSetupL.Get();
         GLSetupL.TestField("PDC Template Name");
         GLSetupL.TestField("PDC Batch Name");
         GLSetupL.TestField("PDC Payable");
+
+        TestField("Credit Amount");
+
         GenJournalLineL.Reset();
         GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
         GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
@@ -336,23 +326,28 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
         GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
         GenJournalLineL."Line No." := LineNoG + 10000;
-        GenJournalLineL."Document No." := DocumentNoL;
-        GenJournalLineL."Posting Date" := "Posting Date";
+        GenJournalLineL.Validate("Document No.", DocumentNoL);
+        GenJournalLineL."Posting Date" := "Document Date";
         GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::Customer;
         GenJournalLineL.VALIDATE("Account No.", "Account No.");
-        GenJournalLineL.VALIDATE(Amount, -Amount);
-        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        GenJournalLineL.VALIDATE("Credit Amount", "Credit Amount");
         GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"G/L Account";
-        GenJournalLineL.validate("Bal. Account No.", GLSetupL."PDC Payable");
+        GenJournalLineL.validate("Bal. Account No.", GLSetupL."PDC Receivable");
         GenJournalLineL."CL from Date" := 0D;
         GenJournalLineL."CL To Date" := 0D;
         GenJournalLineL."Bulk Kitchen" := '';
         GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
 
-        if GenJournalLineL.Insert(true) then begin
-            "PDC Voucher Generated" := true;
-            Modify(true);
-        end;
+        if GenJournalLineL.Insert(true) then
+            CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", GenJournalLineL);
+        PDCEntry.Init();
+        PDCEntry."Document No." := "Payment Reference";
+        PDCEntry."Created Date" := "Document Date";
+        PDCEntry."Check Maturity Date" := "Posting Date";
+        PDCEntry."PDC Status" := PDCEntry."PDC Status"::Created;
+        PDCEntry.Insert();
+
         LineNoG += 10000;
 
     end;
@@ -362,12 +357,17 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL: Record "Gen. Journal Line";
         GLSetupL: Record "General Ledger Setup";
         GenjournalbatchL: Record "Gen. Journal Batch";
+        PDCEntry: Record "PDC Entry";
         NoSeriesManagementG: Codeunit NoSeriesManagement;
         DocumentNoL: Code[20];
         LineNoG: Integer;
     begin
-        if "PDC Reverse Voucher" then
-            Error('PDC Voucher reversed alrady');
+        if PDCEntry.Get("Document No.") then begin
+            if PDCEntry."PDC Status" = PDCEntry."PDC Status"::Reversed then
+                Error('PDC Voucher reversed already');
+        end else
+            Error('PDC is not yet Generated');
+
         LineNoG := 0;
         GLSetupL.Get();
         GLSetupL.TestField("PDC Template Name");
@@ -386,23 +386,24 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GenJournalLineL.VALIDATE("Journal Template Name", GLSetupL."PDC Template Name");
         GenJournalLineL.VALIDATE("Journal Batch Name", GLSetupL."PDC Batch Name");
         GenJournalLineL."Line No." := LineNoG + 10000;
-        GenJournalLineL."Document No." := DocumentNoL;
+        GenJournalLineL.Validate("Document No.", DocumentNoL);
         GenJournalLineL."Posting Date" := "Posting Date";
         GenJournalLineL."Account Type" := GenJournalLineL."Account Type"::"G/L Account";
-        GenJournalLineL.VALIDATE("Account No.", GLSetupL."PDC Payable");
-        GenJournalLineL.VALIDATE(Amount, -Amount);
-        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
-        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::"Bank Account";
-        GenJournalLineL.validate("Bal. Account No.", "Bal. Account No.");
+        GenJournalLineL.VALIDATE("Account No.", GLSetupL."PDC Receivable");
+        GenJournalLineL.VALIDATE("Credit Amount", "Credit Amount");
+        GenJournalLineL."Bal. Account Type" := GenJournalLineL."Bal. Account Type"::Customer;
+        GenJournalLineL.validate("Bal. Account No.", "Account No.");
         GenJournalLineL."CL from Date" := 0D;
         GenJournalLineL."CL To Date" := 0D;
         GenJournalLineL."Bulk Kitchen" := '';
         GenJournalLineL."Posting No. Series" := GenjournalbatchL."Posting No. Series";
+        GenJournalLineL.validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+        if GenJournalLineL.Insert(true) then
+            CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", GenJournalLineL);
+        PDCEntry.get("Document No.");
+        PDCEntry."PDC Status" := PDCEntry."PDC Status"::Reversed;
+        PDCEntry.Modify(true);
 
-        if GenJournalLineL.Insert(true) then begin
-            "PDC Reverse Voucher" := true;
-            Modify();
-        end;
         LineNoG += 10000;
     end;
 }

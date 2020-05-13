@@ -83,10 +83,7 @@ report 50003 "Purchase Order Details"
             {
 
             }
-            column(AmountinWordsG; AmountinWordsG[1])
-            {
 
-            }
             column(ProjectNameG; ProjectNameG)
             {
 
@@ -168,6 +165,10 @@ report 50003 "Purchase Order Details"
                 {
 
                 }
+                column(AmountinWordsG; AmountinWordsG[1])
+                {
+
+                }
                 column(LocationCode; "Location Code")
                 {
                 }
@@ -187,6 +188,10 @@ report 50003 "Purchase Order Details"
                     DiscountAmt := (LineAmountG * "Purchase Line"."Line Discount %") / 100;
                     VatAmt := LineAmountG * ("Purchase Line"."VAT %" / 100);
                     TotalLineAmountG := LineAmountG + VatAmt - DiscountAmt;
+                    GrandTotalG += LineAmountG + VatAmt;
+                    CheckG.InitTextVariable();
+                    CheckG.FormatNoText(AmountinWordsG, GrandTotalG, 'AED');
+
 
                 end;
             }
@@ -202,13 +207,13 @@ report 50003 "Purchase Order Details"
             trigger OnAfterGetRecord()
             begin
 
-                PurchaseLineG.Reset();
-                PurchaseLineG.SetRange("Document Type", PurchaseHeader."Document Type");
-                PurchaseLineG.SetRange("Document No.", PurchaseHeader."No.");
-                if PurchaseLineG.FindSet() then
-                    repeat
-                        GrandTotalG += (PurchaseLineG."Qty. to Accept" * PurchaseLineG."Unit Cost") * (1 + (PurchaseLineG."VAT %" / 100) - (PurchaseLineG."Line Discount %") / 100);
-                    until PurchaseLineG.Next() = 0;
+                // PurchaseLineG.Reset();
+                // PurchaseLineG.SetRange("Document Type", PurchaseHeader."Document Type");
+                // PurchaseLineG.SetRange("Document No.", PurchaseHeader."No.");
+                // if PurchaseLineG.FindSet() then
+                //     repeat
+                //         GrandTotalG += (PurchaseLineG."Qty. to Accept" * PurchaseLineG."Unit Cost") * (1 + (PurchaseLineG."VAT %" / 100) - (PurchaseLineG."Line Discount %") / 100);
+                //     until PurchaseLineG.Next() = 0;
 
 
 
@@ -218,8 +223,7 @@ report 50003 "Purchase Order Details"
                 FAXNo := VendorG."Fax No.";
                 VATRegNo := VendorG."VAT Registration No.";
                 ProjectNameG := '';
-                CheckG.InitTextVariable();
-                CheckG.FormatNoText(AmountinWordsG, GrandTotalG, 'AED');
+
                 if PurchaseHeader."Shortcut Dimension 1 Code" <> '' then begin
                     DimensionValueG.Get(GLEntryG."Global Dimension 1 Code", PurchaseHeader."Shortcut Dimension 1 Code");
                     ProjectNameG := DimensionValueG.Name;

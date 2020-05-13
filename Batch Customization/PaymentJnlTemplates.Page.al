@@ -38,6 +38,7 @@ page 50008 "Payment Jnl. Templates"
                 }
                 field("PDC Required"; "PDC Required")
                 {
+                    Caption = 'PDC Required';
                     ApplicationArea = all;
                     ToolTip = 'PDC Template for Vendor/Customer Payment';
                 }

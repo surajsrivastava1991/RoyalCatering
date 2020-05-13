@@ -2832,9 +2832,6 @@ End Function
         <Field Name="Amount_Including_VATFormat">
           <DataField>Amount_Including_VATFormat</DataField>
         </Field>
-        <Field Name="AmountinWordsG">
-          <DataField>AmountinWordsG</DataField>
-        </Field>
         <Field Name="ProjectNameG">
           <DataField>ProjectNameG</DataField>
         </Field>
@@ -2918,6 +2915,9 @@ End Function
         </Field>
         <Field Name="Line_No_">
           <DataField>Line_No_</DataField>
+        </Field>
+        <Field Name="AmountinWordsG">
+          <DataField>AmountinWordsG</DataField>
         </Field>
         <Field Name="LocationCode">
           <DataField>LocationCode</DataField>

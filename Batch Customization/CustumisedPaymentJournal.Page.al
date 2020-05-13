@@ -31,7 +31,7 @@ page 50096 "Custumised Payment - Journal"
                 trigger OnValidate()
                 begin
                     GenJnlManagement.CheckName(CurrentJnlBatchName, Rec);
-                    CurrentJnlBatchNameOnAfterVali;
+                    CurrentJnlBatchNameOnAfterVali();
                 end;
             }
             repeater(Control1)
@@ -75,7 +75,7 @@ page 50096 "Custumised Payment - Journal"
                     trigger OnAssistEdit()
                     begin
                         if "Incoming Document Entry No." > 0 then
-                            HyperLink(GetIncomingDocumentURL);
+                            HyperLink(GetIncomingDocumentURL());
                     end;
                 }
                 field("External Document No."; "External Document No.")
@@ -97,7 +97,7 @@ page 50096 "Custumised Payment - Journal"
                     trigger OnValidate()
                     begin
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
-                        EnableApplyEntriesAction;
+                        EnableApplyEntriesAction();
                     end;
                 }
                 field("Account No."; "Account No.")
@@ -153,8 +153,8 @@ page 50096 "Custumised Payment - Journal"
                     trigger OnAssistEdit()
                     begin
                         ChangeExchangeRate.SetParameter("Currency Code", "Currency Factor", "Posting Date");
-                        if ChangeExchangeRate.RunModal = ACTION::OK then
-                            Validate("Currency Factor", ChangeExchangeRate.GetParameter);
+                        if ChangeExchangeRate.RunModal() = ACTION::OK then
+                            Validate("Currency Factor", ChangeExchangeRate.GetParameter());
 
                         Clear(ChangeExchangeRate);
                     end;
@@ -263,7 +263,7 @@ page 50096 "Custumised Payment - Journal"
 
                     trigger OnValidate()
                     begin
-                        EnableApplyEntriesAction;
+                        EnableApplyEntriesAction();
                     end;
                 }
                 field("Bal. Account No."; "Bal. Account No.")
@@ -307,7 +307,7 @@ page 50096 "Custumised Payment - Journal"
                     ToolTip = 'Specifies the code of the VAT product posting group that will be used when you post the entry on the journal line.';
                     Visible = false;
                 }
-                field("Applied (Yes/No)"; IsApplied)
+                field("Applied (Yes/No)"; IsApplied())
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Applied (Yes/No)';
@@ -331,7 +331,7 @@ page 50096 "Custumised Payment - Journal"
                     ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                     Visible = false;
                 }
-                field(GetAppliesToDocDueDate; GetAppliesToDocDueDate)
+                field(GetAppliesToDocDueDate; GetAppliesToDocDueDate())
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Applies-to Doc. Due Date';
@@ -372,7 +372,7 @@ page 50096 "Custumised Payment - Journal"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that the payment journal line was exported to a payment file.';
                 }
-                field(TotalExportedAmount; TotalExportedAmount)
+                field(TotalExportedAmount; TotalExportedAmount())
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Exported Amount';
@@ -381,7 +381,7 @@ page 50096 "Custumised Payment - Journal"
 
                     trigger OnDrillDown()
                     begin
-                        DrillDownExportedAmount
+                        DrillDownExportedAmount();
                     end;
                 }
                 field("Has Payment Export Error"; "Has Payment Export Error")
@@ -715,12 +715,69 @@ page 50096 "Custumised Payment - Journal"
                         GenJouTempL.Get("Journal Template Name");
                         if not (GenJouTempL."PDC Required") then
                             error('Selected Template is not PDC Specific');
+
+                        if not ("Check Printed") then
+                            Error('Do the check printing first');
+
+
                         if ("Account Type" = "Account Type"::Vendor) or ("Bal. Account Type" = "Bal. Account Type"::Vendor) then
                             CreatePDCPayable()
                         else
                             if ("Account Type" = "Account Type"::Customer) or ("Bal. Account Type" = "Bal. Account Type"::Customer) then
                                 CreatePDCReceivable();
                     end;
+                }
+                action("Clear PDC")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Clear PDC';
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Cancel PDC';
+                    Ellipsis = true;
+                    Image = ReverseRegister;
+                    Scope = Repeater;
+
+                    trigger OnAction()
+                    var
+                        GenJournalLineL: Record "Gen. Journal Line";
+                        GLSetupL: Record "General Ledger Setup";
+                        ReversalEntry: Record "Reversal Entry";
+                        GlEntryL: Record "G/L Entry";
+
+                    begin
+                        if PDCEntry.Get("Document No.") then begin
+                            if (PDCEntry."PDC Status" = PDCEntry."PDC Status"::Reversed) then
+                                Error('PDC Entry is already reversed');
+                        end else
+                            Error('PDC is not yet generated');
+
+                        GLSetupL.Get();
+                        GLSetupL.TestField("PDC Template Name");
+                        GLSetupL.TestField("PDC Batch Name");
+                        GLSetupL.TestField("PDC Payable");
+                        GenJournalLineL.Reset();
+                        GenJournalLineL.SetRange("Journal Template Name", GLSetupL."PDC Template Name");
+                        GenJournalLineL.setrange("Journal Batch Name", GLSetupL."PDC Batch Name");
+                        GenJournalLineL.DeleteAll();
+
+                        GlEntryL.Reset();
+                        GlEntryL.SetRange("Ext Document No.", "Ext Document No.");
+                        if GlEntryL.FindFirst() then begin
+                            Clear(ReversalEntry);
+                            if GlEntryL.Reversed then
+                                ReversalEntry.AlreadyReversedEntry(TableCaption(), GlEntryL."Entry No.");
+                            if GlEntryL."Journal Batch Name" = '' then
+                                ReversalEntry.TestFieldError();
+                            GlEntryL.TestField("Transaction No.");
+                            ReversalEntry.ReverseTransaction(GlEntryL."Transaction No.");
+                        end;
+
+
+                        PDCEntry.Get("Document No.");
+                        PDCEntry.Delete(true);
+                    end;
+
                 }
                 action("Reverse PDC")
                 {
@@ -738,11 +795,12 @@ page 50096 "Custumised Payment - Journal"
                         if not (GenJouTempL."PDC Required") then
                             error('Selected Template is not PDC Specific');
 
-                        if "PDC Reverse Voucher" then
-                            Error('PDC Already reversed');
-
-                        if not ("PDC Voucher Generated") then
+                        if PDCEntry.Get("Document No.") then begin
+                            if (PDCEntry."PDC Status" = PDCEntry."PDC Status"::Reversed) then
+                                Error('PDC Entry is already reversed');
+                        end else
                             Error('PDC is not yet generated');
+
 
                         if ("Account Type" = "Account Type"::Vendor) or ("Bal. Account Type" = "Bal. Account Type"::Vendor) then
                             ReservePDCPayable()
@@ -750,6 +808,18 @@ page 50096 "Custumised Payment - Journal"
                             if ("Account Type" = "Account Type"::Customer) or ("Bal. Account Type" = "Bal. Account Type"::Customer) then
                                 ReservePDCReceivable();
                     end;
+                }
+                action("PDC Entry")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'PDc Entry';
+                    Image = EntriesList;
+                    Promoted = true;
+                    PromotedCategory = Category11;
+                    ToolTip = 'Generated PDC Entry';
+                    RunObject = Page "PDC Entry";
+                    RunPageLink = "Document No." = FIELD("Document No.");
+
                 }
             }
             group("&Payments")
@@ -1133,11 +1203,27 @@ page 50096 "Custumised Payment - Journal"
                     ToolTip = 'Finalize the document or journal by posting the amounts and quantities to the related accounts in your company books.';
 
                     trigger OnAction()
+                    var
+                        GenjouTemL: Record "Gen. Journal Template";
+                        PDCEntryL: Record "PDC Entry";
                     begin
+                        //PDC Entry Control
+                        if GenjouTemL.Get("Journal Template Name") then
+                            if GenjouTemL."PDC Required" then begin
+                                PDCEntryL.Reset();
+                                PDCEntryL.SetRange("Document No.", "Document No.");
+                                if PDCEntryL.FindFirst() then begin
+                                    if (PDCEntryL."PDC Status" = PDCEntryL."PDC Status"::Created) then
+                                        Error('Post the reversal of PDC first');
+                                end else
+                                    Error('Generate PDC First');
+
+                            end;
+
                         CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", Rec);
                         CurrentJnlBatchName := '';
                         DeleteBatch();
-                        CurrPage.close;
+                        CurrPage.close();
                     end;
                 }
                 action(Preview)
@@ -1528,9 +1614,7 @@ page 50096 "Custumised Payment - Journal"
     end;
 
     var
-        Text000: Label 'Void Check %1?';
-        Text001: Label 'Void all printed checks?';
-        GeneratingPaymentsMsg: Label 'Generating Payment file...';
+        PDCEntry: Record "PDC Entry";
         GenJnlLine: Record "Gen. Journal Line";
         GenJnlLine2: Record "Gen. Journal Line";
         GenJnlManagement: Codeunit GenJnlManagement;
@@ -1540,6 +1624,9 @@ page 50096 "Custumised Payment - Journal"
         ChangeExchangeRate: Page "Change Exchange Rate";
         GLReconcile: Page Reconciliation;
         CurrentJnlBatchName: Code[20];
+        Text000: Label 'Void Check %1?';
+        Text001: Label 'Void all printed checks?';
+        GeneratingPaymentsMsg: Label 'Generating Payment file...';
         AccName: Text[100];
         BalAccName: Text[100];
         Balance: Decimal;

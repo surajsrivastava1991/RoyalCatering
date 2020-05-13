@@ -89,9 +89,12 @@ codeunit 50002 "Event Call bef/Aft Posting"
         GLEntry."CL To Date" := GenJournalLine."CL To Date";
         GLEntry."Bulk Kitchen" := GenJournalLine."Bulk Kitchen";
         GLEntry."Voucher Name" := GenJournalLine."Voucher Name";
+        GLEntry."Ext Document No." := GenJournalLine."Ext Document No.";
+        GLEntry."Ext Posting Date" := GenJournalLine."Ext Posting Date";
     end;
 
     var
         LocationG: Record Location;
         GeneralLedgerPosdtingG: Codeunit "General Ledger Posting";
+        PGL: Page "General Ledger Entries";
 }

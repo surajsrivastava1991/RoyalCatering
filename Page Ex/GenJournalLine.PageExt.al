@@ -27,16 +27,6 @@ pageextension 50042 "Gen journal line" extends "General Journal"
                 ApplicationArea = all;
                 ToolTip = 'Voucher Name for posted Voucher Report';
             }
-            field("PDC Voucher Generated"; "PDC Voucher Generated")
-            {
-                ApplicationArea = all;
-                ToolTip = 'PDC Voucher Generated';
-            }
-            field("PDC Reverse Voucher"; "PDC Reverse Voucher")
-            {
-                ApplicationArea = all;
-                ToolTip = 'PDC Reverse Voucher';
-            }
         }
         // Add changes to page layout here
     }

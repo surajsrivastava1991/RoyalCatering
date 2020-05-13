@@ -26,7 +26,11 @@ tableextension 50023 "GL Setuo Ext" extends "General Ledger Setup"
         field(50004; "PDC Batch Name"; Code[20])
         {
             DataClassification = CustomerContent;
-            TableRelation = "Gen. Journal Batch";
+            TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("PDC Template Name"));
+            trigger OnValidate()
+            begin
+                TestField("PDC Template Name");
+            end;
         }
     }
 }

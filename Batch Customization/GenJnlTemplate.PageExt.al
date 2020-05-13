@@ -29,6 +29,12 @@ pageextension 50021 GenJnlTemplate extends "General Journal Templates"
                 ApplicationArea = all;
                 ToolTip = 'Voucher Name';
             }
+            field("PDC Required"; "PDC Required")
+            {
+                caption = 'PDC Required';
+                ApplicationArea = all;
+                ToolTip = 'For PDC Posting';
+            }
         }
 
     }

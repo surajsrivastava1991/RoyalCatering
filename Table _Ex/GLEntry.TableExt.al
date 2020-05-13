@@ -19,6 +19,15 @@ tableextension 50043 "GL Entry" extends "G/L Entry"
             DataClassification = CustomerContent;
             Caption = 'Voucher Name';
         }
+        field(50004; "Ext Document No."; Code[20])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50005; "Ext Posting Date"; Date)
+        {
+            DataClassification = CustomerContent;
+        }
+
         // Add changes to table fields here
     }
 
