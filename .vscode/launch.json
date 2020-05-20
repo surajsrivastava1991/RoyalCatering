@@ -5,7 +5,7 @@
             "type": "al",
             "request": "launch",
             "name": "Microsoft cloud sandbox",
-            "tenant": "royalcatering.onmicrosoft.com",
+            "tenant": "royalcatering.onmicrosoft.com", 
             "sandboxName": "Sandbox",
             "breakOnError": true,
             "launchBrowser": true,

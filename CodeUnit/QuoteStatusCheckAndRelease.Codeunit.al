@@ -23,13 +23,33 @@ codeunit 50055 "After Release Purch Quote"
             PurchaseQuoteHdrG.SetFilter("No.", '<>%1', "No.");
             if PurchaseQuoteHdrG.FindSet() then
                 repeat
-                    if PurchaseQuoteHdrG.Status = PurchaseQuoteHdrG.Status::"Pending Approval" then begin
+                    if PurchaseQuoteHdrG.Status = PurchaseQuoteHdrG.Status::"Pending Approval" then
                         ApprovalsMgmt.OnCancelPurchaseApprovalRequest(PurchaseQuoteHdrG);
-                    end;
                     PurchaseQuoteHdrG."Quote Cancelled" := true;
                     PurchaseQuoteHdrG.Modify();
                 until PurchaseQuoteHdrG.Next() = 0;
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', true, true)]
+    //local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
+    local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
+    begin
+        if (Format(PurchaseHeader."Ref. Requisition ID") <> '') then
+            with PurchaseHeader do begin
+                if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Quote then
+                    exit;
+                PurchaseQuoteHdrG.Reset();
+                PurchaseQuoteHdrG.SetRange("Ref. Requisition ID", "Ref. Requisition ID");
+                PurchaseQuoteHdrG.SetFilter("No.", '<>%1', "No.");
+                if PurchaseQuoteHdrG.FindSet() then
+                    repeat
+                        if PurchaseQuoteHdrG.Status = PurchaseQuoteHdrG.Status::"Pending Approval" then
+                            ApprovalsMgmt.OnCancelPurchaseApprovalRequest(PurchaseQuoteHdrG);
+                        PurchaseQuoteHdrG."Quote Cancelled" := true;
+                        PurchaseQuoteHdrG.Modify();
+                    until PurchaseQuoteHdrG.Next() = 0;
+            end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Quote to Order", 'OnAfterInsertPurchOrderLine', '', true, true)]

@@ -39,33 +39,44 @@ pageextension 50004 "PO Card" extends "Purchase Order"
                 }
                 field(Thanking; Thanking)
                 {
+                    Caption = 'Signature 1';
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     Visible = true;
                 }
                 field("Person Singnature"; "Person Singnature")
                 {
+                    Caption = 'Signature 2';
+
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     Visible = true;
                 }
                 field("Signature (Company Name)"; "Signature (Company Name)")
                 {
+                    Caption = 'Signature 3';
+
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
                 field("Singnature 1"; "Singnature 1")
                 {
+                    Caption = 'Signature 4';
+
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
                 field("Singnature 2"; "Singnature 2")
                 {
+                    Caption = 'Signature 5';
+
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
                 field("Singnature 3"; "Singnature 3")
                 {
+                    Caption = 'Signature 6';
+
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     Visible = true;

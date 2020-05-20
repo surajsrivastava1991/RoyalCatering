@@ -714,10 +714,13 @@ page 50095 "Cust. Cash Receipt - Journal"
                     var
                         GenjouTemL: Record "Gen. Journal Template";
                         PDCEntryL: Record "PDC Entry";
+                        BantchNo: Code[50];
                     begin
                         //PDC Entry Control
+                        BantchNo := '';
                         if GenjouTemL.Get("Journal Template Name") then
                             if GenjouTemL."PDC Required" then begin
+                                BantchNo := "Payment Reference";
                                 PDCEntryL.Reset();
                                 PDCEntryL.SetRange("Document No.", "Payment Reference");
                                 if PDCEntryL.FindFirst() then begin
@@ -731,6 +734,14 @@ page 50095 "Cust. Cash Receipt - Journal"
                         CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", Rec);
                         CurrentJnlBatchName := '';
                         DeleteBatch();
+                        PDCEntryL.Reset();
+                        PDCEntryL.SetRange("Document No.", BantchNo);
+                        if PDCEntryL.FindFirst() then begin
+                            PDCEntryL."Entry Posted" := true;
+                            PDCEntryL.Modify(true);
+                        end;
+
+
                         CurrPage.close();
 
                     end;

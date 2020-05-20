@@ -116,7 +116,34 @@ report 50003 "Purchase Order Details"
             {
 
             }
+            column(AmountinWordsG; AmountinWordsG[1])
+            {
 
+            }
+            column(Location_Code; "Location Code")
+            {
+
+            }
+            column(Comment1; CommentLine[1])
+            {
+
+            }
+            column(Comment2; CommentLine[2])
+            {
+
+            }
+            column(Comment3; CommentLine[3])
+            {
+
+            }
+            column(Comment4; CommentLine[4])
+            {
+
+            }
+            column(Comment5; CommentLine[5])
+            {
+
+            }
             dataitem("Purchase Line"; "Purchase Line")
             {
                 DataItemLink = "Document No." = field("No.");
@@ -133,7 +160,7 @@ report 50003 "Purchase Order Details"
                 {
 
                 }
-                column(Unit_Cost; "Unit Cost")
+                column(Unit_Cost; "Direct Unit Cost")
                 {
 
                 }
@@ -165,10 +192,7 @@ report 50003 "Purchase Order Details"
                 {
 
                 }
-                column(AmountinWordsG; AmountinWordsG[1])
-                {
 
-                }
                 column(LocationCode; "Location Code")
                 {
                 }
@@ -184,13 +208,11 @@ report 50003 "Purchase Order Details"
                 trigger OnAfterGetRecord()
                 begin
                     // QuantityG := "Purchase Line"."Qty. to Accept";
-                    LineAmountG := "Purchase Line"."Qty. to Accept" * "Purchase Line"."Unit Cost";
+                    LineAmountG := "Purchase Line"."Qty. to Accept" * "Purchase Line"."Direct Unit Cost";
                     DiscountAmt := (LineAmountG * "Purchase Line"."Line Discount %") / 100;
-                    VatAmt := LineAmountG * ("Purchase Line"."VAT %" / 100);
+                    VatAmt := (LineAmountG - DiscountAmt) * ("Purchase Line"."VAT %" / 100);
                     TotalLineAmountG := LineAmountG + VatAmt - DiscountAmt;
-                    GrandTotalG += LineAmountG + VatAmt;
-                    CheckG.InitTextVariable();
-                    CheckG.FormatNoText(AmountinWordsG, GrandTotalG, 'AED');
+
 
 
                 end;
@@ -202,21 +224,32 @@ report 50003 "Purchase Order Details"
                 GLEntryG.Get();
                 DiscountAmt := 0;
                 GrandTotalG := 0;
+                TotalLineAmount := 0;
+                CommentLine[1] := '';
+                CommentLine[2] := '';
+                CommentLine[3] := '';
+                CommentLine[4] := '';
+                CommentLine[5] := '';
             end;
 
             trigger OnAfterGetRecord()
             begin
 
-                // PurchaseLineG.Reset();
-                // PurchaseLineG.SetRange("Document Type", PurchaseHeader."Document Type");
-                // PurchaseLineG.SetRange("Document No.", PurchaseHeader."No.");
-                // if PurchaseLineG.FindSet() then
-                //     repeat
-                //         GrandTotalG += (PurchaseLineG."Qty. to Accept" * PurchaseLineG."Unit Cost") * (1 + (PurchaseLineG."VAT %" / 100) - (PurchaseLineG."Line Discount %") / 100);
-                //     until PurchaseLineG.Next() = 0;
+                PurchaseLineG.Reset();
+                PurchaseLineG.SetRange("Document Type", PurchaseHeader."Document Type");
+                PurchaseLineG.SetRange("Document No.", PurchaseHeader."No.");
+                if PurchaseLineG.FindSet() then
+                    repeat
+                        DiscountAmountG := 0;
+                        TotalLineAmount := 0;
+                        TotalLineAmount := (PurchaseLineG."Qty. to Accept" * PurchaseLineG."Direct Unit Cost");
+                        DiscountAmountG := TotalLineAmount * PurchaseLineG."Line Discount %" / 100;
+                        GrandTotalG += (TotalLineAmount - DiscountAmountG) + (TotalLineAmount - DiscountAmountG) * PurchaseLineG."VAT %" / 100;
+                    until PurchaseLineG.Next() = 0;
 
 
-
+                CheckG.InitTextVariable();
+                CheckG.FormatNoText(AmountinWordsG, round(GrandTotalG, 0.01), 'AED');
 
 
                 VendorG.Get(PurchaseHeader."Buy-from Vendor No.");
@@ -228,6 +261,17 @@ report 50003 "Purchase Order Details"
                     DimensionValueG.Get(GLEntryG."Global Dimension 1 Code", PurchaseHeader."Shortcut Dimension 1 Code");
                     ProjectNameG := DimensionValueG.Name;
                 end;
+
+                //Comment Section for 5 line
+                i := 1;
+                PurchCommentLineG.Reset();
+                PurchCommentLineG.SetRange("Document Type", PurchCommentLineG."Document Type"::Order);
+                PurchCommentLineG.SetRange("No.", PurchaseHeader."No.");
+                if PurchCommentLineG.FindSet() then
+                    repeat
+                        CommentLine[i] := PurchCommentLineG.Comment;
+                        i += 1;
+                    until (PurchCommentLineG.Next() = 0) or (i = 6);
             end;
 
         }
@@ -258,16 +302,19 @@ report 50003 "Purchase Order Details"
         GLEntryG: record "General Ledger Setup";
         VendorG: Record Vendor;
         PurchaseLineG: Record "Purchase Line";
-
+        PurchCommentLineG: record "Purch. Comment Line";
         CheckG: Report Check;
         AmountinWordsG: array[1] of Text;
-
+        CommentLine: array[5] of Text;
         ProjectNameG: Text[50];
         FAXNo: text[30];
         LineAmountG: Decimal;
         TotalLineAmountG: Decimal;
+        DiscountAmountG: Decimal;
         GrandTotalG: Decimal;
+        TotalLineAmount: Decimal;
         VATRegNo: code[20];
         DiscountAmt: Decimal;
         VatAmt: Decimal;
+        i: Integer;
 }

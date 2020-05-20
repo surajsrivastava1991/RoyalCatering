@@ -111,6 +111,12 @@ table 50000 "Production Plan Header"
             TableRelation = "Event Type";
             Editable = false;
         }
+        field(13; "Cost Posted"; Boolean)
+        {
+            Caption = 'Cost Posted';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
 
     keys

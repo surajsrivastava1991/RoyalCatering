@@ -704,7 +704,7 @@ page 50070 "Approved requisitions"
 
                     trigger OnAction()
                     var
-                        Carryoutactionreport: Report "Carry Out Action Process";
+                        Carryoutactionreport: Report "Carry Out Action Process Quote";
                     begin
                         Rec.SetRange("Replenishment System", "Replenishment System"::Purchase);
                         Rec.SetRange("Order/Quote", "Order/Quote"::"Purchase Quote");

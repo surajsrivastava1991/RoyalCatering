@@ -550,7 +550,7 @@ codeunit 50003 "Standard Calculate  Cost"
         ProdBOMLine: Record "Production BOM Line";
         CompItemQtyBase: Decimal;
         UOMFactor: Decimal;
-        PBOMVersionCode: Code[10];
+        PBOMVersionCode: Code[20];
     begin
         if ProdBOMNo = '' then
             exit;

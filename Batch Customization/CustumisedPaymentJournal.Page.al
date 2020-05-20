@@ -1206,10 +1206,13 @@ page 50096 "Custumised Payment - Journal"
                     var
                         GenjouTemL: Record "Gen. Journal Template";
                         PDCEntryL: Record "PDC Entry";
+                        BantchNo: Code[50];
                     begin
                         //PDC Entry Control
+                        BantchNo := '';
                         if GenjouTemL.Get("Journal Template Name") then
                             if GenjouTemL."PDC Required" then begin
+                                BantchNo := "Document No.";
                                 PDCEntryL.Reset();
                                 PDCEntryL.SetRange("Document No.", "Document No.");
                                 if PDCEntryL.FindFirst() then begin
@@ -1223,6 +1226,12 @@ page 50096 "Custumised Payment - Journal"
                         CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post", Rec);
                         CurrentJnlBatchName := '';
                         DeleteBatch();
+                        PDCEntryL.Reset();
+                        PDCEntryL.SetRange("Document No.", BantchNo);
+                        if PDCEntryL.FindFirst() then begin
+                            PDCEntryL."Entry Posted" := true;
+                            PDCEntryL.Modify(true);
+                        end;
                         CurrPage.close();
                     end;
                 }

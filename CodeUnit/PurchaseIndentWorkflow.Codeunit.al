@@ -349,4 +349,24 @@ codeunit 50051 "Purchase Indent Workflow"
         end;
     end;
     //Page Management -End
+    //Notification Mail -->>
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Notification Management", 'OnGetDocumentTypeAndNumber', '', true, true)]
+    local procedure OnGetDocumentTypeAndNumber(var RecRef: RecordRef; var DocumentType: Text; var DocumentNo: Text; var IsHandled: Boolean)
+    var
+        PurIndentHdrL: Record "Purchase Indent Header";
+        FieldRef: FieldRef;
+    begin
+        case RecRef.Number of
+            DATABASE::"Purchase Indent Header":
+                begin
+                    RecRef.SetTable(PurIndentHdrL);
+                    DocumentType := 'Requisition';
+                    FieldRef := RecRef.Field(1);
+                    DocumentNo := Format(FieldRef.Value);
+                    IsHandled := true;
+                end;
+        end;
+    end;
+
+    //Notification Mail <<--
 }

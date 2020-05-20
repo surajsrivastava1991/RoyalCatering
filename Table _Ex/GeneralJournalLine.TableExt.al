@@ -171,6 +171,8 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GLSetupL: Record "General Ledger Setup";
         GenjournalbatchL: Record "Gen. Journal Batch";
         PDCEntry: record "PDC Entry";
+        vendorL: Record Vendor;
+        BankL: Record "Bank Account";
         NoSeriesManagementG: Codeunit NoSeriesManagement;
         DocumentNoL: Code[20];
         LineNoG: Integer;
@@ -221,6 +223,19 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         PDCEntry."Document No." := "Document No.";
         PDCEntry."Created Date" := "Document Date";
         PDCEntry."Check Maturity Date" := "Posting Date";
+        PDCEntry."Check Amount" := "Debit Amount";
+        PDCEntry."Jouranl Type" := PDCEntry."Jouranl Type"::"Payment Journal";
+        PDCEntry.Template := "Journal Template Name";
+        PDCEntry."Batch No." := "Journal Batch Name";
+        if vendorL.Get("Account No.") then begin
+            PDCEntry."Customer No./Vendor No." := "Account No.";
+            PDCEntry."Customer/Vendor Name" := vendorL.Name;
+        end;
+        PDCEntry.Amount := Amount;
+        if BankL.get("Bal. Account No.") then begin
+            PDCEntry."Bank Account No." := "Bal. Account No.";
+            PDCEntry."Bank Account Name" := BankL.Name;
+        end;
         PDCEntry."PDC Status" := PDCEntry."PDC Status"::Created;
         PDCEntry.Insert();
 
@@ -294,6 +309,8 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         GLSetupL: Record "General Ledger Setup";
         GenjournalbatchL: Record "Gen. Journal Batch";
         PDCEntry: Record "PDC Entry";
+        CustomerL: Record Customer;
+        BankL: Record "Bank Account";
         NoSeriesManagementG: Codeunit NoSeriesManagement;
         DocumentNoL: Code[20];
         LineNoG: Integer;
@@ -345,6 +362,19 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         PDCEntry."Document No." := "Payment Reference";
         PDCEntry."Created Date" := "Document Date";
         PDCEntry."Check Maturity Date" := "Posting Date";
+        PDCEntry."Check Amount" := "Credit Amount";
+        PDCEntry."Jouranl Type" := PDCEntry."Jouranl Type"::"Cash Journal";
+        PDCEntry.Template := "Journal Template Name";
+        PDCEntry."Batch No." := "Journal Batch Name";
+        if CustomerL.Get("Account No.") then begin
+            PDCEntry."Customer No./Vendor No." := "Account No.";
+            PDCEntry."Customer/Vendor Name" := CustomerL.Name;
+        end;
+        PDCEntry.Amount := Amount;
+        if BankL.get("Bal. Account No.") then begin
+            PDCEntry."Bank Account No." := "Bal. Account No.";
+            PDCEntry."Bank Account Name" := BankL.Name;
+        end;
         PDCEntry."PDC Status" := PDCEntry."PDC Status"::Created;
         PDCEntry.Insert();
 

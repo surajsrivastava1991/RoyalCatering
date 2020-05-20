@@ -90,6 +90,18 @@ tableextension 50025 "Purchase Line Ext" extends "Purchase Line"
         {
             DataClassification = CustomerContent;
         }
+        field(50006; "Technical Sepcification"; Text[250])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50007; "Commercial Specification"; Text[250])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50008; "User Comment"; Text[250])
+        {
+            DataClassification = CustomerContent;
+        }
     }
     trigger OnAfterInsert()
     begin

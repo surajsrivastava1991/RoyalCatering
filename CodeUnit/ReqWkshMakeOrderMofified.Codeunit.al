@@ -242,7 +242,8 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                     if "Replenishment System" = "Replenishment System"::Purchase then begin
                         if "Planning Line Origin" = "Planning Line Origin"::"Order Planning" then
                             TestField("Supply From");
-                        TestField("Vendor No.")
+                        if "Order/Quote" = "Order/Quote"::"Purchase Order" then
+                            TestField("Vendor No.")
                     end else
                         if "Replenishment System" = "Replenishment System"::Transfer then begin
                             TestField("Location Code");
@@ -1734,10 +1735,10 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                 if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
                     PurchOrderHeader."Shipment Method Code" := Vendor."Shipment Method Code";
             PurchOrderHeader."Assigned User ID" := "Purchaser Code";
-            if not ItemGrouping then begin
-                IndentLineL.Get("Req. Document No.", "Req. Line No.");
-                PurchOrderHeader."Ref. Requisition ID" := IndentLineL.RecordId;
-            end;
+            //if not ItemGrouping then begin
+            IndentLineL.Get("Req. Document No.", "Req. Line No.");
+            PurchOrderHeader."Ref. Requisition ID" := IndentLineL.RecordId;
+            //end;
             PurchOrderHeader.Modify();
             PurchOrderHeader.Mark(true);
         end;

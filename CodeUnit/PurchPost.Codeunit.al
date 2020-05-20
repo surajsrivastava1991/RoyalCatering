@@ -15,6 +15,7 @@ codeunit 50005 PurchPost
         PurchRequisitionLineG.Reset();
         PurchRequisitionLineG.SetRange("Ref. Document Type", PurchRequisitionLineG."Ref. Document Type"::"Purchase Order");
         PurchRequisitionLineG.SetRange("Ref. Document No.", PurchLine."Document No.");
+        PurchRequisitionLineG.SetRange("Ref. Document Line No.", PurchLine."Line No.");
         if PurchRequisitionLineG.FindSet() then
             repeat
                 if FullyReceivedG then

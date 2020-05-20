@@ -5,6 +5,7 @@ page 50016 "Cost Allocation Card"
     UsageCategory = Administration;
     SourceTable = "Cost Allocation Header";
     Caption = 'Cost Allocation Card';
+    Permissions = TableData 17 = rimd;
 
     layout
     {
@@ -147,6 +148,7 @@ page 50016 "Cost Allocation Card"
                         ProductionPlanHeaderG.Reset();
                         ProductionPlanHeaderG.SetRange("Kitchen Location", "Bulk Location");
                         ProductionPlanHeaderG.SetRange("Delivery Date", "From Date", "To Date");
+                        ProductionPlanHeaderG.SetRange("Cost Posted", false);   //suraj 18/05/20
                         if ProductionPlanHeaderG.FindSet() then
                             repeat
                                 ProductionLineL.Reset();
@@ -155,7 +157,6 @@ page 50016 "Cost Allocation Card"
                                     repeat
                                         ItemL.Get(ProductionLineL."Item No.");
                                         CalculateStdCost.CalcItem(ProductionLineL."Item No.", false);   //Standard Cost calculation
-                                                                                                        // ItemL.CalcFields("Rolled-up Material Cost");
                                         ProductionLineL.validate("Recipe Cost(Base)", ItemL."Rolled-up Material Cost");
                                         ProductionLineL."Calculation Standard Cost" := true;
                                         ProductionLineL."Cal. Standard Cost Run Date" := Today();
@@ -198,6 +199,7 @@ page 50016 "Cost Allocation Card"
                         GLEntryL.Reset();
                         GLEntryL.SetRange("G/L Account No.", InventorySetupL."Kitchen Cost Account");
                         GLEntryL.SetRange("Posting Date", "From Date", "To Date");
+                        GLEntryL.SetRange("Cost Posted", false);   //Suraj 18/05/20
                         if GLEntryL.FindSet() then
                             repeat
                                 "Bulk Allocation Cost" += GLEntryL.Amount;
@@ -242,10 +244,10 @@ page 50016 "Cost Allocation Card"
                         if DimentionValueL.FindSet() then
                             repeat
                                 ProductionPlanHeaderL.Reset();
-
                                 ProductionPlanHeaderL.SetRange("Kitchen Location", "Bulk Location");
                                 ProductionPlanHeaderL.SetRange("Delivery Date", "From Date", "To Date");
                                 ProductionPlanHeaderL.SetRange("Project No.", DimentionValueL."code");
+                                ProductionPlanHeaderL.SetRange("Cost Posted", false);   //Suraj 18/05/20
                                 if ProductionPlanHeaderL.FindSet() then
                                     repeat
                                         CostAllocationLineL.Reset();
@@ -354,16 +356,36 @@ page 50016 "Cost Allocation Card"
                     var
                         LocationL: Record Location;
                         GenJournalLineL: Record "Gen. Journal Line";
+                        GlEntryL: Record "G/L Entry";
+                        InventorySetupL: Record "Inventory Setup";
                     begin
+                        InventorySetupL.Get();
                         LocationL.Get("Bulk Location");
                         if LocationL."Location Type" = LocationL."Location Type"::" " then
                             exit;
+
+                        //Suraj 18/05/20
                         GenJournalLineL.Reset();
                         GenJournalLineL.SetRange("Journal Template Name", LocationL."Journal Template Name");
                         GenJournalLineL.setrange("Journal Batch Name", LocationL."journal Batch Name");
-                        if GenJournalLineL.FindFirst() then
-                            Page.RunModal(39, GenJournalLineL)
-                        else
+                        if GenJournalLineL.FindFirst() then begin
+                            Page.RunModal(39, GenJournalLineL);
+
+                            if "Journal Posted" then begin
+                                GLEntryL.Reset();
+                                GLEntryL.SetRange("G/L Account No.", InventorySetupL."Kitchen Cost Account");
+                                GLEntryL.SetRange("Posting Date", "From Date", "To Date");
+                                GLEntryL.SetRange("Cost Posted", false);   //Suraj 18/05/20
+                                if GLEntryL.FindSet() then
+                                    repeat
+                                        GlEntryL."Cost Posted" := true;
+                                        GlEntryL.Modify(true);
+                                    until GLEntryL.Next() = 0;
+                            end;
+
+                            //Suraj 18/05/20
+
+                        end else
                             Message('There is no lines in General Journal');
                     end;
 

@@ -1,4 +1,4 @@
-pageextension 50098 "Sales Header" extends "Sales Order"
+pageextension 50098 "Sales Header" extends "Sales Invoice"
 {
     layout
     {

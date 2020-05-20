@@ -370,7 +370,7 @@ table 50035 "Purchase Indent Header"
             if Vendor.Get(PurchOrderHeader."Buy-from Vendor No.") then
                 PurchOrderHeader.Validate("Shipment Method Code", Vendor."Shipment Method Code");
         end;
-        PurchOrderHeader."Ref. Requisition ID" := IndentLine2.RecordId;
+        //PurchOrderHeader."Ref. Requisition ID" := IndentLine2.RecordId;
         PurchOrderHeader."Assigned User ID" := UserId;
         PurchOrderHeader.Modify();
         PurchOrderHeader.Mark(true);
@@ -513,6 +513,7 @@ table 50035 "Purchase Indent Header"
                 PurchOrderHeader.Validate("Shipment Method Code", Vendor."Shipment Method Code");
         end;
         PurchOrderHeader."Assigned User ID" := '';
+        PurchOrderHeader."Ref. Requisition ID" := IndentLine2.RecordId;
         PurchOrderHeader.Modify();
         PurchOrderHeader.Mark(true);
     end;

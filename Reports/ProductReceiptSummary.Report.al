@@ -84,11 +84,16 @@ report 50005 "Product Receipt Summary"
                 {
                     field(FromDate; FromDate)
                     {
+                        Caption = 'From Date';
                         ApplicationArea = All;
+                        ToolTip = 'From Date';
                     }
                     field(ToDate; ToDate)
                     {
+                        Caption = 'To Date';
                         ApplicationArea = All;
+                        ToolTip = 'To Date';
+
                     }
                 }
             }
@@ -116,6 +121,5 @@ report 50005 "Product Receipt Summary"
         ToDate: Date;
         RequestFiltersVar: Text[250];
         CreationDateFilterVar: Text[100];
-
 
 }

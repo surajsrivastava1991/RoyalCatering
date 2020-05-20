@@ -226,12 +226,12 @@ Report 50081 "Preview Voucher"
                     Caption = 'Options';
                     field(PrintLineNarration; PrintLineNarration)
                     {
-                        ApplicationArea = Basic;
+                        ApplicationArea = Basic, Suite;
                         Caption = 'PrintLineNarration';
                     }
                     /* field(ForNavOpenDesigner; ReportForNavOpenDesigner)
                     {
-                        ApplicationArea = Basic;
+                        ApplicationArea = Basic,Suite;
                         Caption = 'Design';
                         Visible = ReportForNavAllowDesign;
                     } */

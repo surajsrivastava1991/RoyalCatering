@@ -76,6 +76,12 @@ page 50013 "Production Plan Card"
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
+                field("Cost Posted"; "Cost Posted")
+                {
+                    Caption = 'Cost Posted';
+                    ApplicationArea = all;
+                    ToolTip = 'For checking that costing has been done or not';
+                }
 
             }
             part(Lines; "Production Plan Subpage")

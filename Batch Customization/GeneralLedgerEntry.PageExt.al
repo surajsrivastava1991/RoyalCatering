@@ -2,7 +2,14 @@ pageextension 50096 "General Ledger Entry" extends "General Ledger Entries"
 {
     layout
     {
-
+        addafter("External Document No.")
+        {
+            field("Cost Posted"; "Cost Posted")
+            {
+                ApplicationArea = all;
+                ToolTip = 'Cost allocation has been done for this perticular transaction';
+            }
+        }
     }
 
     actions

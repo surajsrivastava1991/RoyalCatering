@@ -73,25 +73,25 @@ report 50002 "Tax Invoice"
             {
             }
 
-            column(BuyfromVendorName; "Bill-to Name")
+            column(BuyfromVendorName; ContactName)
             {
             }
-            column(Ship_to_Address_2; "Ship-to Address 2")
+            column(Ship_to_Address_2; Address2)
             {
             }
-            column(Ship_to_Address; "Ship-to Address")
+            column(Ship_to_Address; Address1)
             {
             }
-            column(BuyfromContactNo; "Bill-to Contact No.")
+            column(BuyfromContactNo; PhoneNo)
             {
             }
-            column(BuyfromCountryRegionCode; "Bill-to Country/Region Code")
+            column(BuyfromCountryRegionCode; CountryRegion)
             {
             }
-            column(BuyfromPostCode; "Bill-to Post Code")
+            column(BuyfromPostCode; PostCode)
             {
             }
-            column(Ship_to_City; "Ship-to City")
+            column(Ship_to_City; City)
             {
 
             }
@@ -130,11 +130,13 @@ report 50002 "Tax Invoice"
             }
             column(QuoteNo; "Quote No.")
             {
+
             }
-            column(Amount_Including_VAT; "Amount Including VAT")
+            column(Your_Reference; "Your Reference")
             {
 
             }
+
             column(AmountinWordsG; AmountinWordsG[1])
             {
 
@@ -168,6 +170,10 @@ report 50002 "Tax Invoice"
 
             }
             column(Email; EmailG)
+            {
+
+            }
+            column(Inv_Amount_Including_VAT; "Amount Including VAT")
             {
 
             }
@@ -222,19 +228,22 @@ report 50002 "Tax Invoice"
                 column(LocationCode; "Location Code")
                 {
                 }
-                column(DiscountAmt; DiscountAmt)
+                column(Inv__Discount_Amount; "Inv. Discount Amount")
                 {
 
                 }
-                column(VatAmountG; VatAmountG)
+                column(Amount_Including_VAT; "Amount Including VAT")
+                {
+
+                }
+                column(GrossAmountG; GrossAmountG)
                 {
 
                 }
 
                 trigger OnAfterGetRecord()
                 begin
-                    DiscountAmt += "Sales Invoice Line"."Line Discount Amount";
-                    VatAmountG := "Sales Invoice Line"."Line Amount" * "Sales Invoice Line"."VAT %" / 100;
+                    GrossAmountG := "Sales Invoice Line".Quantity * "Sales Invoice Line"."Unit Price";
                     SNo += 1;
                 end;
             }
@@ -244,11 +253,15 @@ report 50002 "Tax Invoice"
                 CompInfoG.CalcFields(Picture);
                 GLEntryG.Get();
                 DiscountAmt := 0;
+                GrossAmountG := 0;
                 SNo := 0;
+
             end;
 
             trigger OnAfterGetRecord()
             begin
+                CalcFields(Amount);
+                CalcFields("Amount Including VAT");
                 PEDate := 0D;
                 PSDate := 0D;
                 CheckG.InitTextVariable();
@@ -258,11 +271,36 @@ report 50002 "Tax Invoice"
                     VATRegNo := CustomerG."VAT Registration No.";
                     EmailG := CustomerG."E-Mail";
                     ProjectNameG := '';
+                    PhoneNo := CustomerG."Phone No.";
+                    ContactName := CustomerG.Name;
 
                     if SalesInvoiceHeader."shortcut Dimension 1 Code" <> '' then begin
                         DimensionValueG.Get(GLEntryG."Global Dimension 1 Code", SalesInvoiceHeader."shortcut Dimension 1 Code");
                         ProjectNameG := DimensionValueG.Name;
                     end;
+                end;
+
+                if SalesInvoiceHeader."Bill-to Contact No." <> '' then begin
+                    ContactG.Reset();
+                    ContactG.SetRange("No.", SalesInvoiceHeader."Bill-to Contact No.");
+                    if ContactG.FindFirst() then begin
+                        ContactName := ContactG.Name;
+                        PhoneNo := ContactG."Phone No.";
+                        FAXNo := ContactG."Fax No.";
+                        EmailG := ContactG."E-Mail";
+                        Address1 := ContactG.Address;
+                        Address2 := ContactG."Address 2";
+                        City := ContactG.City;
+                        PostCode := ContactG."Post Code";
+                        CountryRegion := ContactG."Country/Region Code";
+                    end;
+                end else begin
+                    // ContactName := "Bill-to Name";
+                    Address1 := "Bill-to Address";
+                    Address2 := "Bill-to Address 2";
+                    City := "Bill-to City";
+                    PostCode := "Bill-to Post Code";
+                    CountryRegion := "Bill-to Country/Region Code";
                 end;
 
             end;
@@ -294,6 +332,7 @@ report 50002 "Tax Invoice"
         DimensionValueG: Record "Dimension Value";
         GLEntryG: record "General Ledger Setup";
         CustomerG: Record Customer;
+        ContactG: Record Contact;
 
         CheckG: Report Check;
         AmountinWordsG: array[1] of Text;
@@ -302,8 +341,15 @@ report 50002 "Tax Invoice"
         FAXNo: text[30];
         VATRegNo: code[20];
         EmailG: Text[200];
+        Address1: Text[250];
+        Address2: Text[250];
+        City: Code[30];
+        PostCode: Code[20];
+        CountryRegion: Code[20];
+        ContactName: Text[100];
+        PhoneNo: Code[30];
         DiscountAmt: Decimal;
-        VatAmountG: Decimal;
+        GrossAmountG: Decimal;
         PSDate: Date;
         PEDate: Date;
         SNo: Integer;

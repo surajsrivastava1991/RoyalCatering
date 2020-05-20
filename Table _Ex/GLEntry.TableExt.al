@@ -26,6 +26,12 @@ tableextension 50043 "GL Entry" extends "G/L Entry"
         field(50005; "Ext Posting Date"; Date)
         {
             DataClassification = CustomerContent;
+
+        }
+        field(50006; "Cost Posted"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            Editable = false;
         }
 
         // Add changes to table fields here

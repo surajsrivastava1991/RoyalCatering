@@ -55,6 +55,7 @@ pageextension 50042 "Gen journal line" extends "General Journal"
                 var
                     costallocationL: Record "Cost Allocation Header";
                     GLentryL: Record "G/L Entry";
+                    ProductionPlanHeaderL: Record "Production Plan Header";
                     TD: Date;
                     FD: date;
                     LocationCodeL: Code[20];
@@ -82,6 +83,18 @@ pageextension 50042 "Gen journal line" extends "General Journal"
                             costallocationL."Voucher No. (Posted)" := GLentryL."Document No.";
                             costallocationL."Journal Posted" := true;
                             costallocationL.Modify(true);
+
+                            //Suraj 18/05/20 Start
+                            ProductionPlanHeaderL.Reset();
+                            ProductionPlanHeaderL.SetRange("Kitchen Location", LocationCodeL);
+                            ProductionPlanHeaderL.SetRange("Delivery Date", FD, TD);
+                            ProductionPlanHeaderL.SetRange("Cost Posted", false);
+                            if ProductionPlanHeaderL.FindSet() then
+                                repeat
+                                    ProductionPlanHeaderL."Cost Posted" := true;
+                                    ProductionPlanHeaderL.Modify(true);
+                                until ProductionPlanHeaderL.Next() = 0;
+                            //Suraj 18/05/20 End
                         end;
                     end;
                 end;
