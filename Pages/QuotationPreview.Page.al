@@ -71,7 +71,7 @@ page 50046 "Quotation Preview"
                     ToolTip = 'TableFields';
                 }
 
-                field("Quote Cancelled"; PurchaseHdrG."Quote Cancelled")
+                field("Quotation Status"; PurchaseHdrG."Quotation Status")
                 {
                     ApplicationArea = All;
                     ToolTip = 'TableFields';
@@ -115,10 +115,7 @@ page 50046 "Quotation Preview"
                 trigger OnAction()
                 begin
                     PurchaseHdrG.Get("Document Type", "Document No.");
-                    if PurchaseHdrG."Document Type" = PurchaseHdrG."Document Type"::Quote then
-                        Page.Run(Page::"Purchase Quote", PurchaseHdrG)
-                    else
-                        Page.Run(Page::"Purchase Order", PurchaseHdrG);
+                    Page.Run(Page::"Purchase Quote", PurchaseHdrG);
                 end;
             }
         }

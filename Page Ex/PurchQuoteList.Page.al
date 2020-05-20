@@ -10,7 +10,7 @@ pageextension 50030 "Purch. Quote List Ext." extends "Purchase Quotes"
                 ApplicationArea = All;
                 ToolTip = 'Table Field';
             }
-            field("Quote Cancelled"; "Quote Cancelled")
+            field("Quotation Status"; "Quotation Status")
             {
                 Editable = false;
                 ApplicationArea = All;

@@ -16,6 +16,8 @@ codeunit 50055 "After Release Purch Quote"
     local procedure OnAfterManualReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean)
     begin
         with PurchaseHeader do begin
+            if (Format(PurchaseHeader."Ref. Requisition ID") = '') then
+                exit;
             if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Quote then
                 exit;
             PurchaseQuoteHdrG.Reset();
@@ -25,7 +27,7 @@ codeunit 50055 "After Release Purch Quote"
                 repeat
                     if PurchaseQuoteHdrG.Status = PurchaseQuoteHdrG.Status::"Pending Approval" then
                         ApprovalsMgmt.OnCancelPurchaseApprovalRequest(PurchaseQuoteHdrG);
-                    PurchaseQuoteHdrG."Quote Cancelled" := true;
+                    PurchaseQuoteHdrG."Quotation Status" := PurchaseQuoteHdrG."Quotation Status"::Cancelled;
                     PurchaseQuoteHdrG.Modify();
                 until PurchaseQuoteHdrG.Next() = 0;
         end;
@@ -35,21 +37,22 @@ codeunit 50055 "After Release Purch Quote"
     //local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
     local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
     begin
-        if (Format(PurchaseHeader."Ref. Requisition ID") <> '') then
-            with PurchaseHeader do begin
-                if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Quote then
-                    exit;
-                PurchaseQuoteHdrG.Reset();
-                PurchaseQuoteHdrG.SetRange("Ref. Requisition ID", "Ref. Requisition ID");
-                PurchaseQuoteHdrG.SetFilter("No.", '<>%1', "No.");
-                if PurchaseQuoteHdrG.FindSet() then
-                    repeat
-                        if PurchaseQuoteHdrG.Status = PurchaseQuoteHdrG.Status::"Pending Approval" then
-                            ApprovalsMgmt.OnCancelPurchaseApprovalRequest(PurchaseQuoteHdrG);
-                        PurchaseQuoteHdrG."Quote Cancelled" := true;
-                        PurchaseQuoteHdrG.Modify();
-                    until PurchaseQuoteHdrG.Next() = 0;
-            end;
+        if (Format(PurchaseHeader."Ref. Requisition ID") = '') then
+            exit;
+        with PurchaseHeader do begin
+            if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Quote then
+                exit;
+            PurchaseQuoteHdrG.Reset();
+            PurchaseQuoteHdrG.SetRange("Ref. Requisition ID", "Ref. Requisition ID");
+            PurchaseQuoteHdrG.SetFilter("No.", '<>%1', "No.");
+            if PurchaseQuoteHdrG.FindSet() then
+                repeat
+                    if PurchaseQuoteHdrG.Status = PurchaseQuoteHdrG.Status::"Pending Approval" then
+                        ApprovalsMgmt.OnCancelPurchaseApprovalRequest(PurchaseQuoteHdrG);
+                    PurchaseQuoteHdrG."Quotation Status" := PurchaseQuoteHdrG."Quotation Status"::Cancelled;
+                    PurchaseQuoteHdrG.Modify();
+                until PurchaseQuoteHdrG.Next() = 0;
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Quote to Order", 'OnAfterInsertPurchOrderLine', '', true, true)]
@@ -101,5 +104,37 @@ codeunit 50055 "After Release Purch Quote"
             IndentLineG.Modify();
             ReqWkshModified.UpdateHeaderStatus(IndentLineG);
         end;
+    end;
+    //Releae quote validation
+    [EventSubscriber(ObjectType::Codeunit, codeunit::"Purch.-Quote to Order (Yes/No)", 'OnBeforePurchQuoteToOrder', '', true, true)]
+    local procedure OnBeforePurchQuoteToOrder(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchaseHeader.TestField(Status, PurchaseHeader.Status::Released);
+        PurchSetup.TestField("Archive Quotes", PurchSetup."Archive Quotes"::Always);
+    end;
+    //Delete Cancelled Purchase Quotes
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Quote to Order", 'OnBeforeDeletePurchQuote', '', true, true)]
+    local procedure OnBeforeDeletePurchQuote(var QuotePurchHeader: Record "Purchase Header"; var OrderPurchHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    var
+        PurchHeaderL: Record "Purchase Header";
+        PurchaseLineL: Record "Purchase Line";
+        ArchiveManagement: Codeunit ArchiveManagement;
+    begin
+        PurchHeaderL.Reset();
+        PurchHeaderL.SetRange("Ref. Requisition ID", QuotePurchHeader."Ref. Requisition ID");
+        PurchHeaderL.SetRange("Document Type", PurchHeaderL."Document Type"::Quote);
+        if PurchHeaderL.FindSet() then
+            repeat
+                PurchaseLineL.Reset();
+                PurchaseLineL.SetRange("Document Type", PurchHeaderL."Document Type");
+                PurchaseLineL.SetRange("Document No.", PurchHeaderL."No.");
+                ArchiveManagement.ArchPurchDocumentNoConfirm(PurchHeaderL);
+                ApprovalsMgmt.DeleteApprovalEntries(PurchHeaderL.RecordId);
+                PurchHeaderL.DeleteLinks();
+                PurchHeaderL.Delete();
+                PurchaseLineL.DeleteAll();
+            until PurchHeaderL.Next() = 0;
     end;
 }

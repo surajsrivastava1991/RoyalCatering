@@ -65,10 +65,26 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        /*
         field(50008; "Quote Cancelled"; Boolean)
         {
             DataClassification = CustomerContent;
             Editable = false;
+        }
+        */
+        field(50008; "Quotation Status"; Option)
+        {
+            Caption = 'Quotation Status';
+            Editable = false;
+            OptionCaption = 'Open,Released,Pending Approval,Pending Prepayment,Cancelled';
+            OptionMembers = Open,Released,"Pending Approval","Pending Prepayment",Cancelled;
+        }
+        modify(Status)
+        {
+            trigger OnAfterValidate()
+            begin
+                "Quotation Status" := Status;
+            end;
         }
     }
     trigger OnInsert()

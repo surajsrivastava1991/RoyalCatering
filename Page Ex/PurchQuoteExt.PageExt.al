@@ -11,7 +11,7 @@ pageextension 50031 "Purch. Quote Ext." extends "Purchase Quote"
                 Caption = 'Ref. Requisition ID';
                 ToolTip = 'Table Field';
             }
-            field("Quote Cancelled"; "Quote Cancelled")
+            field("Quotation Status"; "Quotation Status")
             {
                 Editable = false;
                 ApplicationArea = All;
