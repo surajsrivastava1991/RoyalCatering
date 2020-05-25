@@ -282,6 +282,11 @@ page 50060 "Banquet Event Order List"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total of the amounts, including VAT, on all the lines on the document.';
                 }
+                field(Miscellaneous; Miscellaneous)
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Miscellaneous Amount';
+                }
                 field("Posting Description"; "Posting Description")
                 {
                     ApplicationArea = Suite;

@@ -29,10 +29,12 @@ table 50000 "Production Plan Header"
                 IF BEOL.Get(BEOL."Document Type"::Order, "BEO No.") then begin
                     "Project No." := BEOL."Shortcut Dimension 1 Code";
                     "Event Type" := BEOL."Type of Event";
+                    "Event Description" := BEOL."Details of the event";
                 end eLSE begin
                     "Project No." := '';
                     "Event Type" := '';
                     "BEO Line No." := 0;
+                    "Event Description" := '';
                 end;
             end;
         }
@@ -117,6 +119,11 @@ table 50000 "Production Plan Header"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(14; "Event Description"; Text[1024])
+        {
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
 
     keys
@@ -137,11 +144,16 @@ table 50000 "Production Plan Header"
     trigger OnModify()
     begin
         testfield(Status, Status::Open);
+        TestField("Cost Posted", false);
     end;
 
     trigger OnDelete()
     begin
-        testfield(Status, Status::Open);
+        if xRec.Status <> Rec.Status then
+            testfield(Status, Status::Open);
+
+        TestField("Cost Posted", false);
+
         ProductionPlanLineG.Reset();
         ProductionPlanLineG.SetRange("Production Plan No.", "Production Plan No.");
         ProductionPlanLineG.DeleteAll();
@@ -149,6 +161,7 @@ table 50000 "Production Plan Header"
 
     trigger OnRename()
     begin
+        TestField("Cost Posted", false);
 
     end;
 

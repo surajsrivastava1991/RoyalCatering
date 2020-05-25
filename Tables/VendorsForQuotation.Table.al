@@ -35,7 +35,6 @@ table 50004 "Vendors For Quotations"
         */
         field(4; "Vendor No."; Code[20])
         {
-            Caption = 'MyField';
             DataClassification = ToBeClassified;
             TableRelation = Vendor;
             trigger OnLookup()

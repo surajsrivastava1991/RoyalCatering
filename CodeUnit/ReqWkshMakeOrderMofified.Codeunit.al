@@ -1550,7 +1550,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         QuoteVendorsL: Record "Vendors For Quotations";
     begin
         with ReqLine2 do begin
-            if ("No." = '') or ("Vendor No." = '') or (Quantity = 0) then
+            if ("No." = '') or (Quantity = 0) then
                 exit;
 
             //TestField("Currency Code", PurchOrderHeader."Currency Code");
@@ -1649,8 +1649,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                         until QuoteVendorsL.Next() = 0;
 
                     UpdateRequisitionStatusQuote(ReqLine2);
-
-
+                    SendQuoteMail(PurchOrderHeader);
                 /*
                 //Aplica.1.0 -->>
                 PurchRequisitionLineG.reset();
@@ -1677,6 +1676,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
         SpecialOrder: Boolean;
         IndentHdrL: Record "Purchase Indent Header";
         IndentLineL: Record "Purchase Indent Line";
+        RecRefVar: RecordRef;
     begin
 
         with ReqLine2 do begin
@@ -1738,6 +1738,9 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             //if not ItemGrouping then begin
             IndentLineL.Get("Req. Document No.", "Req. Line No.");
             PurchOrderHeader."Ref. Requisition ID" := IndentLineL.RecordId;
+            RecRefVar := PurchOrderHeader."Ref. Requisition ID".GetRecord();
+
+            PurchOrderHeader."Requisition Reference" := COPYSTR(Format(PurchOrderHeader."Ref. Requisition ID", 0, 0), (strlen(RecRefVar.Caption) + 3));
             //end;
             PurchOrderHeader.Modify();
             PurchOrderHeader.Mark(true);
@@ -1771,5 +1774,94 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                     IndentLineL.TestField("Vendor No.");
                 IndentLineL.TestField(Quantity);
             until IndentLineL.next() = 0;
+    end;
+
+    procedure SendQuoteMail(var PurchHdrL: Record "Purchase Header")
+    var
+        SMTPMailSetup: Record "SMTP Mail Setup";
+        VendorL: Record Vendor;
+        UserSetupL: Record "User Setup";
+        LocationL: Record Location;
+        CompanyInfoL: Record "Company Information";
+        PurchPaySetupL: Record "Purchases & Payables Setup";
+        SMTPMailL: Codeunit "SMTP Mail";
+        TempBlob: Codeunit "Temp Blob";
+        OutputStream: OutStream;
+        InputStream: InStream;
+        SmtpConfigErr: Label 'SMTP setup is missing.';
+        EmailToL: List of [Text];
+        RecRef: RecordRef;
+        URL: Text[1000];
+
+    begin
+        if not SmtpMailL.IsEnabled() then
+            Error(SmtpConfigErr);
+        with PurchHdrL do begin
+            //
+            CompanyInfoL.Get();
+            PurchPaySetupL.Get();
+            //URL := GETURL(ClientType::SOAP, CompanyInfoL.Name, ObjectType::Page, 50, PurchHdrL);
+            TempBlob.CreateOutStream(OutputStream);
+
+            RecRef.GetTable(PurchHdrL);
+            RecRef.SetRecFilter();
+            Report.SaveAs(Report::"Purchase - Quote", '',
+                ReportFormat::Pdf, OutputStream, RecRef);
+
+            TempBlob.CreateInStream(InputStream);
+
+
+            //
+            SMTPMailSetup.GET();
+            //Email to vendor
+            VendorL.get("Buy-from Vendor No.");
+            if VendorL."E-Mail" <> '' then
+                EmailToL.add(VendorL."E-Mail")
+            else
+                Error('Vendor Email ID should not be blank');
+
+            //Email to user
+            if "Created By" <> '' then begin
+                UserSetupL.Get("Created By");
+                if UserSetupL."E-Mail" <> '' then
+                    EmailToL.Add(UserSetupL."E-Mail");
+            end;
+            //Email to location
+            LocationL.get("Location Code");
+            if LocationL."Warehouse/Store Incharge Email" <> '' then
+                EmailToL.Add(LocationL."Warehouse/Store Incharge Email");
+            SMTPMailL.Initialize();
+            SMTPMailL.AddFrom(SMTPMailSetup."Send As", SMTPMailSetup."User ID");
+            SMTPMailL.AddRecipients(EmailToL);
+            SMTPMailL.AddSubject('Company Name :' + CompanyInfoL.Name + ', Purchase Quote: ' + "No." + ' PO Date: ' + Format("Order Date"));
+            SMTPMailL.AddBody(Salutation + ' ' + "Buy-from Contact" + ',');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<P>' + PurchPaySetupL."Body Line1" + '</P>');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<P>' + PurchPaySetupL."Body Line2" + '</P>');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody(PurchPaySetupL.Thanking);
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<B>' + PurchPaySetupL."Person Singnature" + '</B>');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<B><P style="font-size:12px">' + PurchPaySetupL."Signature (Company Name)" + '</P></B>');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Singnature 1" + '</1>');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Singnature 2" + '</1>');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Singnature 3" + '</1>');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AppendBody('<img src="./res/123321.jpg" alt="Royal Catering" height="100" width="350">');
+            SMTPMailL.AppendBody('<Br>');
+            SMTPMailL.AddTextBody(url);
+            SMTPMailL.AddAttachmentStream(InputStream, "No." + '.pdf');
+            if not SmtpMailL.Send() then
+                Error(SmtpMailL.GetLastSendMailErrorText())
+            else
+                "Mail Sent" := true;
+
+            Modify();
+        end;
     end;
 }

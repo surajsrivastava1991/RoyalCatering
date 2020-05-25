@@ -65,6 +65,11 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(50009; "Requisition Reference"; Text[100])
+        {
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
         /*
         field(50008; "Quote Cancelled"; Boolean)
         {

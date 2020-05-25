@@ -142,6 +142,11 @@ page 50065 "Banquet Enquiry List"
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
+                field(Miscellaneous; Miscellaneous)
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Miscellaneous Amount';
+                }
 
                 field("Completely Shipped"; "Completely Shipped")
                 {

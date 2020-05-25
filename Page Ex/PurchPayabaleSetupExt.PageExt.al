@@ -111,6 +111,69 @@ pageextension 50050 "Purch & Payabale Setup Ext" extends "Purchases & Payables S
                 }
             }
         }
+        addafter("Email Body")
+        {
+            group("Quote Email Body")
+            {
+                field(Quote_Salutation; Quote_Salutation)
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Quote_Body Line1"; "Quote_Body Line1")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    MultiLine = true;
+                }
+                field("Quote_Body Line2"; "Quote_Body Line2")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    MultiLine = true;
+
+                }
+                field(Quote_Thanking; Quote_Thanking)
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    Visible = true;
+                }
+                field("Quote_Person Singnature"; "Quote_Person Singnature")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    Visible = true;
+                }
+                field("Quote_Signature (Company Name)"; "Quote_Signature (Company Name)")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Quote_Singnature 1"; "Quote_Singnature 1")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Quote_Singnature 2"; "Quote_Singnature 2")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
+                field("Quote_Singnature 3"; "Quote_Singnature 3")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                    Visible = true;
+                }
+                field("Quote_Signature Image"; "Quote_Signature Image")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Signature Image';
+                }
+
+            }
+        }
     }
 
 }

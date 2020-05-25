@@ -93,7 +93,13 @@ page 50058 "Banquet Event Order"
                 field("Sell-to Contact"; "Sell-to Contact")
                 {
                     ApplicationArea = all;
-                    ToolTip = 'Table field';
+                    ToolTip = 'Sell To Contract Name';
+                    Editable = false;
+                }
+                field("Contact Type"; "Contact Type")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Contract Type';
                     Editable = false;
                 }
                 field("Sell-to Phone No."; "Sell-to Phone No.")
@@ -516,6 +522,7 @@ page 50058 "Banquet Event Order"
                         }
                         field("Average Price Per PAX/F&B"; "Average Price Per PAX/F&B")
                         {
+                            Caption = 'Price Per PAX/F&B';
                             ApplicationArea = all;
                             ToolTip = 'Table field';
                         }
@@ -528,6 +535,11 @@ page 50058 "Banquet Event Order"
                         {
                             ApplicationArea = all;
                             ToolTip = 'Table field';
+                        }
+                        field(Miscellaneous; Miscellaneous)
+                        {
+                            ApplicationArea = all;
+                            ToolTip = 'Miscellaneous Amount';
                         }
                     }
                     group("Pricing and Billing (Invoice)")

@@ -110,5 +110,55 @@ tableextension 50050 "Purchase & Payable Setup Ext" extends "Purchases & Payable
             DataClassification = CustomerContent;
             Subtype = Bitmap;
         }
+        field(50023; "Quote_Salutation"; Text[50])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Salutation';
+
+        }
+        field(50024; "Quote_Body Line1"; Text[2000])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Body Line1';
+
+        }
+        field(50025; "Quote_Body Line2"; Text[500])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Body Line2';
+        }
+        field(50026; "Quote_Thanking"; Text[100])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Thanking';
+
+        }
+        field(50027; "Quote_Person Singnature"; Text[100])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Person Singnature';
+        }
+        field(50028; "Quote_Signature (Company Name)"; Text[100])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Signature (Company Name)';
+        }
+        field(50029; "Quote_Singnature 1"; Text[100])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50030; "Quote_Singnature 2"; Text[100])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50031; "Quote_Singnature 3"; Text[100])
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50032; "Quote_Signature Image"; Blob)
+        {
+            DataClassification = CustomerContent;
+            Subtype = Bitmap;
+        }
     }
 }

@@ -37,6 +37,8 @@ codeunit 50055 "After Release Purch Quote"
     //local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
     local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
     begin
+        PurchaseHeader."Quotation Status" := PurchaseHeader.Status;
+        PurchaseHeader.Modify();
         if (Format(PurchaseHeader."Ref. Requisition ID") = '') then
             exit;
         with PurchaseHeader do begin
@@ -111,6 +113,7 @@ codeunit 50055 "After Release Purch Quote"
     var
         PurchSetup: Record "Purchases & Payables Setup";
     begin
+        PurchSetup.Get();
         PurchaseHeader.TestField(Status, PurchaseHeader.Status::Released);
         PurchSetup.TestField("Archive Quotes", PurchSetup."Archive Quotes"::Always);
     end;
@@ -125,6 +128,7 @@ codeunit 50055 "After Release Purch Quote"
         PurchHeaderL.Reset();
         PurchHeaderL.SetRange("Ref. Requisition ID", QuotePurchHeader."Ref. Requisition ID");
         PurchHeaderL.SetRange("Document Type", PurchHeaderL."Document Type"::Quote);
+        PurchHeaderL.SetFilter("No.", '<>%1', QuotePurchHeader."No.");
         if PurchHeaderL.FindSet() then
             repeat
                 PurchaseLineL.Reset();
@@ -136,5 +140,12 @@ codeunit 50055 "After Release Purch Quote"
                 PurchHeaderL.Delete();
                 PurchaseLineL.DeleteAll();
             until PurchHeaderL.Next() = 0;
+    end;
+    //Reopen
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReopenPurchaseDoc', '', true, true)]
+    local procedure OnAfterReopenPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean)
+    begin
+        PurchaseHeader."Quotation Status" := PurchaseHeader.Status;
+        PurchaseHeader.Modify();
     end;
 }

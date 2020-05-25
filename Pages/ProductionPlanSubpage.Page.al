@@ -53,6 +53,12 @@ page 50014 "Production Plan Subpage"
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
+                field("Line Amount"; "Line Amount")
+                {
+                    ApplicationArea = all;
+                    Editable = false;
+                    ToolTip = 'Line Amount';
+                }
             }
         }
     }

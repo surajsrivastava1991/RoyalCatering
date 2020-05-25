@@ -57,17 +57,25 @@ page 50066 "Banquet Enquiry Card"
                     ApplicationArea = all;
                     ToolTip = 'Location BEO';
                 }
+
+                field("Date of function start"; "Date of function start")
+                {
+                    Caption = 'Date of function start';
+                    ApplicationArea = all;
+                    ToolTip = 'Date of function start';
+                }
+                field("Date of function end"; "Date of function end")
+                {
+                    Caption = 'Date of function end';
+                    ApplicationArea = all;
+                    ToolTip = 'Date of function end';
+                }
                 field("Status of event"; "Status of event")
                 {
                     ApplicationArea = all;
                     ToolTip = 'Status of event';
                 }
-                field("Doc. No. Occurrence"; "Doc. No. Occurrence")
-                {
-                    Caption = 'Revision';
-                    ApplicationArea = all;
-                    ToolTip = 'Receive';
-                }
+
                 field("Salesperson Code"; "Salesperson Code")
                 {
                     ApplicationArea = Suite;
@@ -123,6 +131,11 @@ page 50066 "Banquet Enquiry Card"
                     ApplicationArea = all;
                     ToolTip = 'Company / Person Contact Name';
                 }
+                field("Contact Type"; "Contact Type")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Contract Type for Enquiry stage';
+                }
 
             }
 
@@ -139,6 +152,7 @@ page 50066 "Banquet Enquiry Card"
                         }
                         field("Average Price Per PAX/F&B"; "Average Price Per PAX/F&B")
                         {
+                            Caption = 'Price Per PAX/F&B';
                             ApplicationArea = all;
                             ToolTip = 'Table field';
                         }
@@ -151,6 +165,11 @@ page 50066 "Banquet Enquiry Card"
                         {
                             ApplicationArea = all;
                             ToolTip = 'Table field';
+                        }
+                        field(Miscellaneous; Miscellaneous)
+                        {
+                            ApplicationArea = all;
+                            ToolTip = 'Miscellaneous Amount';
                         }
                     }
                 }

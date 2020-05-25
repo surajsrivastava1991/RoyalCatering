@@ -89,13 +89,16 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
             DataClassification = CustomerContent;
             trigger OnValidate()
             begin
-                TestField("Shortcut Dimension 1 Code");
+                //TestField("Shortcut Dimension 1 Code");
+                if "Shortcut Dimension 1 Code" <> '' then begin
+                    JobsG.Reset();
+                    JobsG.SetRange("Global Dimension 1 Code", "Shortcut Dimension 1 Code");   //020420
+                    if JobsG.FindFirst() then
+                        if ("Date of function start" < JobsG."Starting Date") or (("Date of function start" > JobsG."Ending Date")) then
+                            error('Start date should be within the range from %1 to %2', JobsG."Starting Date", JobsG."Ending Date");
+                end else
+                    "Date of function end" := 0D;
 
-                JobsG.Reset();
-                JobsG.SetRange("Global Dimension 1 Code", "Shortcut Dimension 1 Code");   //020420
-                if JobsG.FindFirst() then
-                    if ("Date of function start" < JobsG."Starting Date") or (("Date of function start" > JobsG."Ending Date")) then
-                        error('Start date shoould be within the range from %1 to %2', JobsG."Starting Date", JobsG."Ending Date");
             end;
         }
         field(50015; "Date of function end"; Date)
@@ -104,13 +107,17 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
             DataClassification = CustomerContent;
             trigger OnValidate()
             begin
-                TestField("Shortcut Dimension 1 Code");
+                testField("Date of function start");
+                if "Shortcut Dimension 1 Code" <> '' then begin
+                    JobsG.Reset();
+                    JobsG.SetRange("Global Dimension 1 Code", "Shortcut Dimension 1 Code");   //020420
+                    if JobsG.FindFirst() then
+                        if ("Date of function end" < JobsG."Starting Date") or (("Date of function end" > JobsG."Ending Date")) then
+                            error('End date should be within the range from %1 to %2', JobsG."Starting Date", JobsG."Ending Date");
 
-                JobsG.Reset();
-                JobsG.SetRange("Global Dimension 1 Code", "Shortcut Dimension 1 Code");   //020420
-                if JobsG.FindFirst() then
-                    if ("Date of function end" < JobsG."Starting Date") or (("Date of function end" > JobsG."Ending Date")) then
-                        error('End date shoould be within the range from %1 to %2', JobsG."Starting Date", JobsG."Ending Date");
+                end else
+                    if ("Date of function end" < "Date of function start") then
+                        error('End date should be grater than Event Start Date %1', "Date of function start");
             end;
         }
         field(50016; "Start Time"; Text[1000])
@@ -327,10 +334,17 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
                 ContactL: Record Contact;
             begin
                 if "Enquiry Contact No." <> '' then begin
-                    if ContactL.Get("Enquiry Contact No.") then
-                        "Enquiry Contact Name" := ContactL.Name
-                end else
+                    if ContactL.Get("Enquiry Contact No.") then begin
+                        "Enquiry Contact Name" := ContactL.Name;
+                        if ContactL.Type = ContactL.Type::Company then
+                            "Contact Type" := "Contact Type"::Company
+                        else
+                            "Contact Type" := "Contact Type"::Person;
+                    end;
+                end else begin
                     "Enquiry Contact Name" := '';
+                    "Contact Type" := "Contact Type"::" ";
+                end;
             end;
         }
         field(50059; "Enquiry Contact Name"; Text[120])
@@ -341,6 +355,18 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
         }
         field(50060; "Invoice Description"; text[250])
         {
+            DataClassification = CustomerContent;
+        }
+        field(50061; "Contact Type"; Option)
+        {
+            Caption = 'Contact Type';
+            OptionCaption = ' ,Company,Person';
+            OptionMembers = " ","Company","Person";
+            Editable = false;
+        }
+        field(50062; "Miscellaneous"; Decimal)
+        {
+            Caption = 'Miscellaneous';
             DataClassification = CustomerContent;
         }
 

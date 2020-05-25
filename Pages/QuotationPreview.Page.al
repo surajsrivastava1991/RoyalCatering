@@ -76,8 +76,9 @@ page 50046 "Quotation Preview"
                     ApplicationArea = All;
                     ToolTip = 'TableFields';
                 }
-                field("Ref. Requisition ID"; PurchaseHdrG."Ref. Requisition ID")
+                field("Requisition Reference"; PurchaseHdrG."Requisition Reference")
                 {
+                    Caption = 'Requisition Reference';
                     ApplicationArea = All;
                     ToolTip = 'TableFields';
                 }
@@ -131,5 +132,9 @@ page 50046 "Quotation Preview"
             StyleTextVar := 'Favorable'
         else
             StyleTextVar := 'Standard';
+        RecordIDText := Format(PurchaseHdrG."Ref. Requisition ID", 0, 1);
     end;
+
+    var
+        RecordIDText: Text[100];
 }

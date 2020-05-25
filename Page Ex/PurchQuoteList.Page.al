@@ -4,7 +4,7 @@ pageextension 50030 "Purch. Quote List Ext." extends "Purchase Quotes"
     {
         addafter(Status)
         {
-            field("Ref. Requisition ID"; RecordIDText)
+            field("Requisition Reference"; "Requisition Reference")
             {
                 Editable = false;
                 ApplicationArea = All;

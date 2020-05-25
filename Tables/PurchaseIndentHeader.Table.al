@@ -480,6 +480,7 @@ table 50035 "Purchase Indent Header"
                     PurchOrderLine2.SetRange("Document No.", PurchOrderHeader."No.");
                     if PurchOrderLine2.FindLast() then
                         NextLineNo := PurchOrderLine2."Line No.";
+                    ReqWkshMakeOrder.SendQuoteMail(PurchOrderHeader);
                 until VendorG.Next() = 0;
         end;
     end;
@@ -489,6 +490,7 @@ table 50035 "Purchase Indent Header"
         SalesHeader: Record "Sales Header";
         Vendor: Record Vendor;
         SpecialOrder: Boolean;
+        RecRefVar: RecordRef;
     begin
 
         with IndentLine2 do begin
@@ -514,6 +516,10 @@ table 50035 "Purchase Indent Header"
         end;
         PurchOrderHeader."Assigned User ID" := '';
         PurchOrderHeader."Ref. Requisition ID" := IndentLine2.RecordId;
+        RecRefVar := PurchOrderHeader."Ref. Requisition ID".GetRecord();
+
+        PurchOrderHeader."Requisition Reference" := COPYSTR(Format(PurchOrderHeader."Ref. Requisition ID", 0, 0), (strlen(RecRefVar.Caption) + 3));
+        //PurchOrderHeader."Requisition Reference" := Format(PurchOrderHeader."Ref. Requisition ID",0,0);
         PurchOrderHeader.Modify();
         PurchOrderHeader.Mark(true);
     end;

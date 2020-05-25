@@ -7,7 +7,14 @@ tableextension 50052 "Purch Hdr. Archieve Ext." extends "Purchase Header Archive
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(50008; "Quote Cancelled"; Boolean)
+        field(50008; "Quotation Status"; Option)
+        {
+            Caption = 'Quotation Status';
+            Editable = false;
+            OptionCaption = 'Open,Released,Pending Approval,Pending Prepayment,Rejected';
+            OptionMembers = Open,Released,"Pending Approval","Pending Prepayment",Cancelled;
+        }
+        field(50009; "Requisition Reference"; Text[100])
         {
             DataClassification = CustomerContent;
             Editable = false;

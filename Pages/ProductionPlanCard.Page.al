@@ -39,6 +39,11 @@ page 50013 "Production Plan Card"
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
+                field("Event Description"; "Event Description")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Event Description ';
+                }
                 field("BEO Line No."; "BEO Line No.")
                 {
                     ApplicationArea = all;
