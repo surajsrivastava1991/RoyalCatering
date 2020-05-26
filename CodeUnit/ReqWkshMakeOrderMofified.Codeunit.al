@@ -1820,6 +1820,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             else
                 Error('Vendor Email ID should not be blank');
 
+            /*
             //Email to user
             if "Created By" <> '' then begin
                 UserSetupL.Get("Created By");
@@ -1830,27 +1831,28 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             LocationL.get("Location Code");
             if LocationL."Warehouse/Store Incharge Email" <> '' then
                 EmailToL.Add(LocationL."Warehouse/Store Incharge Email");
+            */
             SMTPMailL.Initialize();
             SMTPMailL.AddFrom(SMTPMailSetup."Send As", SMTPMailSetup."User ID");
             SMTPMailL.AddRecipients(EmailToL);
             SMTPMailL.AddSubject('Company Name :' + CompanyInfoL.Name + ', Purchase Quote: ' + "No." + ' PO Date: ' + Format("Order Date"));
-            SMTPMailL.AddBody(Salutation + ' ' + "Buy-from Contact" + ',');
+            SMTPMailL.AddBody(PurchPaySetupL.Quote_Salutation + ' ' + "Buy-from Contact" + ',');
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody('<P>' + PurchPaySetupL."Body Line1" + '</P>');
+            SMTPMailL.AppendBody('<P>' + PurchPaySetupL."Quote_Body Line1" + '</P>');
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody('<P>' + PurchPaySetupL."Body Line2" + '</P>');
+            SMTPMailL.AppendBody('<P>' + PurchPaySetupL."Quote_Body Line2" + '</P>');
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody(PurchPaySetupL.Thanking);
+            SMTPMailL.AppendBody(PurchPaySetupL.Quote_Thanking);
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody('<B>' + PurchPaySetupL."Person Singnature" + '</B>');
+            SMTPMailL.AppendBody('<B>' + PurchPaySetupL."Quote_Person Singnature" + '</B>');
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody('<B><P style="font-size:12px">' + PurchPaySetupL."Signature (Company Name)" + '</P></B>');
+            SMTPMailL.AppendBody('<B><P style="font-size:12px">' + PurchPaySetupL."Quote_Signature (Company Name)" + '</P></B>');
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Singnature 1" + '</1>');
+            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Quote_Singnature 1" + '</1>');
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Singnature 2" + '</1>');
+            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Quote_Singnature 2" + '</1>');
             SMTPMailL.AppendBody('<Br>');
-            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Singnature 3" + '</1>');
+            SMTPMailL.AppendBody('<i>' + PurchPaySetupL."Quote_Singnature 3" + '</1>');
             SMTPMailL.AppendBody('<Br>');
             SMTPMailL.AppendBody('<img src="./res/123321.jpg" alt="Royal Catering" height="100" width="350">');
             SMTPMailL.AppendBody('<Br>');
@@ -1861,7 +1863,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             else
                 "Mail Sent" := true;
 
-            Modify();
+            //Modify();
         end;
     end;
 }

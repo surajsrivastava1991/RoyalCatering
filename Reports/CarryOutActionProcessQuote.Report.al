@@ -135,6 +135,7 @@ report 50056 "Carry Out Action Process Quote"
 
             //Aplica.1.0 <<--            
         end;
+        ReqLine.SetRange("Order/Quote", PurchaseOrQuoteG);
         ItemGrouping := false;
         UseOneJnl(ReqLine);
     end;
