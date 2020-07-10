@@ -1649,7 +1649,10 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
                         until QuoteVendorsL.Next() = 0;
 
                     UpdateRequisitionStatusQuote(ReqLine2);
-                    SendQuoteMail(PurchOrderHeader);
+                    PurchSetup.Get();
+                    if PurchSetup."Quotation Mail Send" = true then
+                        SendQuoteMail(PurchOrderHeader);
+                //PurchOrderHeader.Modify(false);
                 /*
                 //Aplica.1.0 -->>
                 PurchRequisitionLineG.reset();
@@ -1741,7 +1744,10 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             RecRefVar := PurchOrderHeader."Ref. Requisition ID".GetRecord();
 
             PurchOrderHeader."Requisition Reference" := COPYSTR(Format(PurchOrderHeader."Ref. Requisition ID", 0, 0), (strlen(RecRefVar.Caption) + 3));
+            PurchOrderHeader."Last date for Quote Submission" := CalcDate(PurchSetup."Quote Submission Lead Time", PurchOrderHeader."Order Date");
             //end;
+            if PurchSetup."Quotation Mail Send" = true then
+                PurchOrderHeader."Mail Sent" := true;
             PurchOrderHeader.Modify();
             PurchOrderHeader.Mark(true);
         end;
@@ -1835,7 +1841,7 @@ codeunit 50054 "Req. Wksh.-Make Order-Mofified"
             SMTPMailL.Initialize();
             SMTPMailL.AddFrom(SMTPMailSetup."Send As", SMTPMailSetup."User ID");
             SMTPMailL.AddRecipients(EmailToL);
-            SMTPMailL.AddSubject('Company Name :' + CompanyInfoL.Name + ', Purchase Quote: ' + "No." + ' PO Date: ' + Format("Order Date"));
+            SMTPMailL.AddSubject('Company Name :' + CompanyInfoL.Name + ', Purchase Quote: ' + "No." + ' Date: ' + Format("Order Date"));
             SMTPMailL.AddBody(PurchPaySetupL.Quote_Salutation + ' ' + "Buy-from Contact" + ',');
             SMTPMailL.AppendBody('<Br>');
             SMTPMailL.AppendBody('<P>' + PurchPaySetupL."Quote_Body Line1" + '</P>');

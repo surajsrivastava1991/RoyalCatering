@@ -80,6 +80,11 @@ page 50016 "Cost Allocation Card"
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }
+                field("Recipe Cost"; "Recipe Cost")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Total Recipe cost added in Cost allocation line';
+                }
             }
 
 
@@ -368,25 +373,22 @@ page 50016 "Cost Allocation Card"
                         GenJournalLineL.Reset();
                         GenJournalLineL.SetRange("Journal Template Name", LocationL."Journal Template Name");
                         GenJournalLineL.setrange("Journal Batch Name", LocationL."journal Batch Name");
-                        if GenJournalLineL.FindFirst() then begin
-                            Page.RunModal(39, GenJournalLineL);
-
-                            if "Journal Posted" then begin
-                                GLEntryL.Reset();
-                                GLEntryL.SetRange("G/L Account No.", InventorySetupL."Kitchen Cost Account");
-                                GLEntryL.SetRange("Posting Date", "From Date", "To Date");
-                                GLEntryL.SetRange("Cost Posted", false);   //Suraj 18/05/20
-                                if GLEntryL.FindSet() then
-                                    repeat
-                                        GlEntryL."Cost Posted" := true;
-                                        GlEntryL.Modify(true);
-                                    until GLEntryL.Next() = 0;
-                            end;
-
-                            //Suraj 18/05/20
-
-                        end else
+                        if GenJournalLineL.FindFirst() then
+                            Page.RunModal(39, GenJournalLineL)                       //Suraj 18/05/20
+                        else
                             Message('There is no lines in General Journal');
+
+                        if "Journal Posted" then begin
+                            GLEntryL.Reset();
+                            GLEntryL.SetRange("G/L Account No.", InventorySetupL."Kitchen Cost Account");
+                            GLEntryL.SetRange("Posting Date", "From Date", "To Date");
+                            GLEntryL.SetRange("Cost Posted", false);   //Suraj 18/05/20
+                            if GLEntryL.FindSet() then
+                                repeat
+                                    GlEntryL."Cost Posted" := true;
+                                    GlEntryL.Modify(true);
+                                until GLEntryL.Next() = 0;
+                        end;
                     end;
 
                 }

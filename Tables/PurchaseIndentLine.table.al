@@ -67,7 +67,9 @@ table 50036 "Purchase Indent Line"
                     PurchIndentHdrG.TestField("From Location");
                 if Type IN [Type::Item, Type::"Item(Service)"] then
                     if ItemG.Get("No.") then begin
+                        "Unit Cost" := ItemG."Unit Cost";   //Suraj 26/06/20
                         Description := ItemG.Description;
+                        validate("Unit of Measure Code", ItemG."Base Unit of Measure");
                         "Description 2" := ItemG."Description 2";
                         "Purchase quote mandatory" := ItemG."Quote Mandatory";
                         if "Item Category Code" <> '' then
@@ -145,9 +147,21 @@ table 50036 "Purchase Indent Line"
             ELSE
             "Unit of Measure";
             trigger OnValidate()
+            var
+                ItemUOML: Record "Item Unit of Measure";
+                ItemL: Record Item;
             begin
                 TestStatusOpen();
                 GetDirectCost(FieldNo("Unit of Measure Code"));
+                //Suraj 26/06/20
+                if ItemL.get("No.") then begin
+                    ItemUOML.Reset();
+                    ItemUOML.SetRange("Item No.", "No.");
+                    ItemUOML.SetRange(Code, "Unit of Measure Code");
+                    if ItemUOML.FindFirst() then
+                        "Unit Cost" := ItemL."Unit Cost" * ItemUOML."Qty. per Unit of Measure";
+                end;
+
             end;
         }
         field(12; "Currency Code"; Code[50])
@@ -184,7 +198,7 @@ table 50036 "Purchase Indent Line"
         field(16; "Trade agreement exist"; Boolean)
         {
             Caption = 'Trade agreement exist';
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
             trigger OnValidate()
             begin
                 CheckOrderOrQuote();
@@ -194,31 +208,31 @@ table 50036 "Purchase Indent Line"
         {
             Editable = false;
             Caption = 'Flag';
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
         }
         field(18; "Ref. Document Type"; Option)
         {
             OptionMembers = " ","Purchase Quote","Purchase Order","Transfer Order",Cancel;
             Caption = 'Doc Type';
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
             Editable = false;
         }
         field(19; "Ref. Document No."; Code[50])
         {
             Caption = 'Ref. Document No.';
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
             Editable = false;
         }
         field(20; "Ref. Document Line No."; Integer)
         {
             Caption = 'Ref. Document Line No.';
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
             Editable = false;
         }
         field(21; "Requested Date"; Date)
         {
             Caption = 'Requested Date';
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -234,7 +248,7 @@ table 50036 "Purchase Indent Line"
         }
         field(22; "Order Date"; Date)
         {
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -242,7 +256,7 @@ table 50036 "Purchase Indent Line"
         }
         field(23; "Purchaser Code"; Code[50])
         {
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
             TableRelation = "User Setup";
             trigger OnValidate()
             begin
@@ -282,13 +296,19 @@ table 50036 "Purchase Indent Line"
         {
             Caption = 'Order/Quote';
             OptionMembers = " ","Purchase Order","Purchase Quote";
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
         }
         field(29; "Purchase quote mandatory"; Boolean)
         {
             Editable = false;
             Caption = 'MyField';
-            DataClassification = ToBeClassified;
+            DataClassification = CustomerContent;
+        }
+        field(30; "Unit Cost"; Decimal)
+        {
+            Editable = false;
+            Caption = 'Unit Cost';
+            DataClassification = CustomerContent;
         }
     }
 
@@ -378,13 +398,20 @@ table 50036 "Purchase Indent Line"
     local procedure CopyFromFixedAsset()
     var
         FixedAsset: Record "Fixed Asset";
+        FASetupL: Record "FA Setup";
+        ItemL: Record Item;
     begin
+        FASetupL.Get();
         FixedAsset.Get("No.");
+        if FASetupL."Acquired Allowed" = false then
+            FixedAsset.TESTFIELD(Acquired, false);
         FixedAsset.TestField(Inactive, false);
         FixedAsset.TestField(Blocked, false);
         Description := FixedAsset.Description;
         "Description 2" := FixedAsset."Description 2";
         "Purchase quote mandatory" := FixedAsset."Quote Mandatory";
         "Trade agreement exist" := true;
+        if ItemL.Get(FixedAsset."Item No.") then
+            "Unit of Measure Code" := ItemL."Base Unit of Measure";
     end;
 }

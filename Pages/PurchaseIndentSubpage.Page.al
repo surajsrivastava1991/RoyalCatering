@@ -89,6 +89,11 @@ page 50037 "Purchase Indent Subpage"
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
                 }
+                field("Unit Cost"; "Unit Cost")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Unit cost of the Item based on the Unit of measurement';
+                }
             }
         }
     }

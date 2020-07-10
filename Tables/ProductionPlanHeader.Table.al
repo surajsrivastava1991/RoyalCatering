@@ -143,8 +143,8 @@ table 50000 "Production Plan Header"
 
     trigger OnModify()
     begin
-        testfield(Status, Status::Open);
-        TestField("Cost Posted", false);
+        //testfield(Status, Status::Open);
+        //TestField("Cost Posted", false);
     end;
 
     trigger OnDelete()

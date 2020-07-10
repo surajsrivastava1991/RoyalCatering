@@ -758,8 +758,19 @@ page 50095 "Cust. Cash Receipt - Journal"
 
                     trigger OnAction()
                     var
+                        GenjouLineL: Record "Gen. Journal Line";
                         GenJnlPost: Codeunit "Gen. Jnl.-Post";
                     begin
+                        GenjouLineL.Reset();
+                        GenjouLineL.SetRange("Journal Template Name", "Journal Template Name");
+                        GenjouLineL.SetRange("Journal Batch Name", "Journal Batch Name");
+                        if GenjouLineL.FindSet() then
+                            repeat
+                                GenjouLineL."Preview Done" := true;
+                                GenjouLineL.Modify();
+                            until GenjouLineL.Next() = 0;
+
+                        Commit();
                         GenJnlPost.Preview(Rec);
                     end;
                 }
@@ -825,6 +836,7 @@ page 50095 "Cust. Cash Receipt - Journal"
                     Ellipsis = true;
                     Image = ReverseRegister;
                     Scope = Repeater;
+                    Visible = false;
 
                     trigger OnAction()
                     var
@@ -910,6 +922,27 @@ page 50095 "Cust. Cash Receipt - Journal"
 
                 }
             }
+            group("Export Excel")
+            {
+
+                action("Import Excel")
+                {
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    PromotedOnly = true;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Import Excel';
+                    Image = ImportExcel;
+                    ToolTip = 'Import Excel for Payment Journal';
+
+                    trigger OnAction()
+                    begin
+                        ImportGenJouLine();
+                    end;
+                }
+            }
+
             group("Request Approval")
             {
                 Caption = 'Request Approval';
@@ -917,6 +950,35 @@ page 50095 "Cust. Cash Receipt - Journal"
                 {
                     Caption = 'Send Approval Request';
                     Image = SendApprovalRequest;
+                    action(Preview1)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Preview Posting';
+                        Image = ViewPostedOrder;
+                        Promoted = true;
+                        PromotedCategory = Category8;
+                        ToolTip = 'Review the different types of entries that will be created when you post the document or journal.';
+
+                        trigger OnAction()
+                        var
+                            GenjouLineL: Record "Gen. Journal Line";
+                            GenJnlPost: Codeunit "Gen. Jnl.-Post";
+                        begin
+                            GenjouLineL.Reset();
+                            GenjouLineL.SetRange("Journal Template Name", "Journal Template Name");
+                            GenjouLineL.SetRange("Journal Batch Name", "Journal Batch Name");
+                            if GenjouLineL.FindSet() then
+                                repeat
+                                    GenjouLineL."Preview Done" := true;
+                                    GenjouLineL.Modify();
+                                until GenjouLineL.Next() = 0;
+
+                            Commit();
+                            GenJnlPost.Preview(rec);
+
+
+                        end;
+                    }
                     action(SendApprovalRequestJournalBatch)
                     {
                         ApplicationArea = Basic, Suite;
@@ -928,10 +990,21 @@ page 50095 "Cust. Cash Receipt - Journal"
                         trigger OnAction()
                         var
                             GenBatchL: Record "Gen. Journal Batch";
-
+                            GenjouLineL: Record "Gen. Journal Line";
                             ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                            Preview: Boolean;
                         begin
-                            ApprovalsMgmt.TrySendJournalBatchApprovalRequest(Rec);
+                            Preview := true;
+                            GenjouLineL.Reset();
+                            GenjouLineL.SetRange("Journal Template Name", "Journal Template Name");
+                            GenjouLineL.SetRange("Journal Batch Name", "Journal Batch Name");
+                            GenjouLineL.SetRange("Preview Done", false);
+                            if GenjouLineL.FindFirst() then
+                                Preview := false;
+                            if Preview then
+                                ApprovalsMgmt.TrySendJournalBatchApprovalRequest(Rec)
+                            else
+                                Message('Click on Preview Posting first');
                             //SetControlAppearanceFromBatch;
                             //SetControlAppearance;
                             if GenBatchL.get("Journal Template Name", "Journal Batch Name") then begin
@@ -1208,7 +1281,7 @@ page 50095 "Cust. Cash Receipt - Journal"
                         PromotedIsBig = true;
                         PromotedOnly = true;
                         ToolTip = 'Send the data in the journal to an Excel file for analysis or editing.';
-                        Visible = IsSaasExcelAddinEnabled;
+                        Visible = true;
 
                         trigger OnAction()
                         var
@@ -1284,6 +1357,7 @@ page 50095 "Cust. Cash Receipt - Journal"
     end;
 
     var
+        ExcelBuffer: Record "Excel Buffer";
         GenJnlLine: Record "Gen. Journal Line";
         PDCEntry: Record "PDC Entry";
         GenJnlManagement: Codeunit GenJnlManagement;
@@ -1331,6 +1405,86 @@ page 50095 "Cust. Cash Receipt - Journal"
         DimVisible6: Boolean;
         DimVisible7: Boolean;
         DimVisible8: Boolean;
+
+    procedure ImportGenJouLine()
+    var
+        GenJournalLineL: Record "Gen. Journal Line";
+        ExcelBuffer: Record "Excel Buffer";
+
+        TotalRow: Integer;
+        RowNo: Integer;
+        Filename: Text;
+        Instr: InStream;
+        Sheetname: Text;
+        FileUploaded: Boolean;
+        LineNoG: Integer;
+    begin
+
+        GenJournalLineL.Reset();
+        GenJournalLineL.SetRange("Journal Template Name", "Journal Template Name");
+        GenJournalLineL.setrange("Journal Batch Name", "journal Batch Name");
+        if GenJournalLineL.FindLast() then
+            LineNoG := GenJournalLineL."Line No.";
+
+        FileUploaded := UploadIntoStream('Select Timesheet to Upload', '', '', Filename, Instr);
+
+        if Filename = '' then
+            exit;
+
+        ExcelBuffer.DeleteAll();
+        ExcelBuffer.Reset();
+        Sheetname := ExcelBuffer.SelectSheetsNameStream(Instr);
+        ExcelBuffer.OpenBookStream(Instr, Sheetname);
+        ExcelBuffer.ReadSheet();
+
+        if ExcelBuffer.FindLast() then
+            TotalRow := ExcelBuffer."Row No.";
+
+        for RowNo := 2 to TotalRow do begin
+            GenJournalLineL.Init();
+            GenJournalLineL.VALIDATE("Journal Template Name", "Journal Template Name");
+            GenJournalLineL.VALIDATE("Journal Batch Name", "journal Batch Name");
+            GenJournalLineL."Line No." := LineNoG + 10000;
+            Evaluate(GenJournalLineL."Posting Date", GetValueAtIndex(RowNo, 1));
+            GenJournalLineL.Validate("Posting Date");
+            Evaluate(GenJournalLineL."Document Date", GetValueAtIndex(RowNo, 2));
+            Evaluate(GenJournalLineL."Document Type", GetValueAtIndex(RowNo, 3));
+            Evaluate(GenJournalLineL."Document No.", GetValueAtIndex(RowNo, 4));
+            Evaluate(GenJournalLineL."External Document No.", GetValueAtIndex(RowNo, 5));
+            Evaluate(GenJournalLineL."Account Type", GetValueAtIndex(RowNo, 6));
+            Evaluate(GenJournalLineL."Account No.", GetValueAtIndex(RowNo, 7));
+            GenJournalLineL.validate("Account No.");
+            Evaluate(GenJournalLineL."Currency Code", GetValueAtIndex(RowNo, 8));
+            Evaluate(GenJournalLineL."Payment Method Code", GetValueAtIndex(RowNo, 9));
+            Evaluate(GenJournalLineL."Debit Amount", GetValueAtIndex(RowNo, 10));
+            GenJournalLineL.Validate("Debit Amount");
+            Evaluate(GenJournalLineL."Credit Amount", GetValueAtIndex(RowNo, 11));
+            GenJournalLineL.Validate("Debit Amount");
+            Evaluate(GenJournalLineL."Bal. Account Type", GetValueAtIndex(RowNo, 12));
+            Evaluate(GenJournalLineL."Bal. Account No.", GetValueAtIndex(RowNo, 13));
+            GenJournalLineL.Validate("Bal. Account No.");
+            Evaluate(GenJournalLineL."Shortcut Dimension 1 Code", GetValueAtIndex(RowNo, 14));
+            if GenJournalLineL."Shortcut Dimension 1 Code" <> '' then
+                GenJournalLineL.Validate("Shortcut Dimension 1 Code");
+            Evaluate(GenJournalLineL."Shortcut Dimension 2 Code", GetValueAtIndex(RowNo, 15));
+            if GenJournalLineL."Shortcut Dimension 2 Code" <> '' then
+                GenJournalLineL.Validate("Shortcut Dimension 2 Code");
+            Evaluate(GenJournalLineL."VAT Bus. Posting Group", GetValueAtIndex(RowNo, 16));
+            Evaluate(GenJournalLineL."VAT Prod. Posting Group", GetValueAtIndex(RowNo, 17));
+            if GenJournalLineL.Insert(true) then;
+            LineNoG += 10000;
+        end;
+
+        Message('%1 rows imported successfully !!!', TotalRow - 1);
+
+    end;
+
+    local procedure GetValueAtIndex(RowNoP: Integer; ColNoP: Integer): Text
+    begin
+        IF ExcelBuffer.Get(RowNoP, ColNoP) then
+            exit(ExcelBuffer."Cell Value as Text");
+    end;
+
 
     local procedure UpdateBalance()
     begin

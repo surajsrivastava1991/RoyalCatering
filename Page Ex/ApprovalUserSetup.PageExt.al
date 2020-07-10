@@ -16,4 +16,6 @@ pageextension 50055 "Approval User Setup" extends "Approval User Setup" //MyTarg
     actions
     {
     }
+    var
+        EmailG: Page "Email Dialog";
 }

@@ -1,7 +1,10 @@
 page 50096 "Custumised Payment - Journal"
 {
+    AdditionalSearchTerms = 'print check,payment file export,electronic payment';
     AutoSplitKey = true;
     Caption = 'Payment - Journals';
+    ApplicationArea = Basic, Suite;
+    UsageCategory = Tasks;
     DataCaptionExpression = DataCaption();
     DelayedInsert = true;
     PageType = Worksheet;
@@ -737,6 +740,7 @@ page 50096 "Custumised Payment - Journal"
                     Ellipsis = true;
                     Image = ReverseRegister;
                     Scope = Repeater;
+                    Visible = false;
 
                     trigger OnAction()
                     var
@@ -820,6 +824,27 @@ page 50096 "Custumised Payment - Journal"
                     RunObject = Page "PDC Entry";
                     RunPageLink = "Document No." = FIELD("Document No.");
 
+                }
+            }
+            //Suraj 27/06/20
+            group("Export Excel")
+            {
+
+                action("Import Excel")
+                {
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    PromotedOnly = true;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Import Excel';
+                    Image = ImportExcel;
+                    ToolTip = 'Import Excel for Payment Journal';
+
+                    trigger OnAction()
+                    begin
+                        ImportGenJouLine();
+                    end;
                 }
             }
             group("&Payments")
@@ -1246,9 +1271,22 @@ page 50096 "Custumised Payment - Journal"
 
                     trigger OnAction()
                     var
+                        GenjouLineL: Record "Gen. Journal Line";
                         GenJnlPost: Codeunit "Gen. Jnl.-Post";
                     begin
-                        GenJnlPost.Preview(Rec);
+                        GenjouLineL.Reset();
+                        GenjouLineL.SetRange("Journal Template Name", "Journal Template Name");
+                        GenjouLineL.SetRange("Journal Batch Name", "Journal Batch Name");
+                        if GenjouLineL.FindSet() then
+                            repeat
+                                GenjouLineL."Preview Done" := true;
+                                GenjouLineL.Modify();
+                            until GenjouLineL.Next() = 0;
+
+                        Commit();
+                        GenJnlPost.Preview(rec);
+
+
                     end;
                 }
                 action("Post and &Print")
@@ -1279,6 +1317,35 @@ page 50096 "Custumised Payment - Journal"
                 {
                     Caption = 'Send Approval Request';
                     Image = SendApprovalRequest;
+                    action(Preview1)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Preview Posting';
+                        Image = ViewPostedOrder;
+                        Promoted = true;
+                        PromotedCategory = Category8;
+                        ToolTip = 'Review the different types of entries that will be created when you post the document or journal.';
+
+                        trigger OnAction()
+                        var
+                            GenjouLineL: Record "Gen. Journal Line";
+                            GenJnlPost: Codeunit "Gen. Jnl.-Post";
+                        begin
+                            GenjouLineL.Reset();
+                            GenjouLineL.SetRange("Journal Template Name", "Journal Template Name");
+                            GenjouLineL.SetRange("Journal Batch Name", "Journal Batch Name");
+                            if GenjouLineL.FindSet() then
+                                repeat
+                                    GenjouLineL."Preview Done" := true;
+                                    GenjouLineL.Modify();
+                                until GenjouLineL.Next() = 0;
+
+                            Commit();
+                            GenJnlPost.Preview(rec);
+
+
+                        end;
+                    }
                     action(SendApprovalRequestJournalBatch)
                     {
                         ApplicationArea = Basic, Suite;
@@ -1289,16 +1356,29 @@ page 50096 "Custumised Payment - Journal"
 
                         trigger OnAction()
                         var
-                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                             GenBatchL: Record "Gen. Journal Batch";
+                            GenjouLineL: Record "Gen. Journal Line";
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                            Preview: Boolean;
                         begin
-                            ApprovalsMgmt.TrySendJournalBatchApprovalRequest(Rec);
+                            Preview := true;
+                            GenjouLineL.Reset();
+                            GenjouLineL.SetRange("Journal Template Name", "Journal Template Name");
+                            GenjouLineL.SetRange("Journal Batch Name", "Journal Batch Name");
+                            GenjouLineL.SetRange("Preview Done", false);
+                            if GenjouLineL.FindFirst() then
+                                Preview := false;
+                            if Preview then
+                                ApprovalsMgmt.TrySendJournalBatchApprovalRequest(Rec)
+                            else
+                                Message('Click on Preview Posting first');
+
                             //SetControlAppearanceFromBatch;
                             //SetControlAppearance;
                             if GenBatchL.get("Journal Template Name", "Journal Batch Name") then begin
                                 if (GenBatchL."Approval Status" = GenBatchL."Approval Status"::Approved) then begin
-                                    SetControlAppearanceFromBatch;
-                                    SetControlAppearance;
+                                    SetControlAppearanceFromBatch();
+                                    SetControlAppearance();
                                 end else
                                     CurrPage.Close();
                                 ;
@@ -1408,7 +1488,7 @@ page 50096 "Custumised Payment - Journal"
                         TempApprovalWorkflowWizard."Journal Batch Name" := "Journal Batch Name";
                         TempApprovalWorkflowWizard."Journal Template Name" := "Journal Template Name";
                         TempApprovalWorkflowWizard."For All Batches" := false;
-                        TempApprovalWorkflowWizard.Insert;
+                        TempApprovalWorkflowWizard.Insert();
 
                         PAGE.RunModal(PAGE::"Pmt. App. Workflow Setup Wzrd.", TempApprovalWorkflowWizard);
                     end;
@@ -1524,9 +1604,9 @@ page 50096 "Custumised Payment - Journal"
                     Promoted = true;
                     PromotedCategory = Category7;
                     PromotedIsBig = true;
-                    PromotedOnly = true;
+                    //PromotedOnly = true;
                     ToolTip = 'Send the data in the journal to an Excel file for analysis or editing.';
-                    Visible = IsSaasExcelAddinEnabled;
+                    Visible = true;
 
                     trigger OnAction()
                     var
@@ -1581,6 +1661,8 @@ page 50096 "Custumised Payment - Journal"
     trigger OnModifyRecord(): Boolean
     begin
         CheckForPmtJnlErrors;
+        "Preview Done" := false;
+        Modify();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -1610,19 +1692,20 @@ page 50096 "Custumised Payment - Journal"
         if IsOpenedFromBatch then begin
             CurrentJnlBatchName := "Journal Batch Name";
             GenJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
-            SetControlAppearanceFromBatch;
+            SetControlAppearanceFromBatch();
             exit;
         end;
         GenJnlManagement.TemplateSelection(PAGE::"Payment Journal", 4, false, Rec, JnlSelected);
         if not JnlSelected then
             Error('');
         GenJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
-        SetControlAppearanceFromBatch;
+        SetControlAppearanceFromBatch();
 
         SetDimensionsVisibility;
     end;
 
     var
+        ExcelBuffer: Record "Excel Buffer";
         PDCEntry: Record "PDC Entry";
         GenJnlLine: Record "Gen. Journal Line";
         GenJnlLine2: Record "Gen. Journal Line";
@@ -1683,6 +1766,86 @@ page 50096 "Custumised Payment - Journal"
         DimVisible7: Boolean;
         DimVisible8: Boolean;
 
+
+    procedure ImportGenJouLine()
+    var
+        GenJournalLineL: Record "Gen. Journal Line";
+        TotalRow: Integer;
+        RowNo: Integer;
+        Filename: Text;
+        Instr: InStream;
+        Sheetname: Text;
+        FileUploaded: Boolean;
+        LineNoG: Integer;
+    begin
+
+        GenJournalLineL.Reset();
+        GenJournalLineL.SetRange("Journal Template Name", "Journal Template Name");
+        GenJournalLineL.setrange("Journal Batch Name", "journal Batch Name");
+        if GenJournalLineL.FindLast() then
+            LineNoG := GenJournalLineL."Line No.";
+
+        FileUploaded := UploadIntoStream('Select Timesheet to Upload', '', '', Filename, Instr);
+
+        if Filename = '' then
+            exit;
+
+        ExcelBuffer.DeleteAll();
+        ExcelBuffer.Reset();
+        Sheetname := ExcelBuffer.SelectSheetsNameStream(Instr);
+        ExcelBuffer.OpenBookStream(Instr, Sheetname);
+        ExcelBuffer.ReadSheet();
+
+        if ExcelBuffer.FindLast() then
+            TotalRow := ExcelBuffer."Row No.";
+
+        for RowNo := 2 to TotalRow do begin
+            GenJournalLineL.Init();
+            GenJournalLineL.VALIDATE("Journal Template Name", "Journal Template Name");
+            GenJournalLineL.VALIDATE("Journal Batch Name", "journal Batch Name");
+            GenJournalLineL."Line No." := LineNoG + 10000;
+            Evaluate(GenJournalLineL."Posting Date", GetValueAtIndex(RowNo, 1));
+            GenJournalLineL.Validate("Posting Date");
+            Evaluate(GenJournalLineL."Document Date", GetValueAtIndex(RowNo, 2));
+            Evaluate(GenJournalLineL."Document Type", GetValueAtIndex(RowNo, 3));
+            Evaluate(GenJournalLineL."Document No.", GetValueAtIndex(RowNo, 4));
+            Evaluate(GenJournalLineL."External Document No.", GetValueAtIndex(RowNo, 5));
+            Evaluate(GenJournalLineL."Account Type", GetValueAtIndex(RowNo, 6));
+            Evaluate(GenJournalLineL."Account No.", GetValueAtIndex(RowNo, 7));
+            GenJournalLineL.validate("Account No.");
+            Evaluate(GenJournalLineL."Currency Code", GetValueAtIndex(RowNo, 8));
+            Evaluate(GenJournalLineL."Payment Method Code", GetValueAtIndex(RowNo, 9));
+            Evaluate(GenJournalLineL."Debit Amount", GetValueAtIndex(RowNo, 10));
+            GenJournalLineL.Validate("Debit Amount");
+            Evaluate(GenJournalLineL."Credit Amount", GetValueAtIndex(RowNo, 11));
+            GenJournalLineL.Validate("Debit Amount");
+            Evaluate(GenJournalLineL."Bal. Account Type", GetValueAtIndex(RowNo, 12));
+            Evaluate(GenJournalLineL."Bal. Account No.", GetValueAtIndex(RowNo, 13));
+            GenJournalLineL.Validate("Bal. Account No.");
+            Evaluate(GenJournalLineL."Shortcut Dimension 1 Code", GetValueAtIndex(RowNo, 14));
+            if GenJournalLineL."Shortcut Dimension 1 Code" <> '' then
+                GenJournalLineL.Validate("Shortcut Dimension 1 Code");
+            Evaluate(GenJournalLineL."Shortcut Dimension 2 Code", GetValueAtIndex(RowNo, 15));
+            if GenJournalLineL."Shortcut Dimension 2 Code" <> '' then
+                GenJournalLineL.Validate("Shortcut Dimension 2 Code");
+            Evaluate(GenJournalLineL."VAT Bus. Posting Group", GetValueAtIndex(RowNo, 16));
+            Evaluate(GenJournalLineL."VAT Prod. Posting Group", GetValueAtIndex(RowNo, 17));
+            if GenJournalLineL.Insert(true) then;
+            LineNoG += 10000;
+        end;
+
+        Message('%1 rows imported successfully !!!', TotalRow - 1);
+
+    end;
+
+    local procedure GetValueAtIndex(RowNoP: Integer; ColNoP: Integer): Text
+    begin
+        IF ExcelBuffer.Get(RowNoP, ColNoP) then
+            exit(ExcelBuffer."Cell Value as Text");
+    end;
+
+
+
     local procedure CheckForPmtJnlErrors()
     var
         BankAccount: Record "Bank Account";
@@ -1712,16 +1875,16 @@ page 50096 "Custumised Payment - Journal"
 
     local procedure CurrentJnlBatchNameOnAfterVali()
     begin
-        CurrPage.SaveRecord;
+        CurrPage.SaveRecord();
         GenJnlManagement.SetName(CurrentJnlBatchName, Rec);
-        SetControlAppearanceFromBatch;
+        SetControlAppearanceFromBatch();
         CurrPage.Update(false);
     end;
 
     local procedure GetCurrentlySelectedLines(var GenJournalLine: Record "Gen. Journal Line"): Boolean
     begin
         CurrPage.SetSelectionFilter(GenJournalLine);
-        exit(GenJournalLine.FindSet);
+        exit(GenJournalLine.FindSet());
     end;
 
     local procedure SetControlAppearanceFromBatch()
@@ -1809,7 +1972,7 @@ page 50096 "Custumised Payment - Journal"
     var
         GenJnlBatch: Record "Gen. Journal Batch";
     begin
-        COMMIT;
+        COMMIT();
         GenJnlBatch."Journal Template Name" := GenJnlLine.GETRANGEMAX("Journal Template Name");
         GenJnlBatch.Name := GenJnlLine.GETRANGEMAX("Journal Batch Name");
         GenJnlBatch.FILTERGROUP(2);

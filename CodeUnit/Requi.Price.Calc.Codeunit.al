@@ -16,11 +16,11 @@ codeunit 50052 "Requi. Price Calc."
         with ReqLine do
             if Type IN [Type::Item, Type::"Item(Service)"] then begin
                 if not Vend.Get("Vendor No.") then
-                    Vend.Init
+                    Vend.Init()
                 else
                     if Vend."Pay-to Vendor No." <> '' then
                         if not Vend.Get(Vend."Pay-to Vendor No.") then
-                            Vend.Init;
+                            Vend.Init();
                 if Vend."No." <> '' then
                     VendorNo := Vend."No."
                 else

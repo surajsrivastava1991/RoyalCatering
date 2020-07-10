@@ -2,9 +2,6 @@ pageextension 50042 "Gen journal line" extends "General Journal"
 {
     layout
     {
-
-
-
         addafter("Shortcut Dimension 1 Code")
         {
             field("CL from Date"; "CL from Date")
@@ -99,7 +96,30 @@ pageextension 50042 "Gen journal line" extends "General Journal"
                     end;
                 end;
             }
-        }       // Add changes to page actions here\
+        }
+        addafter("&Line")
+        {
+            group("Export Excel")
+            {
+
+                action("Import Excel")
+                {
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    PromotedOnly = true;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Import Excel';
+                    Image = ImportExcel;
+                    ToolTip = 'Import Excel for Payment Journal';
+
+                    trigger OnAction()
+                    begin
+                        ImportGenJouLine();
+                    end;
+                }
+            }
+        }      // Add changes to page actions here\
     }
 
     var
@@ -133,4 +153,87 @@ pageextension 50042 "Gen journal line" extends "General Journal"
         end;
 
     end;
+
+    var
+        ExcelBuffer: Record "Excel Buffer";
+
+    procedure ImportGenJouLine()
+    var
+        GenJournalLineL: Record "Gen. Journal Line";
+
+
+        TotalRow: Integer;
+        RowNo: Integer;
+        Filename: Text;
+        Instr: InStream;
+        Sheetname: Text;
+        FileUploaded: Boolean;
+        LineNoG: Integer;
+    begin
+
+        GenJournalLineL.Reset();
+        GenJournalLineL.SetRange("Journal Template Name", "Journal Template Name");
+        GenJournalLineL.setrange("Journal Batch Name", "journal Batch Name");
+        if GenJournalLineL.FindLast() then
+            LineNoG := GenJournalLineL."Line No.";
+
+        FileUploaded := UploadIntoStream('Select Timesheet to Upload', '', '', Filename, Instr);
+
+        if Filename = '' then
+            exit;
+
+        ExcelBuffer.DeleteAll();
+        ExcelBuffer.Reset();
+        Sheetname := ExcelBuffer.SelectSheetsNameStream(Instr);
+        ExcelBuffer.OpenBookStream(Instr, Sheetname);
+        ExcelBuffer.ReadSheet();
+
+        if ExcelBuffer.FindLast() then
+            TotalRow := ExcelBuffer."Row No.";
+
+        for RowNo := 2 to TotalRow do begin
+            GenJournalLineL.Init();
+            GenJournalLineL.VALIDATE("Journal Template Name", "Journal Template Name");
+            GenJournalLineL.VALIDATE("Journal Batch Name", "journal Batch Name");
+            GenJournalLineL."Line No." := LineNoG + 10000;
+            Evaluate(GenJournalLineL."Posting Date", GetValueAtIndex(RowNo, 1));
+            GenJournalLineL.Validate("Posting Date");
+            Evaluate(GenJournalLineL."Document Date", GetValueAtIndex(RowNo, 2));
+            Evaluate(GenJournalLineL."Document Type", GetValueAtIndex(RowNo, 3));
+            Evaluate(GenJournalLineL."Document No.", GetValueAtIndex(RowNo, 4));
+            Evaluate(GenJournalLineL."External Document No.", GetValueAtIndex(RowNo, 5));
+            Evaluate(GenJournalLineL."Account Type", GetValueAtIndex(RowNo, 6));
+            Evaluate(GenJournalLineL."Account No.", GetValueAtIndex(RowNo, 7));
+            GenJournalLineL.validate("Account No.");
+            Evaluate(GenJournalLineL."Currency Code", GetValueAtIndex(RowNo, 8));
+            Evaluate(GenJournalLineL."Payment Method Code", GetValueAtIndex(RowNo, 9));
+            Evaluate(GenJournalLineL."Debit Amount", GetValueAtIndex(RowNo, 10));
+            GenJournalLineL.Validate("Debit Amount");
+            Evaluate(GenJournalLineL."Credit Amount", GetValueAtIndex(RowNo, 11));
+            GenJournalLineL.Validate("Debit Amount");
+            Evaluate(GenJournalLineL."Bal. Account Type", GetValueAtIndex(RowNo, 12));
+            Evaluate(GenJournalLineL."Bal. Account No.", GetValueAtIndex(RowNo, 13));
+            GenJournalLineL.Validate("Bal. Account No.");
+            Evaluate(GenJournalLineL."Shortcut Dimension 1 Code", GetValueAtIndex(RowNo, 14));
+            if GenJournalLineL."Shortcut Dimension 1 Code" <> '' then
+                GenJournalLineL.Validate("Shortcut Dimension 1 Code");
+            Evaluate(GenJournalLineL."Shortcut Dimension 2 Code", GetValueAtIndex(RowNo, 15));
+            if GenJournalLineL."Shortcut Dimension 2 Code" <> '' then
+                GenJournalLineL.Validate("Shortcut Dimension 2 Code");
+            Evaluate(GenJournalLineL."VAT Bus. Posting Group", GetValueAtIndex(RowNo, 16));
+            Evaluate(GenJournalLineL."VAT Prod. Posting Group", GetValueAtIndex(RowNo, 17));
+            if GenJournalLineL.Insert(true) then;
+            LineNoG += 10000;
+        end;
+
+        Message('%1 rows imported successfully !!!', TotalRow - 1);
+
+    end;
+
+    local procedure GetValueAtIndex(RowNoP: Integer; ColNoP: Integer): Text
+    begin
+        IF ExcelBuffer.Get(RowNoP, ColNoP) then
+            exit(ExcelBuffer."Cell Value as Text");
+    end;
+
 }

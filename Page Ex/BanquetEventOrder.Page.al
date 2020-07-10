@@ -6,7 +6,7 @@ page 50058 "Banquet Event Order"
     RefreshOnActivate = true;
     SourceTable = "Sales Header";
     SourceTableView = WHERE("Document Type" = FILTER(Order));
-
+    DeleteAllowed = false;
     layout
     {
         area(content)
@@ -14,10 +14,18 @@ page 50058 "Banquet Event Order"
             group(General)
             {
                 Caption = 'General';
+                field("Type of Sale"; "Type of Sale")
+                {
+                    Caption = 'Type of Sales';
+                    ApplicationArea = all;
+                    Editable = StatusBlock;
+                    ToolTip = 'Table field';
+                }
                 field("No."; "No.")
                 {
                     Caption = 'BEO No.';
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = DocNoVisible;
 
@@ -27,12 +35,7 @@ page 50058 "Banquet Event Order"
                             CurrPage.Update();
                     end;
                 }
-                field("Type of Sale"; "Type of Sale")
-                {
-                    Caption = 'Type of Sales';
-                    ApplicationArea = all;
-                    ToolTip = 'Table field';
-                }
+
                 field("Sell-to Customer No."; "Sell-to Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -67,6 +70,7 @@ page 50058 "Banquet Event Order"
                 field("Shortcut Dimension 1 Code"; "Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
 
 
@@ -74,6 +78,7 @@ page 50058 "Banquet Event Order"
                 field("Project Description"; "Project Description")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Sell-to Contact No."; "Sell-to Contact No.")
@@ -131,11 +136,13 @@ page 50058 "Banquet Event Order"
                 field("Prepared By"; "Prepared By")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Method of Receiving Enquiry"; "Method of Receiving Enquiry")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Order Date"; "Order Date")
@@ -172,16 +179,19 @@ page 50058 "Banquet Event Order"
                 field("Project Location Name"; "Project Location Name")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("kitchen Location"; "kitchen Location")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("kitchen Location Name"; "kitchen Location Name")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Status of event"; "Status of event")
@@ -189,6 +199,12 @@ page 50058 "Banquet Event Order"
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                     Editable = false;
+                }
+                field("Banquet Order Status"; "Banquet Order Status")
+                {
+                    ApplicationArea = all;
+                    Editable = true;
+                    ToolTip = 'Banquet Order status , where system will generate archive';
                 }
                 field("No. of Archived Versions"; "No. of Archived Versions")
                 {
@@ -201,23 +217,27 @@ page 50058 "Banquet Event Order"
                 field("Date of function start"; "Date of function start")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Date of function end"; "Date of function end")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Start Time"; "Start Time")
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("End Time"; "End Time")
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 /*
@@ -258,7 +278,7 @@ page 50058 "Banquet Event Order"
                     Visible = ShowQuoteNo;
                     field("Quote No."; "Quote No.")
                     {
-                       ApplicationArea = all;
+                       ApplicationArea = all;  Editable= StatusBlock;
                     ToolTip = 'Table field';
                         ToolTip = 'Specifies the number of the sales quote that the sales order was created from. You can track the number to sales quote documents that you have printed, saved, or emailed.';
                     }
@@ -405,7 +425,7 @@ page 50058 "Banquet Event Order"
                 }
                 field("Job Queue Status"; "Job Queue Status")
                 {
-                   ApplicationArea = all;
+                   ApplicationArea = all;  Editable= StatusBlock;
                     ToolTip = 'Table field';
                     Importance = Additional;
                     ToolTip = 'Specifies the status of a job queue entry or task that handles the posting of sales orders.';
@@ -442,43 +462,51 @@ page 50058 "Banquet Event Order"
                 field("Event"; "Event")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Details of the event"; "Details of the event")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Type of Event"; "Type of Event")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Segment; Segment)
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Venue; Venue)
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Location BEO"; "Location BEO")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Service Delivery"; "Service Delivery")
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Service Style"; "Service Style")
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
             }
@@ -492,18 +520,21 @@ page 50058 "Banquet Event Order"
                         field("Guest Guaranteed"; "Guest Guaranteed")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                             MultiLine = true;
                         }
                         field("Guest Expected"; "Guest Expected")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                             MultiLine = true;
                         }
                         field("HK Lines"; "HK Lines")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                     }
@@ -518,27 +549,32 @@ page 50058 "Banquet Event Order"
                         field("No. of PAX"; "No. of PAX")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field("Average Price Per PAX/F&B"; "Average Price Per PAX/F&B")
                         {
                             Caption = 'Price Per PAX/F&B';
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field("Transport (Amount)"; "Transport (Amount)")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field("Staff (Amount)"; "Staff (Amount)")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field(Miscellaneous; Miscellaneous)
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Miscellaneous Amount';
                         }
                     }
@@ -547,17 +583,20 @@ page 50058 "Banquet Event Order"
                         field("Menu Price"; "Menu Price")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field(Pricing; Pricing)
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                             MultiLine = true;
                         }
                         field("Billing Instruction"; "Billing Instruction")
                         {
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                             MultiLine = true;
                         }
@@ -575,6 +614,7 @@ page 50058 "Banquet Event Order"
                             ShowCaption = false;
                             MultiLine = true;
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field("Food Menu2"; "Food Menu2")
@@ -582,6 +622,7 @@ page 50058 "Banquet Event Order"
                             ShowCaption = false;
                             multiline = true;
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field("Food Menu3"; "Food Menu3")
@@ -589,6 +630,7 @@ page 50058 "Banquet Event Order"
                             ShowCaption = false;
                             MultiLine = true;
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                     }
@@ -599,6 +641,7 @@ page 50058 "Banquet Event Order"
                             ShowCaption = false;
                             multiline = true;
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field(Beverages2; Beverages2)
@@ -606,12 +649,14 @@ page 50058 "Banquet Event Order"
                             ShowCaption = false;
                             multiline = true;
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                         field("Food & Beverages Notes"; "Food & Beverages Notes")
                         {
                             multiline = true;
                             ApplicationArea = all;
+                            Editable = StatusBlock;
                             ToolTip = 'Table field';
                         }
                     }
@@ -624,77 +669,90 @@ page 50058 "Banquet Event Order"
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Equipment; Equipment)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Stewarding; Stewarding)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Restrictions; Restrictions)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Setup Notes"; "Setup Notes")
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Staffing; Staffing)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Housekeeping; Housekeeping)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Transportation; Transportation)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Engineering; Engineering)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Additional Instructions"; "Additional Instructions")
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field(Hygiene; Hygiene)
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Reffered By"; "Reffered By")
                 {
                     MultiLine = true;
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                 }
                 field("Modified Fields"; "Modified Fields")
                 {
                     ApplicationArea = all;
+                    Editable = StatusBlock;
                     ToolTip = 'Table field';
                     MultiLine = true;
                 }
@@ -790,7 +848,7 @@ page 50058 "Banquet Event Order"
                     Visible = PaymentServiceVisible;
                     field(SelectedPayments; GetSelectedPaymentServicesText)
                     {
-                       ApplicationArea = all;
+                       ApplicationArea = all;  Editable= StatusBlock;
                     ToolTip = 'Table field';
                         Caption = 'Payment Service';
                         Editable = false;
@@ -1272,6 +1330,7 @@ page 50058 "Banquet Event Order"
             part("Attached Documents"; "Document Attachment Factbox")
             {
                 ApplicationArea = all;
+                Editable = StatusBlock;
                 ToolTip = 'Table field';
                 Caption = 'Attachments';
                 SubPageLink = "Table ID" = CONST(36),
@@ -1281,6 +1340,7 @@ page 50058 "Banquet Event Order"
             part(Control35; "Pending Approval FactBox")
             {
                 ApplicationArea = all;
+                Editable = StatusBlock;
                 ToolTip = 'Table field';
                 SubPageLink = "Table ID" = CONST(36),
                               "Document Type" = FIELD("Document Type"),
@@ -1487,7 +1547,7 @@ page 50058 "Banquet Event Order"
 
                     trigger OnAction()
                     var
-                        DocumentAttachmentDetails: Page "Document Attachment Details";
+                        DocumentAttachmentDetails: Page "Attachment Document";
                         RecRef: RecordRef;
                     begin
                         RecRef.GetTable(Rec);
@@ -2472,9 +2532,11 @@ page 50058 "Banquet Event Order"
     begin
         ShowQuoteNo := "Quote No." <> '';
         //Suraj
-        if "Type of Sale" in ["Type of Sale"::Contract, "Type of Sale"::"Contract-Event"] then
+        if "Type of Sale" in ["Type of Sale"::Contract, "Type of Sale"::"Counter Sale"] then
             "Status of event" := "Status of event"::Definite;
-
+        StatusBlock := true;
+        if "Banquet Order Status" = "Banquet Order Status"::"BO Released" then     //Suraj 09/07/20
+            StatusBlock := false;
 
         SetControlVisibility();
         UpdateShipToBillToGroupVisibility();
@@ -2537,6 +2599,9 @@ page 50058 "Banquet Event Order"
             FilterGroup(2);
             SetRange("Responsibility Center", UserMgt.GetSalesFilter());
             FilterGroup(0);
+
+            if "Banquet Order Status" = "Banquet Order Status"::"BO Released" then   //Suraj   09/07/20
+                StatusBlock := false;
         end;
 
         ActivateFields();
@@ -2581,6 +2646,7 @@ page 50058 "Banquet Event Order"
         FormatAddress: Codeunit "Format Address";
         Usage: Option "Order Confirmation","Work Order","Pick Instruction";
         NavigateAfterPost: Option "Posted Document","New Document",Nowhere;
+        StatusBlock: Boolean;
         [InDataSet]
         JobQueueVisible: Boolean;
         DynamicEditable: Boolean;

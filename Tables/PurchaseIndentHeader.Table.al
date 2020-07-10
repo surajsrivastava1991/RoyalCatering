@@ -146,6 +146,12 @@ table 50035 "Purchase Indent Header"
             DataClassification = ToBeClassified;
             Editable = false;
         }
+        field(15; "Total Unit Cost"; Decimal)
+        {
+            FieldClass = FlowField;
+            CalcFormula = sum ("Purchase Indent Line"."Unit Cost" where("Document No." = field("No.")));
+            Editable = false;
+        }
 
     }
 
@@ -480,7 +486,9 @@ table 50035 "Purchase Indent Header"
                     PurchOrderLine2.SetRange("Document No.", PurchOrderHeader."No.");
                     if PurchOrderLine2.FindLast() then
                         NextLineNo := PurchOrderLine2."Line No.";
-                    ReqWkshMakeOrder.SendQuoteMail(PurchOrderHeader);
+                    PurchSetup.Get();
+                    if PurchSetup."Quotation Mail Send" = true then
+                        ReqWkshMakeOrder.SendQuoteMail(PurchOrderHeader);
                 until VendorG.Next() = 0;
         end;
     end;
@@ -519,7 +527,10 @@ table 50035 "Purchase Indent Header"
         RecRefVar := PurchOrderHeader."Ref. Requisition ID".GetRecord();
 
         PurchOrderHeader."Requisition Reference" := COPYSTR(Format(PurchOrderHeader."Ref. Requisition ID", 0, 0), (strlen(RecRefVar.Caption) + 3));
+        PurchOrderHeader."Last date for Quote Submission" := CalcDate(PurchSetup."Quote Submission Lead Time", PurchOrderHeader."Order Date");
         //PurchOrderHeader."Requisition Reference" := Format(PurchOrderHeader."Ref. Requisition ID",0,0);
+        if PurchSetup."Quotation Mail Send" = true then
+            PurchOrderHeader."Mail Sent" := true;
         PurchOrderHeader.Modify();
         PurchOrderHeader.Mark(true);
     end;

@@ -3668,40 +3668,6 @@
               <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Textbox Name="Textbox21">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>=First(Fields!CompInfoGCity.Value, "DataSet_Result")+" - "+First(Fields!CompInfoGPostCode.Value, "DataSet_Result")</Value>
-                    <Style>
-                      <FontSize>8pt</FontSize>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Left</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox13</rd:DefaultName>
-            <Top>5.73915in</Top>
-            <Left>0.06942in</Left>
-            <Height>0.18751in</Height>
-            <Width>3in</Width>
-            <ZIndex>8</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
           <Textbox Name="Textbox17">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
@@ -3709,7 +3675,7 @@
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>="Main Branch No : "+First(Fields!CompInfoGBranchNo.Value, "DataSet_Result")</Value>
+                    <Value>="Bank Address : "+First(Fields!CompInfoGBranchNo.Value, "DataSet_Result")</Value>
                     <Style>
                       <FontSize>8pt</FontSize>
                     </Style>
@@ -3723,9 +3689,9 @@
             <rd:DefaultName>Textbox13</rd:DefaultName>
             <Top>5.57248in</Top>
             <Left>0.06942in</Left>
-            <Height>0.16667in</Height>
+            <Height>0.54169in</Height>
             <Width>3in</Width>
-            <ZIndex>9</ZIndex>
+            <ZIndex>8</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -3759,7 +3725,7 @@
             <Left>0.06942in</Left>
             <Height>0.18751in</Height>
             <Width>3in</Width>
-            <ZIndex>10</ZIndex>
+            <ZIndex>9</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -3794,41 +3760,7 @@
             <Left>0.06942in</Left>
             <Height>0.16667in</Height>
             <Width>3in</Width>
-            <ZIndex>11</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
-          <Textbox Name="Textbox27">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>=First(Fields!CompInfoGRegion.Value, "DataSet_Result")</Value>
-                    <Style>
-                      <FontSize>8pt</FontSize>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style>
-                  <TextAlign>Left</TextAlign>
-                </Style>
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox13</rd:DefaultName>
-            <Top>5.92666in</Top>
-            <Left>0.06942in</Left>
-            <Height>0.18751in</Height>
-            <Width>3in</Width>
-            <ZIndex>12</ZIndex>
+            <ZIndex>10</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -3863,7 +3795,7 @@
             <Left>4.34594in</Left>
             <Height>0.1875in</Height>
             <Width>3.1875in</Width>
-            <ZIndex>13</ZIndex>
+            <ZIndex>11</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>

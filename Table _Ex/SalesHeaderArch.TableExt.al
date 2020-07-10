@@ -1,4 +1,4 @@
-tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetTableId
+tableextension 50000 "Sales Header Arch" extends "Sales Header Archive"
 {
     fields
     {
@@ -6,31 +6,6 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
         modify("Location Code")
         {
             Description = 'Project Location';
-        }
-        modify("Shortcut Dimension 1 Code")
-        {
-            trigger OnAfterValidate()
-            var
-                DimValL: Record "Dimension Value";
-                GenLedSetupL: Record "General Ledger Setup";
-
-            begin
-                GenLedSetupL.Get();
-                DimValL.Reset();
-                DimValL.SetRange("Dimension Code", GenLedSetupL."Project Dimension Code :");
-                DimValL.SetRange(Code, "Shortcut Dimension 1 Code");
-                if DimValL.FindFirst() then
-                    "Project Description" := DimValL.Name;
-
-                JobsG.Reset();
-                JobsG.SetRange("Global Dimension 1 Code", "Shortcut Dimension 1 Code");   //020420
-                if JobsG.FindFirst() then begin
-                    validate("Location Code", JobsG."Project Location");
-                    "Project Location Name" := JobsG."Project Location Name";
-                    "kitchen Location" := JobsG."kitchen Location";
-                    "kitchen Location Name" := JobsG."kitchen Location Name";
-                end;
-            end;
         }
         field(50005; "Project Location Name"; TExt[100])
         {
@@ -63,11 +38,6 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
             OptionCaption = ' ,Events,Contract,Counter Sale,Facility Management,Contract-Event,Others';
             Editable = true;
             DataClassification = CustomerContent;
-            trigger OnValidate()
-            begin
-                if "Type of Sale" in ["Type of Sale"::Contract, "Type of Sale"::"Contract-Event"] then
-                    "Status of event" := "Status of event"::Definite;
-            end;
         }
         field(50011; "Prepared By"; Code[20])
         {
@@ -92,38 +62,12 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
         {
             Caption = 'Date of function start';
             DataClassification = CustomerContent;
-            trigger OnValidate()
-            begin
-                //TestField("Shortcut Dimension 1 Code");
-                if "Shortcut Dimension 1 Code" <> '' then begin
-                    JobsG.Reset();
-                    JobsG.SetRange("Global Dimension 1 Code", "Shortcut Dimension 1 Code");   //020420
-                    if JobsG.FindFirst() then
-                        if ("Date of function start" < JobsG."Starting Date") or (("Date of function start" > JobsG."Ending Date")) then
-                            error('Start date should be within the range from %1 to %2', JobsG."Starting Date", JobsG."Ending Date");
-                end else
-                    "Date of function end" := 0D;
 
-            end;
         }
         field(50015; "Date of function end"; Date)
         {
             Caption = 'Date of function end';
             DataClassification = CustomerContent;
-            trigger OnValidate()
-            begin
-                testField("Date of function start");
-                if "Shortcut Dimension 1 Code" <> '' then begin
-                    JobsG.Reset();
-                    JobsG.SetRange("Global Dimension 1 Code", "Shortcut Dimension 1 Code");   //020420
-                    if JobsG.FindFirst() then
-                        if ("Date of function end" < JobsG."Starting Date") or (("Date of function end" > JobsG."Ending Date")) then
-                            error('End date should be within the range from %1 to %2', JobsG."Starting Date", JobsG."Ending Date");
-
-                end else
-                    if ("Date of function end" < "Date of function start") then
-                        error('End date should be grater than Event Start Date %1', "Date of function start");
-            end;
         }
         field(50016; "Start Time"; Text[1000])
         {
@@ -334,23 +278,7 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
         {
             TableRelation = Contact;
             DataClassification = CustomerContent;
-            trigger OnValidate()
-            var
-                ContactL: Record Contact;
-            begin
-                if "Enquiry Contact No." <> '' then begin
-                    if ContactL.Get("Enquiry Contact No.") then begin
-                        "Enquiry Contact Name" := ContactL.Name;
-                        if ContactL.Type = ContactL.Type::Company then
-                            "Contact Type" := "Contact Type"::Company
-                        else
-                            "Contact Type" := "Contact Type"::Person;
-                    end;
-                end else begin
-                    "Enquiry Contact Name" := '';
-                    "Contact Type" := "Contact Type"::" ";
-                end;
-            end;
+
         }
         field(50059; "Enquiry Contact Name"; Text[120])
         {
@@ -384,48 +312,10 @@ tableextension 50054 "Sales Header Extension" extends "Sales Header" //MyTargetT
             Caption = 'Banquet Order Status';
             OptionCaption = 'Open,Inprocess,BO Released,BO Cancelled';
             OptionMembers = "Open","Inprocess","BO Released","BO Cancelled";
-            trigger OnValidate()
-            var
-                ArchiveManagement: Codeunit ArchiveManagement;
-            begin
-                if Released then
-                    ArchiveManagement.ArchiveSalesDocument(XRec);   //
-                if "Banquet Order Status" = "Banquet Order Status"::"BO Released" then
-                    Released := true;
-            end;
-        }
-        field(50065; "Released"; Boolean)
-        {
-            Caption = 'Released';
-            DataClassification = CustomerContent;
-            Editable = false;
         }
 
     }
     var
         SalesHeader: Record "Sales Header";
-
-    procedure AssistEditCust(OldSalesHeader: Record "Sales Header"): Boolean
-    var
-        SalesHeader2: Record "Sales Header";
-        SalesSetupG: Record "Sales & Receivables Setup";
-        NoSeriesMgt: Codeunit NoSeriesManagement;
-        Text50050: Label 'The sales %1 %2 already exists.';
-    begin
-        with SalesHeader do begin
-            Copy(Rec);
-            SalesSetupG.Get();
-            SalesSetupG.TestField("BEO Nos.");
-            if NoSeriesMgt.SelectSeries(SalesSetupG."BEO Nos.", OldSalesHeader."No. Series", "No. Series") then begin
-                NoSeriesMgt.SetSeries("No.");
-                if SalesHeader2.Get("Document Type", "No.") then
-                    Error(Text50050, LowerCase(Format("Document Type")), "No.");
-                Rec := SalesHeader;
-                exit(true);
-            end;
-        end;
-    end;
-
-    var
         JobsG: Record Job;
 }

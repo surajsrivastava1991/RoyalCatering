@@ -19,6 +19,7 @@ pageextension 50022 "Item Card Ext" extends "Item Card"
                 }
                 field("Production Unit of Measure"; "Production Unit of Measure")
                 {
+                    Caption = 'Production Plan/BOM UOM';
                     ApplicationArea = all;
                     ToolTip = 'Table field';
                 }

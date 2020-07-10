@@ -3,6 +3,7 @@ page 50005 "Cust. Gen Jnl. Temp. Approval"
     ApplicationArea = Basic, Suite;
     Caption = 'General - Journal Batch Temp. - Approval';
     PageType = List;
+    PromotedActionCategories = 'New,Process,Page';
     SourceTable = "Gen. Journal Template";
     SourceTableView = sorting(Name) where("Custumised Jnl." = const(true), Type = const(General));
     UsageCategory = Administration;

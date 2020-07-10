@@ -3,6 +3,7 @@ page 50009 "Cash Receipt Jnl. Templates"
     ApplicationArea = Basic, Suite;
     Caption = 'Cash Receipt - Jnl. Batch Templates';
     PageType = List;
+    PromotedActionCategories = 'New,Process,Page,Navigate';
     SourceTable = "Gen. Journal Template";
     SourceTableView = sorting(Name) where("Custumised Jnl." = const(true), Type = const("Cash Receipts"));
     UsageCategory = Administration;

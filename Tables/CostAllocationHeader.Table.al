@@ -77,6 +77,12 @@ table 50002 "Cost Allocation Header"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(14; "Recipe Cost"; Decimal)
+        {
+            FieldClass = FlowField;
+            CalcFormula = sum ("Cost Allocation Line"."Recipe Cost" where("from Date" = field("From Date"), "To Date" = field("To Date"), "Bulk Location" = field("Bulk Location")));
+            Editable = false;
+        }
     }
 
     keys

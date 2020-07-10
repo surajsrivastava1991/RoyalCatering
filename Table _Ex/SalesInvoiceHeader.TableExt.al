@@ -6,5 +6,10 @@ tableextension 50091 "Sales Invoice Header" extends "Sales Invoice Header"
         {
             DataClassification = CustomerContent;
         }
+        field(50063; "Bank Code"; Code[20])
+        {
+            DataClassification = CustomerContent;
+            TableRelation = "Bank Account";
+        }
     }
 }

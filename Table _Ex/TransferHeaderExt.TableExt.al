@@ -7,6 +7,12 @@ tableextension 50060 "Transfer Header Ext." extends "Transfer Header"
             Caption = 'Req. Document No.';
             DataClassification = ToBeClassified;
         }
+        field(50001; "Total Unit Cost"; Decimal)
+        {
+            FieldClass = FlowField;
+            CalcFormula = sum ("Transfer Line"."Total Amount" where("Document No." = field("No.")));
+            Editable = false;
+        }
     }
 
 }

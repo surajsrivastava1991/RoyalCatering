@@ -4,11 +4,13 @@ tableextension 50059 "Requisition Line Ext" extends "Requisition Line"
     {
         field(50000; "Req. Document No."; Code[20])
         {
+            Editable = false;
             Caption = 'Req. Document No.';
             DataClassification = CustomerContent;
         }
         field(50001; "Req. Line No."; Integer)
         {
+            Editable = false;
             Caption = 'Req. Line No.';
             DataClassification = CustomerContent;
         }

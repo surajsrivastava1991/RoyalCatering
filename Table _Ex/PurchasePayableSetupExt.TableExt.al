@@ -130,35 +130,46 @@ tableextension 50050 "Purchase & Payable Setup Ext" extends "Purchases & Payable
         field(50026; "Quote_Thanking"; Text[100])
         {
             DataClassification = CustomerContent;
-            Caption = 'Thanking';
+            Caption = 'Signature 1';
 
         }
         field(50027; "Quote_Person Singnature"; Text[100])
         {
             DataClassification = CustomerContent;
-            Caption = 'Person Singnature';
+            Caption = 'Signature 2';
         }
         field(50028; "Quote_Signature (Company Name)"; Text[100])
         {
             DataClassification = CustomerContent;
-            Caption = 'Signature (Company Name)';
+            Caption = 'Signature 3';
         }
         field(50029; "Quote_Singnature 1"; Text[100])
         {
             DataClassification = CustomerContent;
+            Caption = 'Signature 4';
         }
         field(50030; "Quote_Singnature 2"; Text[100])
         {
             DataClassification = CustomerContent;
+            Caption = 'Signature 5';
         }
         field(50031; "Quote_Singnature 3"; Text[100])
         {
             DataClassification = CustomerContent;
+            Caption = 'Signature 6';
         }
         field(50032; "Quote_Signature Image"; Blob)
         {
             DataClassification = CustomerContent;
             Subtype = Bitmap;
+        }
+        field(50033; "Quote Submission Lead Time"; DateFormula)
+        {
+            DataClassification = CustomerContent;
+        }
+        field(50034; "Quotation Mail Send"; Boolean)
+        {
+            DataClassification = CustomerContent;
         }
     }
 }

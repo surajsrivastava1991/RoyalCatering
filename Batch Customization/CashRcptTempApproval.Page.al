@@ -3,6 +3,8 @@ page 50011 "Cash Rcpt. Temp. Approval"
     ApplicationArea = Basic, Suite;
     Caption = 'Cash Receipt - Jnl. Batch Temp. - Approval';
     PageType = List;
+    PromotedActionCategories = 'New,Process,Page,Navigate';
+
     SourceTable = "gen. Journal Template";
     SourceTableView = sorting(Name) where("Custumised Jnl." = const(true), Type = const("Cash Receipts"));
     UsageCategory = Administration;

@@ -48,16 +48,19 @@ page 50045 "FA Indent Subpage"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
+                    Visible = PurchaserVisibility;
                 }
                 field("Replenishment Type"; "Replenishment Type")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
+                    Visible = PurchaserVisibility;
                 }
                 field("Order/Quote"; "Order/Quote")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
+                    Visible = PurchaserVisibility;
                 }
                 field("Vendors For Quotation"; "Vendors For Quotation")
                 {
@@ -73,6 +76,7 @@ page 50045 "FA Indent Subpage"
                 {
                     ApplicationArea = All;
                     ToolTip = 'table fields';
+                    Visible = PurchaserVisibility;
                 }
                 field("Receiving Location"; "Receiving Location")
                 {
@@ -93,6 +97,7 @@ page 50045 "FA Indent Subpage"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table fields';
+                    Visible = PurchaserVisibility;
                 }
                 field("Requested Date"; "Requested Date")
                 {
@@ -104,11 +109,13 @@ page 50045 "FA Indent Subpage"
                     Caption = 'Vendor Trade Agreement';
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
+                    Visible = PurchaserVisibility;
                 }
                 field("Purchase quote mandatory"; "Purchase quote mandatory")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Table Fields';
+                    Visible = PurchaserVisibility;
                 }
                 field("Transaction Status"; "Transaction Status")
                 {
@@ -145,7 +152,74 @@ page 50045 "FA Indent Subpage"
         Type := Type::"Fixed Asset";
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        /*
+        PurchaserVisibility := false;
+        if PurchIndentHdrG.Get("Document No.") then
+            if (PurIndentApprovalCUG.IsPurchaseIndentDocumentApprovalsWorkflowEnabled(PurchIndentHdrG)) then
+                if WorkflowMngmntCU.FindEventWorkflowStepInstance(ActionableWorkflowStepInstance, PurIndentApprovalCUG.RunWorkflowOnSendPurchaseIndentDocumentForApprovalCode(), PurchIndentHdrG, PurchIndentHdrG) then begin
+                    WorkflowMngmntCU.FindResponse(ResponseWorkflowStepInstance, ActionableWorkflowStepInstance);
+                    ResponseWorkflowStepInstanceCopy.Copy(ResponseWorkflowStepInstance);
+                    ResponseWorkflowStepInstanceCopy.SetRange("Previous Workflow Step ID");
+                    ResponseWorkflowStepInstanceCopy.SetRange("Function Name", ResponseHandlingCUG.CreateApprovalRequestsCode());
+                    if ResponseWorkflowStepInstanceCopy.FindFirst() then
+                        if WorkflowStepArgument.Get(ResponseWorkflowStepInstanceCopy.Argument) then
+                            case WorkflowStepArgument."Approver Type" of
+                                WorkflowStepArgument."Approver Type"::"Salesperson/Purchaser":
+                                    PurchaserVisibility := true;
+                                WorkflowStepArgument."Approver Type"::Approver:
+                                    PurchaserVisibility := true;
+                                WorkflowStepArgument."Approver Type"::"Workflow User Group":
+                                    if WorkflowUserGroupMemG.Get(WorkflowStepArgument."Workflow User Group Code", UserId) then
+                                        if WorkflowUserGroupMemG.Purchaser = true then
+                                            PurchaserVisibility := true;
+                            end;
+                end;
+                */
+        PurchaserVisibility := false;
+        PurchIndentHdrG.Get("Document No.");
+        recidvar := PurchIndentHdrG.RecordId;
+
+        RecRefVar.Get(recidvar);
+        if not WorkflowMngmntCU.FindWorkflow(RecRefVar, RecRefVar, PurIndentApprovalCUG.RunWorkflowOnSendPurchaseIndentDocumentForApprovalCode(), Workflow) then begin
+            ActionableWorkflowStepInstance.Reset();
+            ActionableWorkflowStepInstance.SetRange("Record ID", PurchIndentHdrG.RecordId);
+            if ActionableWorkflowStepInstance.FindFirst() then
+                Workflow.Get(ActionableWorkflowStepInstance."Workflow Code")
+            else
+                exit;
+        end;
+        WorkflowStep.SetRange("Workflow Code", Workflow.Code);
+        WorkflowStep.SetRange("Function Name", ResponseHandlingCUG.CreateApprovalRequestsCode());
+        WorkflowStep.SetRange("Entry Point", false);
+        if WorkflowStep.FindLast() then
+            if WorkflowStepArgument.Get(WorkflowStep.Argument) then
+                case WorkflowStepArgument."Approver Type" of
+                    WorkflowStepArgument."Approver Type"::"Salesperson/Purchaser":
+                        PurchaserVisibility := true;
+                    WorkflowStepArgument."Approver Type"::Approver:
+                        PurchaserVisibility := true;
+                    WorkflowStepArgument."Approver Type"::"Workflow User Group":
+                        if WorkflowUserGroupMemG.Get(WorkflowStepArgument."Workflow User Group Code", UserId) then
+                            if WorkflowUserGroupMemG.Purchaser = true then
+                                PurchaserVisibility := true;
+                end;
+    end;
+
     var
         PurchIndentHdrG: Record "Purchase Indent Header";
-
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        ActionableWorkflowStepInstance: Record "Workflow Step Instance";
+        ResponseWorkflowStepInstance: Record "Workflow Step Instance";
+        ResponseWorkflowStepInstanceCopy: Record "Workflow Step Instance";
+        WorkflowUserGroupMemG: Record "Workflow User Group Member";
+        PurIndentApprovalCUG: Codeunit "Purchase Indent Workflow";
+        ResponseHandlingCUG: Codeunit "Workflow Response Handling";
+        WorkflowMngmntCU: Codeunit "Workflow Management";
+        PurchaserVisibility: Boolean;
+        WorkflowStep: Record "Workflow Step";
+        Workflow: Record Workflow;
+        RecRefVar: RecordRef;
+        recidvar: RecordId;
 }

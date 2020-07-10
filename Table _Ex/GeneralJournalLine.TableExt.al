@@ -116,6 +116,11 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
                 "Ext Amount" := Amount;
             end;
         }
+        field(50010; "Preview Done"; Boolean)   //02/07/20
+        {
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
 
 
@@ -135,6 +140,11 @@ tableextension 50041 "General Journal Line" extends "Gen. Journal Line"
         NarrationL.SetRange("Document No.", "Document No.");
         NarrationL.SetRange("Gen. Journal Line No.", "Line No.");
         NarrationL.DeleteAll();
+    end;
+
+    trigger OnAfterInsert()
+    begin
+        //
     end;
 
     procedure CreateLineNarration(LineNoP: Integer; NarrationTextP: Text[50])

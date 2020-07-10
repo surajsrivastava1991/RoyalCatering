@@ -115,6 +115,11 @@ pageextension 50050 "Purch & Payabale Setup Ext" extends "Purchases & Payables S
         {
             group("Quote Email Body")
             {
+                field("Quotation Mail Send"; "Quotation Mail Send")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Table field';
+                }
                 field(Quote_Salutation; Quote_Salutation)
                 {
                     ApplicationArea = all;
@@ -168,6 +173,7 @@ pageextension 50050 "Purch & Payabale Setup Ext" extends "Purchases & Payables S
                 }
                 field("Quote_Signature Image"; "Quote_Signature Image")
                 {
+                    Visible = false;
                     ApplicationArea = all;
                     ToolTip = 'Signature Image';
                 }

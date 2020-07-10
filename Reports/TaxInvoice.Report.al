@@ -33,11 +33,11 @@ report 50002 "Tax Invoice"
             {
 
             }
-            column(CompInfoGRegion; CompInfoG."Country/Region Code")
+            column(CompInfoGRegion; CompInfoGRegion)
             {
 
             }
-            column(CompInfoG_SwiftCode; CompInfoG."SWIFT Code")
+            column(CompInfoG_SwiftCode; CompInfoG_SwiftCode)
             {
 
             }
@@ -45,9 +45,9 @@ report 50002 "Tax Invoice"
             {
 
             }
-            column(CompInfoGPostCode; CompInfoG."Post Code")
+            column(CompInfoGPostCode; CompInfoGPostCode)
             { }
-            column(CompInfoGCity; CompInfoG.City)
+            column(CompInfoGCity; CompInfoGCity)
             { }
             column(CompInfoGEmail; CompInfoG."E-Mail")
             { }
@@ -55,7 +55,7 @@ report 50002 "Tax Invoice"
             {
 
             }
-            column(CompInfoG_BankName; CompInfoG."Bank Name")
+            column(CompInfoG_BankName; CompInfoG_BankName)
             {
 
             }
@@ -63,11 +63,11 @@ report 50002 "Tax Invoice"
             {
 
             }
-            column(CompInfoGAcNo; CompInfoG."Bank Account No.")
+            column(CompInfoGAcNo; CompInfoGAcNo)
             { }
-            column(CompInfoGBranchNo; CompInfoG."Bank Branch No.")
+            column(CompInfoGBranchNo; CompInfoGBranchNo)
             { }
-            column(CompInfoGIBAN; CompInfoG.IBAN)
+            column(CompInfoGIBAN; CompInfoGIBAN)
             { }
             column(No; "No.")
             {
@@ -303,8 +303,29 @@ report 50002 "Tax Invoice"
                     CountryRegion := "Bill-to Country/Region Code";
                 end;
 
-            end;
+                if SalesInvoiceHeader."Bank Code" <> '' then begin
+                    if BankAccG.get(SalesInvoiceHeader."Bank Code") then begin
+                        CompInfoGAcNo := BankAccG."Bank Account No.";
+                        CompInfoGIBAN := BankAccG.IBAN;
+                        CompInfoG_BankName := BankAccG.Name;
+                        CompInfoG_SwiftCode := BankAccG."SWIFT Code";
+                        CompInfoGBranchNo := BankAccG.Address + ' ' + BankAccG."Address 2" + ', ' + BankAccG.City + '-' + BankAccG."Post Code" + ', ' + BankAccG."Country/Region Code";
+                        CompInfoGCity := CompInfoG.City;
+                        CompInfoGPostCode := CompInfoG."Post Code";
+                        CompInfoGRegion := CompInfoG."Country/Region Code";
+                    end;
+                end else begin
+                    CompInfoGAcNo := CompInfoG."Bank Account No.";
+                    CompInfoGIBAN := CompInfoG.IBAN;
+                    CompInfoG_BankName := CompInfoG."Bank Name";
+                    CompInfoG_SwiftCode := CompInfoG."SWIFT Code";
+                    CompInfoGBranchNo := CompInfoG."Bank Address";
+                    CompInfoGCity := CompInfoG.City;
+                    CompInfoGPostCode := CompInfoG."Post Code";
+                    CompInfoGRegion := CompInfoG."Country/Region Code";
 
+                end;
+            end;
         }
 
     }
@@ -333,10 +354,18 @@ report 50002 "Tax Invoice"
         GLEntryG: record "General Ledger Setup";
         CustomerG: Record Customer;
         ContactG: Record Contact;
+        BankAccG: Record "Bank Account";
 
         CheckG: Report Check;
         AmountinWordsG: array[1] of Text;
-
+        CompInfoGAcNo: Code[50];
+        CompInfoGIBAN: Code[50];
+        CompInfoG_BankName: Text[250];
+        CompInfoG_SwiftCode: Code[20];
+        CompInfoGBranchNo: text[250];
+        CompInfoGCity: Code[30];
+        CompInfoGPostCode: Code[20];
+        CompInfoGRegion: Code[10];
         ProjectNameG: Text[50];
         FAXNo: text[30];
         VATRegNo: code[20];

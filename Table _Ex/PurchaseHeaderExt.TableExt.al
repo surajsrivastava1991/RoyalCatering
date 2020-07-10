@@ -84,6 +84,10 @@ tableextension 50051 "Purchase Header Ext" extends "Purchase Header"
             OptionCaption = 'Open,Released,Pending Approval,Pending Prepayment,Cancelled';
             OptionMembers = Open,Released,"Pending Approval","Pending Prepayment",Cancelled;
         }
+        field(50010; "Last date for Quote Submission"; Date)
+        {
+            DataClassification = CustomerContent;
+        }
         modify(Status)
         {
             trigger OnAfterValidate()

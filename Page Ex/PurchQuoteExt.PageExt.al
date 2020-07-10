@@ -17,6 +17,20 @@ pageextension 50031 "Purch. Quote Ext." extends "Purchase Quote"
                 ApplicationArea = All;
                 ToolTip = 'Table Field';
             }
+            field("Mail Sent"; "Mail Sent")
+            {
+                Editable = false;
+                ApplicationArea = All;
+                ToolTip = 'Table Field';
+            }
+        }
+        addafter("Order Date")
+        {
+            field("Last date for Quote Submission"; "Last date for Quote Submission")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Table Field';
+            }
         }
 
     }

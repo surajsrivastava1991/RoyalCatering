@@ -91,6 +91,11 @@ page 50068 "Transfer Indent"
                     ApplicationArea = All;
                     ToolTip = 'Table Field';
                 }
+                field("Total Unit Cost"; "Total Unit Cost")
+                {
+                    ApplicationArea = all;
+                    ToolTip = 'Total Unit Cost';
+                }
             }
 
 
@@ -109,6 +114,31 @@ page 50068 "Transfer Indent"
     {
         area(processing)
         {
+            group("Attachment")
+            {
+                Caption = 'Attachment';
+                Image = Attachments;
+                action(DocAttach1)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Attachments';
+                    Image = Attach;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedCategory = Process;
+                    ToolTip = 'Add a file as an attachment. You can attach images as well as documents.';
+
+                    trigger OnAction()
+                    var
+                        DocumentAttachmentDetails: Page "Attachment Document";
+                        RecRef: RecordRef;
+                    begin
+                        RecRef.GetTable(Rec);
+                        DocumentAttachmentDetails.OpenForRecRef(RecRef);
+                        DocumentAttachmentDetails.RunModal();
+                    end;
+                }
+            }
             group(Approval)
             {
                 Caption = 'Approval';
@@ -239,6 +269,7 @@ page 50068 "Transfer Indent"
                     end;
                 }
             }
+
             group("Request Approval")
             {
                 Caption = 'Request Approval';

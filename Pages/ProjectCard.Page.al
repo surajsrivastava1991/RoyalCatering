@@ -142,7 +142,7 @@ page 50007 "Project Card"
 
                     trigger OnAction()
                     var
-                        DocumentAttachmentDetails: Page "Document Attachment Details";
+                        DocumentAttachmentDetails: Page "Attachment Document";
                         RecRef: RecordRef;
                     begin
                         RecRef.GetTable(Rec);

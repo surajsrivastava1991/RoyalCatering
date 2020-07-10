@@ -10,7 +10,7 @@ page 50065 "Banquet Enquiry List"
     QueryCategory = 'Sales Order List';
     RefreshOnActivate = true;
     SourceTable = "Sales Header";
-    SourceTableView = WHERE("Document Type" = CONST(Order));
+    SourceTableView = WHERE("Document Type" = CONST(Order), "Type of Sale" = filter('Events|contract-Event'));
     UsageCategory = Lists;
 
     layout

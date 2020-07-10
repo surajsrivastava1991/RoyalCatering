@@ -382,6 +382,16 @@ page 50070 "Approved requisitions"
                     ApplicationArea = Planning;
                     ToolTip = 'Table Fields';
                 }
+                field("Req. Document No."; "Req. Document No.")
+                {
+                    ApplicationArea = Planning;
+                    ToolTip = 'Table Fields';
+                }
+                field("Req. Line No."; "Req. Line No.")
+                {
+                    ApplicationArea = Planning;
+                    ToolTip = 'Table Fields';
+                }
             }
             group(Control20)
             {
