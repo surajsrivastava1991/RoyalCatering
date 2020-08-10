@@ -3,13 +3,13 @@
   "name": "Royal Catering",
   "publisher": "Aplica",
   "version": "1.0.0.0",
-  "brief": "",
-  "description": "",
-  "privacyStatement": "",
-  "EULA": "",
-  "help": "",
-  "url": "",
-  "logo": "",
+  "brief": "Aplica ERP Support",
+  "description": "New Extension is created by AplicaTech for new development instead of modifying old extension",
+  "privacyStatement": "https://RoyalCaterin.com.com/",
+  "EULA": "https://RoyalCaterin.com/",
+  "help": "https://RoyalCaterin.com/",
+  "url": "https://RoyalCaterin.com/",
+  "logo": "./res/logo.jpeg",
   "dependencies": [
     {
       "appId": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
@@ -29,10 +29,11 @@
   "idRanges": [
     {
       "from": 50000,
-      "to": 50149
+      "to": 60149
     }
   ],
   "contextSensitiveHelpUrl": "https://RoyalCaterin.com/help/",
   "showMyCode": true,
-  "runtime": "4.0"
+  "runtime": "4.0",
+  "features": ["TranslationFile"]
 }
